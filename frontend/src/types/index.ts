@@ -57,6 +57,11 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface JwtPayload { 
+  id: string; 
+  email: string; 
+}
+
 // ─── Input types (forms / API request bodies) ────────────────────────────────
 
 export interface RegisterInput {
