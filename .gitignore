@@ -1,0 +1,22 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Project summary (local context only)
+PROJECT_SUMMARY.md
+PROJECT_INSTRUCTION.md
