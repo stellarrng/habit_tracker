@@ -2,12 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import HabitsPage from './pages/HabitsPage';
-import GoalsPage from './pages/GoalsPage';
-import TodayPage from './pages/TodayPage';
+import LoginPage from './pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
+import DashboardPage from './pages/Dashboard/DashboardPage';
+import HabitsPage from './pages/Habits/HabitsPage';
+import GoalsPage from './pages/Goals/GoalsPage';
+import TodayPage from './pages/Today/TodayPage';
 
 export default function App() {
   return (
@@ -20,9 +20,9 @@ export default function App() {
 
           {/* Protected */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/habits"    element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
-          <Route path="/goals"     element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
-          <Route path="/today"     element={<ProtectedRoute><TodayPage /></ProtectedRoute>} />
+          <Route path="/habits" element={<ProtectedRoute><HabitsPage /></ProtectedRoute>} />
+          <Route path="/goals" element={<ProtectedRoute><GoalsPage /></ProtectedRoute>} />
+          <Route path="/today" element={<ProtectedRoute><TodayPage /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
