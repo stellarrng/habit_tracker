@@ -1,6 +1,7 @@
 import { useHabitContext, FilterState } from '../../context/HabitContext';
 import { HabitCategory, HabitFrequency, HabitPriority, HabitStatus } from '../../types';
 import { SearchIcon } from '../shared/Icons';
+import styles from './HabitFilters.module.css';
 
 const CATEGORIES: (HabitCategory | 'All')[] = ['All', 'Health', 'Study', 'Work', 'Mindfulness', 'Other'];
 const FREQUENCIES: (HabitFrequency | 'All')[] = ['All', 'Daily', 'Specific days'];
@@ -15,12 +16,12 @@ export default function HabitFilters() {
   }
 
   return (
-    <div className="filter-row">
-      <div className="search-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginRight: '16px' }}>
+    <div className={styles.filterRow}>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginRight: '16px' }}>
         <input
           type="text"
           id="search-habits"
-          className="form-input"
+          className={styles.searchInput}
           placeholder="Search habits..."
           value={filters.search}
           onChange={e => handle('search', e.target.value)}
@@ -35,11 +36,11 @@ export default function HabitFilters() {
         </span>
       </div>
 
-      <span className="filter-label">Filter by:</span>
+      <span className={styles.filterLabel}>Filter by:</span>
 
       <select
         id="filter-category"
-        className="filter-select"
+        className={styles.filterSelect}
         value={filters.category}
         onChange={e => handle('category', e.target.value as FilterState['category'])}
       >
@@ -50,7 +51,7 @@ export default function HabitFilters() {
 
       <select
         id="filter-frequency"
-        className="filter-select"
+        className={styles.filterSelect}
         value={filters.frequency}
         onChange={e => handle('frequency', e.target.value as FilterState['frequency'])}
       >
@@ -61,7 +62,7 @@ export default function HabitFilters() {
 
       <select
         id="filter-priority"
-        className="filter-select"
+        className={styles.filterSelect}
         value={filters.priority}
         onChange={e => handle('priority', e.target.value as FilterState['priority'])}
       >
@@ -72,7 +73,7 @@ export default function HabitFilters() {
 
       <select
         id="filter-status"
-        className="filter-select"
+        className={styles.filterSelect}
         value={filters.status}
         onChange={e => handle('status', e.target.value as FilterState['status'])}
       >

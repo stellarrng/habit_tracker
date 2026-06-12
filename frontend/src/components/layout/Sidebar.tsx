@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { CalendarIcon, TargetIcon, BarChartIcon, PlusIcon } from '../shared/Icons';
+import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
   { to: '/today',     label: 'Today',  icon: 'today' },
@@ -30,24 +31,24 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
   }
 
   return (
-    <aside className="app-sidebar">
+    <aside className={styles.appSidebar}>
       {/* Brand */}
-      <div className="sidebar-brand">
-        <div className="sidebar-brand-name">HabitFlow</div>
-        <div className="sidebar-brand-sub">Stay consistent</div>
+      <div className={styles.sidebarBrand}>
+        <div className={styles.sidebarBrandName}>HabitFlow</div>
+        <div className={styles.sidebarBrandSub}>Stay consistent</div>
       </div>
 
       {/* Nav */}
-      <nav className="sidebar-nav">
+      <nav className={styles.sidebarNav}>
         {NAV_ITEMS.map(item => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              'sidebar-nav-item' + (isActive ? ' active' : '')
+              `${styles.sidebarNavItem} ${isActive ? styles.active : ''}`
             }
           >
-            <span className="nav-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+            <span className={styles.navIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
               {getNavIcon(item.icon)}
             </span>
             {item.label}
@@ -56,16 +57,16 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
       </nav>
 
       {/* CTA */}
-      <button className="sidebar-new-habit" onClick={onNewHabit} id="sidebar-new-habit-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+      <button className={styles.sidebarNewHabit} onClick={onNewHabit} id="sidebar-new-habit-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <PlusIcon /> New Habit
       </button>
 
       {/* User */}
-      <div className="sidebar-user">
-        <div className="sidebar-avatar">{initials}</div>
+      <div className={styles.sidebarUser}>
+        <div className={styles.sidebarAvatar}>{initials}</div>
         <div>
-          <div className="sidebar-user-name">{user?.name ?? 'Guest'}</div>
-          <div className="sidebar-user-plan">
+          <div className={styles.sidebarUserName}>{user?.name ?? 'Guest'}</div>
+          <div className={styles.sidebarUserPlan}>
             <button
               onClick={() => { logout(); navigate('/login'); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0 }}

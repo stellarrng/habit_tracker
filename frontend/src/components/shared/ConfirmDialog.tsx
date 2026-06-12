@@ -1,4 +1,5 @@
-import { CloseIcon, InfoIcon, AlertCircleIcon } from './Icons';
+import { InfoIcon, AlertCircleIcon } from './Icons';
+import styles from './ConfirmDialog.module.css';
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -37,24 +38,24 @@ export default function ConfirmDialog({
 
   const confirmBtnClass =
     type === 'danger'
-      ? 'btn btn-danger-solid'
+      ? `btn ${styles.btnDangerSolid}`
       : type === 'warning'
-      ? 'btn btn-warning'
+      ? `btn ${styles.btnWarning}`
       : 'btn btn-primary';
 
   return (
-    <div className="confirm-backdrop" onClick={e => { if (e.target === e.currentTarget) onCancel(); }}>
-      <div className="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-        <div className="confirm-body">
-          <div className={`confirm-icon-wrapper confirm-icon-${type}`}>
+    <div className={styles.confirmBackdrop} onClick={e => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className={styles.confirmDialog} role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <div className={styles.confirmBody}>
+          <div className={`${styles.confirmIconWrapper} ${styles['confirmIcon_' + type]}`}>
             {renderIcon()}
           </div>
-          <div className="confirm-content">
-            <h3 className="confirm-title" id="confirm-title">{title}</h3>
-            <p className="confirm-message">{message}</p>
+          <div className={styles.confirmContent}>
+            <h3 className={styles.confirmTitle} id="confirm-title">{title}</h3>
+            <p className={styles.confirmMessage}>{message}</p>
           </div>
         </div>
-        <div className="confirm-footer">
+        <div className={styles.confirmFooter}>
           <button type="button" className="btn btn-secondary" onClick={onCancel}>
             {cancelLabel}
           </button>

@@ -1,4 +1,5 @@
 import { AlertCircleIcon, CloseIcon } from './Icons';
+import styles from './ErrorMessage.module.css';
 
 interface ErrorMessageProps {
   message: string;
@@ -7,7 +8,7 @@ interface ErrorMessageProps {
 
 export default function ErrorMessage({ message, onDismiss }: ErrorMessageProps) {
   return (
-    <div className="error-banner" role="alert" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div className={styles.errorBanner} role="alert" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <AlertCircleIcon style={{ flexShrink: 0, width: 18, height: 18 }} />
       <span style={{ flex: 1 }}>{message}</span>
       {onDismiss && (

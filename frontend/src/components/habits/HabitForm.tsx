@@ -3,6 +3,7 @@ import { Habit, HabitCategory, HabitFrequency, HabitPriority, WeekDay, CreateHab
 import { useHabitContext } from '../../context/HabitContext';
 import { CloseIcon } from '../shared/Icons';
 import ConfirmDialog from '../shared/ConfirmDialog';
+import styles from './HabitForm.module.css';
 
 const CATEGORIES: HabitCategory[]  = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'];
 const FREQUENCIES: HabitFrequency[] = ['Daily', 'Specific days'];
@@ -138,15 +139,15 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="habit-form-title">
+    <div className={styles.modalBackdrop} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="habit-form-title">
         {/* Header */}
-        <div className="modal-header">
-          <h2 className="modal-title" id="habit-form-title">
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle} id="habit-form-title">
             {isEdit ? 'Edit Habit' : 'Add New Habit'}
           </h2>
           <button
-            className="modal-close"
+            className={styles.modalClose}
             onClick={onClose}
             aria-label="Close"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
@@ -157,28 +158,28 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
 
         <form onSubmit={handleSubmit} noValidate>
           {/* Habit Name */}
-          <div className="form-group" style={{ marginBottom: 18 }}>
-            <label className="form-label" htmlFor="habit-name">
+          <div className={styles.formGroup} style={{ marginBottom: 18 }}>
+            <label className={styles.formLabel} htmlFor="habit-name">
               Habit Name <span>*</span>
             </label>
             <input
               id="habit-name"
               type="text"
-              className={`form-input ${errors.name ? 'error' : ''}`}
+              className={`${styles.formInput} ${errors.name ? styles.error : ''}`}
               placeholder="e.g., Morning Meditation"
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               maxLength={80}
             />
-            {errors.name && <span className="form-error">{errors.name}</span>}
+            {errors.name && <span className={styles.formError}>{errors.name}</span>}
           </div>
 
           {/* Category */}
-          <div className="form-group" style={{ marginBottom: 18 }}>
-            <label className="form-label" htmlFor="habit-category">Category <span>*</span></label>
+          <div className={styles.formGroup} style={{ marginBottom: 18 }}>
+            <label className={styles.formLabel} htmlFor="habit-category">Category <span>*</span></label>
             <select
               id="habit-category"
-              className={`form-select ${errors.category ? 'error' : ''}`}
+              className={`${styles.formSelect} ${errors.category ? styles.error : ''}`}
               value={form.category}
               onChange={e => setForm(p => ({ ...p, category: e.target.value as HabitCategory }))}
             >
@@ -187,12 +188,12 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           </div>
 
           {/* Frequency + Priority */}
-          <div className="form-grid-2" style={{ marginBottom: 18 }}>
-            <div className="form-group">
-              <label className="form-label" htmlFor="habit-frequency">Frequency <span>*</span></label>
+          <div className={styles.formGrid2} style={{ marginBottom: 18 }}>
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel} htmlFor="habit-frequency">Frequency <span>*</span></label>
               <select
                 id="habit-frequency"
-                className="form-select"
+                className={styles.formSelect}
                 value={form.frequency}
                 onChange={e => setForm(p => ({ ...p, frequency: e.target.value as HabitFrequency, specificDays: [] }))}
               >
@@ -200,32 +201,35 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Priority <span>*</span></label>
-              <div className="priority-group" role="group" aria-label="Select priority">
-                {PRIORITIES.map(p => (
-                  <button
-                    key={p} type="button"
-                    className={`priority-btn ${form.priority === p ? `sel-${p.toLowerCase()}` : ''}`}
-                    onClick={() => setForm(prev => ({ ...prev, priority: p }))}
-                    id={`priority-${p.toLowerCase()}`}
-                  >
-                    {p.toUpperCase().slice(0, 3)}
-                  </button>
-                ))}
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>Priority <span>*</span></label>
+              <div className={styles.priorityGroup} role="group" aria-label="Select priority">
+                {PRIORITIES.map(p => {
+                  const selClass = p === 'Low' ? styles.selLow : p === 'Medium' ? styles.selMedium : styles.selHigh;
+                  return (
+                    <button
+                      key={p} type="button"
+                      className={`${styles.priorityBtn} ${form.priority === p ? selClass : ''}`}
+                      onClick={() => setForm(prev => ({ ...prev, priority: p }))}
+                      id={`priority-${p.toLowerCase()}`}
+                    >
+                      {p.toUpperCase().slice(0, 3)}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
           {/* Specific days */}
           {form.frequency === 'Specific days' && (
-            <div className="form-group" style={{ marginBottom: 18 }}>
-              <label className="form-label">Days of the Week <span>*</span></label>
-              <div className="days-picker">
+            <div className={styles.formGroup} style={{ marginBottom: 18 }}>
+              <label className={styles.formLabel}>Days of the Week <span>*</span></label>
+              <div className={styles.daysPicker}>
                 {WEEK_DAYS.map(day => (
                   <button
                     key={day} type="button"
-                    className={`day-btn ${form.specificDays.includes(day) ? 'selected' : ''}`}
+                    className={`${styles.dayBtn} ${form.specificDays.includes(day) ? styles.selected : ''}`}
                     onClick={() => toggleDay(day)}
                     id={`day-${day}`}
                   >
@@ -233,18 +237,18 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
                   </button>
                 ))}
               </div>
-              {errors.specificDays && <span className="form-error">{errors.specificDays}</span>}
+              {errors.specificDays && <span className={styles.formError}>{errors.specificDays}</span>}
             </div>
           )}
 
           {/* Goal / Target */}
-          <div className="form-group" style={{ marginBottom: 18 }}>
-            <label className="form-label" htmlFor="habit-target">Goal / Target per day</label>
-            <div className="goal-row">
+          <div className={styles.formGroup} style={{ marginBottom: 18 }}>
+            <label className={styles.formLabel} htmlFor="habit-target">Goal / Target per day</label>
+            <div className={styles.goalRow}>
               <input
                 id="habit-target"
                 type="number"
-                className={`form-input ${errors.targetPerDay ? 'error' : ''}`}
+                className={`${styles.formInput} ${errors.targetPerDay ? styles.error : ''}`}
                 min={1}
                 value={form.targetPerDay}
                 onChange={e => {
@@ -252,16 +256,16 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
                   setForm(p => ({ ...p, targetPerDay: isNaN(v) ? 1 : Math.max(1, v) }));
                 }}
               />
-              <span className="goal-suffix">
+              <span className={styles.goalSuffix}>
                 {form.targetPerDay === 1 ? 'session / day' : 'times / day'}
               </span>
             </div>
-            {errors.targetPerDay && <span className="form-error">{errors.targetPerDay}</span>}
+            {errors.targetPerDay && <span className={styles.formError}>{errors.targetPerDay}</span>}
           </div>
 
           {/* Long-Term Goal Target */}
-          <div className="form-group" style={{ marginBottom: 18, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
-            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 600 }}>
+          <div className={styles.formGroup} style={{ marginBottom: 18, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
+            <label className={styles.formLabel} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 600 }}>
               <input
                 type="checkbox"
                 checked={form.enableGoal}
@@ -277,10 +281,10 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
             {form.enableGoal && (
               <div style={{ marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="form-label" htmlFor="goal-type" style={{ fontSize: '12px' }}>Target Type</label>
+                  <label className={styles.formLabel} htmlFor="goal-type" style={{ fontSize: '12px' }}>Target Type</label>
                   <select
                     id="goal-type"
-                    className="form-input"
+                    className={styles.formInput}
                     value={form.goalTargetType}
                     onChange={e => setForm(p => ({ ...p, goalTargetType: e.target.value as any }))}
                     style={{ padding: '8px 12px', fontSize: '14px' }}
@@ -291,12 +295,12 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className="form-label" htmlFor="goal-value" style={{ fontSize: '12px' }}>Target Value</label>
+                  <label className={styles.formLabel} htmlFor="goal-value" style={{ fontSize: '12px' }}>Target Value</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <input
                       id="goal-value"
                       type="number"
-                      className={`form-input ${errors.goalTargetValue ? 'error' : ''}`}
+                      className={`${styles.formInput} ${errors.goalTargetValue ? styles.error : ''}`}
                       min={1}
                       value={form.goalTargetValue}
                       onChange={e => {
@@ -305,22 +309,22 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
                       }}
                       style={{ maxWidth: 120 }}
                     />
-                    <span className="goal-suffix">
+                    <span className={styles.goalSuffix}>
                       {form.goalTargetType === 'Streak' ? 'days in a row' : 'completed sessions'}
                     </span>
                   </div>
-                  {errors.goalTargetValue && <span className="form-error">{errors.goalTargetValue}</span>}
+                  {errors.goalTargetValue && <span className={styles.formError}>{errors.goalTargetValue}</span>}
                 </div>
               </div>
             )}
           </div>
 
           {/* Description */}
-          <div className="form-group" style={{ marginBottom: 4 }}>
-            <label className="form-label" htmlFor="habit-description">Description</label>
+          <div className={styles.formGroup} style={{ marginBottom: 4 }}>
+            <label className={styles.formLabel} htmlFor="habit-description">Description</label>
             <textarea
               id="habit-description"
-              className="form-textarea"
+              className={styles.formTextarea}
               placeholder="Add some details about your habit…"
               value={form.description}
               onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
@@ -329,7 +333,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           </div>
 
           {/* Footer */}
-          <div className="modal-footer">
+          <div className={styles.modalFooter}>
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={submitting} id="habit-form-submit">
               {submitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Habit'}
