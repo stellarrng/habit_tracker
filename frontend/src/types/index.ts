@@ -30,6 +30,7 @@ export interface Habit {
   status: HabitStatus;
   goalTargetType?: GoalTargetType | null;
   goalTargetValue?: number | null;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,6 +82,7 @@ export interface CreateHabitInput {
   priority?: HabitPriority;
   goalTargetType?: GoalTargetType | null;
   goalTargetValue?: number | null;
+  description?: string;
 }
 
 export type UpdateHabitInput = Partial<CreateHabitInput> & { status?: HabitStatus };

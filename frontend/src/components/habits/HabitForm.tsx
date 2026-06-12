@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { Habit, HabitCategory, HabitFrequency, HabitPriority, WeekDay, CreateHabitInput, UpdateHabitInput } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import { CloseIcon } from '../shared/Icons';
+import ConfirmDialog from '../shared/ConfirmDialog';
 
 const CATEGORIES: HabitCategory[]  = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'];
 const FREQUENCIES: HabitFrequency[] = ['Daily', 'Specific days'];
@@ -37,6 +38,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
   const [form, setForm]       = useState({ ...BLANK });
   const [errors, setErrors]   = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Pre-fill form when editing
   useEffect(() => {
@@ -77,6 +79,15 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+
+    if (isEdit) {
+      setShowConfirm(true);
+    } else {
+      await saveHabit();
+    }
+  }
+
+  async function saveHabit() {
     setSubmitting(true);
     try {
       const goalTargetType = form.enableGoal ? form.goalTargetType : null;
@@ -92,6 +103,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           priority:    form.priority,
           goalTargetType,
           goalTargetValue,
+          description: form.description.trim(),
         };
         await editHabit(editingHabit._id, input);
       } else {
@@ -104,6 +116,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           priority:    form.priority,
           goalTargetType,
           goalTargetValue,
+          description: form.description.trim(),
         };
         await addHabit(input);
       }
@@ -324,6 +337,20 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           </div>
         </form>
       </div>
+      {showConfirm && (
+        <ConfirmDialog
+          isOpen={showConfirm}
+          title="Save Changes"
+          message={`Are you sure you want to save changes to "${editingHabit?.name}"?`}
+          confirmLabel="Save Changes"
+          type="info"
+          onConfirm={async () => {
+            setShowConfirm(false);
+            await saveHabit();
+          }}
+          onCancel={() => setShowConfirm(false)}
+        />
+      )}
     </div>
   );
 }

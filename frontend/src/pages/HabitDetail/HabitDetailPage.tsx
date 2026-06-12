@@ -1,27 +1,23 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
 import { HabitStatus } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
 import HabitForm from '../../components/habits/HabitForm';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import {
   DropletIcon,
   BookIcon,
   BriefcaseIcon,
   LotusIcon,
   StarIcon,
-  FlameIcon,
-  TrophyIcon,
   InfoIcon,
-  EditIcon,
-  PauseIcon,
-  PlayIcon,
-  TrashIcon,
+  TrophyIcon,
   CalendarIcon
 } from '../../components/shared/Icons';
 import styles from './HabitDetailPage.module.css';
 
-// ─── Colour maps ──────────────────────────────────────────────────────────
+// ─── Color maps ──────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
   Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
 };
@@ -36,35 +32,11 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   Archived: { bg: '#FFF3CD', color: '#E67700' },
 };
 
-function fakeStats(habit: { createdAt: string; targetPerDay: number }) {
+function fakeStats(habit: { createdAt: string; _id: string }) {
   const ageDays = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
   const streak  = Math.max(0, Math.min(Math.floor(ageDays * 0.75), 60));
   const total   = Math.floor(ageDays * 0.9);
   return { streak, total };
-}
-
-/** Circular SVG ring — radius 36, circ ≈ 226 */
-function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
-  const r = 36;
-  const circ = 2 * Math.PI * r;
-  const dash = ((pct / 100) * circ).toFixed(2);
-  const color = complete ? 'var(--color-success)' : 'var(--color-primary)';
-  return (
-    <svg width="88" height="88" viewBox="0 0 88 88">
-      <circle cx="44" cy="44" r={r} fill="none" stroke="#EEF0F7" strokeWidth="7" />
-      <circle
-        cx="44" cy="44" r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth="7"
-        strokeLinecap="round"
-        strokeDasharray={`${dash} ${circ}`}
-        strokeDashoffset="0"
-        transform="rotate(-90 44 44)"
-        style={{ transition: 'stroke-dasharray 0.5s ease' }}
-      />
-    </svg>
-  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────
@@ -73,8 +45,68 @@ export default function HabitDetailPage() {
   const navigate = useNavigate();
   const { habits, changeStatus, removeHabit } = useHabitContext();
   const [showEdit, setShowEdit] = useState(false);
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    type?: 'info' | 'warning' | 'danger';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
+
+  function triggerConfirm(params: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    type?: 'info' | 'warning' | 'danger';
+    onConfirm: () => void;
+  }) {
+    setConfirmState({
+      isOpen: true,
+      ...params,
+    });
+  }
+
+  function closeConfirm() {
+    setConfirmState(prev => ({ ...prev, isOpen: false }));
+  }
 
   const habit = habits.find(h => h._id === id);
+
+  // 1. Stable mock calendar days and completion calculations
+  const last7Days = useMemo(() => {
+    if (!habit) return [];
+    const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const ageDays = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      const dayLabel = labels[d.getDay()][0]; // Single character S, M, T, W...
+      
+      const dayDiff = 6 - i;
+      const isBeforeCreation = dayDiff > ageDays;
+      
+      let completed = false;
+      if (!isBeforeCreation) {
+        // Stable pseudo-random completion based on habit ID and date
+        const hash = (habit._id.charCodeAt(0) + d.getDate() * 7 + d.getMonth() * 31) % 10;
+        completed = hash > 2; // ~70% completion rate
+      }
+      return { label: dayLabel, completed };
+    });
+  }, [habit]);
+
+  const completionRate = useMemo(() => {
+    if (!last7Days.length) return 0;
+    const completed = last7Days.filter(d => d.completed).length;
+    return Math.round((completed / 7) * 100);
+  }, [last7Days]);
 
   if (!habit) {
     return (
@@ -94,14 +126,13 @@ export default function HabitDetailPage() {
   }
 
   const { streak: baseStreak, total: baseTotal } = fakeStats(habit);
+  const longestStreak = baseStreak > 0 ? Math.round(baseStreak * 1.5) : 0;
 
-  // Goal
+  // Goal details
   const hasGoal  = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
   const target   = habit.goalTargetValue || 30;
-  const currentValue = goalType === 'Streak'
-    ? Math.min(baseStreak, target)
-    : Math.min(baseTotal, target);
+  const currentValue = goalType === 'Streak' ? baseStreak : baseTotal;
   const pct        = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -114,12 +145,12 @@ export default function HabitDetailPage() {
     ? isComplete
       ? '🎉 Goal achieved — amazing work!'
       : pct >= 80
-      ? `Almost there! Just ${target - currentValue} more ${goalType === 'Streak' ? 'days' : 'sessions'} to go.`
-      : null
+      ? 'Almost there! Keep going!'
+      : `Keep going! ${target - currentValue} more to reach your goal.`
     : null;
 
   function renderCategoryIcon() {
-    const props = { style: { color: 'rgba(0,0,0,0.6)', width: 28, height: 28 } };
+    const props = { style: { color: 'rgba(0,0,0,0.6)', width: 24, height: 24 } };
     switch (habit!.category) {
       case 'Health':      return <DropletIcon {...props} />;
       case 'Study':       return <BookIcon {...props} />;
@@ -130,27 +161,74 @@ export default function HabitDetailPage() {
   }
 
   function handleDelete() {
-    if (window.confirm(`Delete "${habit!.name}"? This cannot be undone.`)) {
-      removeHabit(habit!._id);
-      navigate('/habits');
-    }
+    triggerConfirm({
+      title: 'Delete Habit',
+      message: `Are you sure you want to delete "${habit!.name}"? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      type: 'danger',
+      onConfirm: () => {
+        removeHabit(habit!._id);
+        navigate('/habits');
+        closeConfirm();
+      },
+    });
   }
 
   function handleToggle() {
     const next: HabitStatus = isActive ? 'Paused' : 'Active';
-    changeStatus(habit!._id, next);
+    const actionText = isActive ? 'pause' : 'resume';
+    triggerConfirm({
+      title: `${isActive ? 'Pause' : 'Resume'} Habit`,
+      message: `Are you sure you want to ${actionText} "${habit!.name}"?`,
+      confirmLabel: isActive ? 'Pause' : 'Resume',
+      type: 'warning',
+      onConfirm: () => {
+        changeStatus(habit!._id, next);
+        closeConfirm();
+      },
+    });
+  }
+
+  function handleOpenEdit() {
+    setShowEdit(true);
+  }
+
+  function handleArchive() {
+    triggerConfirm({
+      title: 'Archive Habit',
+      message: `Are you sure you want to archive "${habit!.name}"?`,
+      confirmLabel: 'Archive',
+      type: 'warning',
+      onConfirm: () => {
+        changeStatus(habit!._id, 'Archived');
+        closeConfirm();
+      },
+    });
+  }
+
+  function handleUnarchive() {
+    triggerConfirm({
+      title: 'Unarchive Habit',
+      message: `Are you sure you want to unarchive "${habit!.name}"?`,
+      confirmLabel: 'Unarchive',
+      type: 'info',
+      onConfirm: () => {
+        changeStatus(habit!._id, 'Active');
+        closeConfirm();
+      },
+    });
   }
 
   return (
     <AppLayout onNewHabit={() => navigate('/habits')}>
-      <div className="page-container">
+      <div className={styles.detailPageContainer}>
 
         {/* Back */}
         <button onClick={() => navigate('/habits')} className={styles.backButton} id="back-to-habits">
           ← Back to Habits
         </button>
 
-        {/* ── Header ──────────────────────────────────────────────── */}
+        {/* ── Header Row ────────────────────────────────────────── */}
         <div className={styles.headerRow}>
           <div className={styles.iconWrapper} style={{ background: iconBg }}>
             {renderCategoryIcon()}
@@ -162,7 +240,7 @@ export default function HabitDetailPage() {
             </span>
           </div>
           {habit.status !== 'Archived' && (
-            <label className="toggle" style={{ transform: 'scale(1.2)' }} title={isActive ? 'Pause habit' : 'Resume habit'}>
+            <label className="toggle" style={{ transform: 'scale(1.1)' }} title={isActive ? 'Pause habit' : 'Resume habit'}>
               <input type="checkbox" checked={isActive} onChange={handleToggle} id={`detail-toggle-${habit._id}`} />
               <span className="toggle-track" />
               <span className="toggle-thumb" />
@@ -183,62 +261,56 @@ export default function HabitDetailPage() {
           </span>
         </div>
 
-        {/* ── Goal card (full-width, above the 2-col grid) ─────────── */}
-        <div className={styles.goalCard} style={{ marginBottom: 16 }}>
+        {/* ── About Card ─────────────────────────────────────────── */}
+        <div className={styles.aboutCard}>
+          <div className={styles.aboutHeader}>
+            <span className={styles.aboutTitle}>About</span>
+            <button className={styles.editLink} onClick={handleOpenEdit}>
+              Edit
+            </button>
+          </div>
+          <p className={styles.aboutDesc}>
+            {habit.description ||
+              `Track your ${habit.name} habit consistently. Stay focused on your ${habit.category.toLowerCase()} goals and build a lasting routine. Every session counts toward your progress.`}
+          </p>
+        </div>
+
+        {/* ── Goal progress card ──────────────────────────────────── */}
+        <div className={styles.goalCard}>
           <div className={styles.goalCardHeader}>
-            <span className={styles.goalCardTitle}>Goal Progress</span>
+            <div className={styles.goalCardTitleArea}>
+              <span className={styles.goalCardTitle}>Goal Progress</span>
+              {hasGoal && (
+                <span className={styles.goalCardSubtitle}>
+                  {goalType === 'Streak' ? 'Streak target' : 'Total completions target'}
+                </span>
+              )}
+            </div>
             {hasGoal && (
-              <span className={`${styles.goalTypeBadge} ${isComplete ? styles.goalTypeBadgeComplete : ''}`}>
-                {goalType === 'Streak' ? 'Streak' : 'Completions'} target
-              </span>
+              <div className={styles.goalHeaderRight}>
+                <span className={styles.goalCardValues}>
+                  {currentValue} / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
+                </span>
+                <button className={styles.editLink} onClick={handleOpenEdit}>
+                  Edit
+                </button>
+              </div>
             )}
           </div>
 
           {hasGoal ? (
-            <>
-              <div className={styles.goalBody}>
-                {/* Ring */}
-                <div className={styles.goalRingWrap}>
-                  <GoalRing pct={pct} complete={isComplete} />
-                  <div className={styles.goalRingText}>
-                    <span className={`${styles.goalRingPct} ${isComplete ? styles.goalRingPctComplete : ''}`}>
-                      {pct}%
-                    </span>
-                    <span className={styles.goalRingLabel}>done</span>
-                  </div>
-                </div>
-
-                {/* Numbers + bar */}
-                <div className={styles.goalDetails}>
-                  <div className={styles.goalValues}>
-                    <span className={`${styles.goalCurrent} ${isComplete ? styles.goalCurrentComplete : ''}`}>
-                      {currentValue}
-                    </span>
-                    <span className={styles.goalDenom}>
-                      / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
-                    </span>
-                  </div>
-
-                  <div className={styles.goalBarTrack}>
-                    <div
-                      className={`${styles.goalBarFill} ${isComplete ? styles.goalBarFillComplete : ''}`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <div className={styles.goalBarLabels}>
-                    <span>0</span>
-                    <span>{target}</span>
-                  </div>
-                </div>
+            <div className={styles.goalCardBody}>
+              <div className={styles.goalBarTrack}>
+                <div
+                  className={`${styles.goalBarFill} ${isComplete ? styles.goalBarFillComplete : ''}`}
+                  style={{ width: `${pct}%` }}
+                />
               </div>
-
-              {/* Status banner */}
-              {goalMsg && (
-                <div className={`${styles.goalMsg} ${isComplete ? styles.goalMsgAchieved : styles.goalMsgNear}`}>
-                  {goalMsg}
-                </div>
-              )}
-            </>
+              <div className={styles.goalBarFooter}>
+                <span className={styles.goalBarPct}>{pct}%</span>
+                {goalMsg && <span className={styles.goalBarMsg}>{goalMsg}</span>}
+              </div>
+            </div>
           ) : (
             /* No-goal empty state */
             <div className={styles.emptyGoalCard}>
@@ -251,7 +323,7 @@ export default function HabitDetailPage() {
               </div>
               <button
                 className="btn btn-secondary btn-sm"
-                onClick={() => setShowEdit(true)}
+                onClick={handleOpenEdit}
                 id="set-goal-detail"
               >
                 Set Goal
@@ -260,93 +332,77 @@ export default function HabitDetailPage() {
           )}
         </div>
 
-        {/* ── 2-col secondary stats ───────────────────────────────── */}
-        <div className={styles.statsGrid}>
-          {/* Streak */}
-          <div className={styles.card} style={{ position: 'relative', overflow: 'hidden' }}>
-            <div className={styles.statLabel}>Current Streak</div>
-            <div className={styles.streakValueRow}>
-              <span className={styles.streakValText}>{baseStreak} days</span>
-              <div className={styles.streakIconBox}>
-                <FlameIcon style={{ width: 24, height: 24 }} />
-              </div>
+        {/* ── Statistics card ─────────────────────────────────────── */}
+        <div className={styles.statsCard}>
+          <div className={styles.statsCardTitle}>Statistics</div>
+          
+          <div className={styles.statsRow}>
+            <div className={styles.statCol}>
+              <span className={styles.statValue}>{baseStreak} days</span>
+              <span className={styles.statLabel}>Current streak</span>
             </div>
-            <div className={styles.dotContainer}>
-              {Array.from({ length: 7 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={styles.dot}
-                  style={{ background: i < Math.min(baseStreak, 7) ? 'var(--color-primary)' : '#EEF0F7' }}
-                />
+            <div className={styles.statColDivider} />
+            <div className={styles.statCol}>
+              <span className={styles.statValue}>{longestStreak} days</span>
+              <span className={styles.statLabel}>Longest streak</span>
+            </div>
+            <div className={styles.statColDivider} />
+            <div className={styles.statCol}>
+              <span className={styles.statValue}>{baseTotal}</span>
+              <span className={styles.statLabel}>Total completions</span>
+            </div>
+          </div>
+
+          <div className={styles.statsDivider} />
+
+          <div className={styles.weeklySection}>
+            <div className={styles.weeklyHeader}>
+              <span className={styles.weeklyValue}>{completionRate}%</span>
+              <span className={styles.weeklyLabel}>Completion rate (last 7 days)</span>
+            </div>
+            
+            <div className={styles.dotTrack}>
+              {last7Days.map((day, idx) => (
+                <div key={idx} className={styles.dotItem}>
+                  <div className={`${styles.dot} ${day.completed ? styles.dotCompleted : ''}`} />
+                  <span className={styles.dotDayLabel}>{day.label}</span>
+                </div>
               ))}
             </div>
-            <div className={styles.streakFooter}>
-              {baseStreak >= 7 ? (
-                <>
-                  <TrophyIcon style={{ width: 14, height: 14, color: '#E67700' }} />
-                  <span>You're on a fantastic streak!</span>
-                </>
-              ) : (
-                <span>{7 - baseStreak} more day{7 - baseStreak !== 1 ? 's' : ''} for a 7-day streak</span>
-              )}
-            </div>
-          </div>
-
-          {/* Total */}
-          <div className={styles.card}>
-            <div className={styles.statLabel}>Total Completions</div>
-            <div className={styles.totalValText}>{baseTotal}</div>
-            <div className={styles.totalSub}>sessions recorded overall</div>
-            <div className={styles.totalDaily}>
-              Target per day: <strong>{habit.targetPerDay}×</strong>
-            </div>
           </div>
         </div>
 
-        {/* ── Description ─────────────────────────────────────────── */}
-        <div className={styles.card} style={{ marginBottom: 20 }}>
-          <div className={styles.descHeader}>
-            <InfoIcon style={{ width: 18, height: 18, color: 'var(--text-secondary)' }} />
-            <span className={styles.descTitle}>Description</span>
-          </div>
-          <p className={styles.descContent}>
-            {(habit as any).description ||
-              `Track your ${habit.name} habit consistently. Stay focused on your ${habit.category.toLowerCase()} goals and build a lasting routine. Every session counts toward your progress.`}
-          </p>
-        </div>
-
-        {/* ── Motivation ──────────────────────────────────────────── */}
-        <div className={styles.motivationCard}>
-          <div>
-            <div className={styles.motivationLabel}>Motivation</div>
-            <div className={styles.motivationText}>
-              {habit.category === 'Health'      && 'Your body is your most important asset.'}
-              {habit.category === 'Study'       && 'Knowledge compounds — keep reading.'}
-              {habit.category === 'Work'        && 'Discipline builds the life you want.'}
-              {habit.category === 'Mindfulness' && 'A calm mind is a clear mind.'}
-              {habit.category === 'Other'       && 'Small actions, big results over time.'}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Actions ─────────────────────────────────────────────── */}
-        <div className={styles.actionsArea}>
-          <button className="btn btn-primary" onClick={() => setShowEdit(true)} id={`detail-edit-${habit._id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <EditIcon /> Edit Habit
+        {/* ── Actions Row ────────────────────────────────────────── */}
+        <div className={styles.actionsRow}>
+          <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={handleOpenEdit} id={`detail-edit-${habit._id}`}>
+            Edit Habit
           </button>
-          {habit.status !== 'Archived' && (
-            <button className="btn btn-secondary" onClick={handleToggle} id={`detail-pause-${habit._id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              {isActive ? <PauseIcon /> : <PlayIcon />}
-              {isActive ? 'Pause Habit' : 'Resume Habit'}
+          {habit.status !== 'Archived' ? (
+            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleArchive}>
+              Archive Habit
+            </button>
+          ) : (
+            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleUnarchive}>
+              Unarchive Habit
             </button>
           )}
-          <button className="btn btn-danger" onClick={handleDelete} id={`detail-delete-${habit._id}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <TrashIcon /> Delete Habit
+          <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={handleDelete}>
+            Delete Habit
           </button>
         </div>
       </div>
 
       {showEdit && <HabitForm editingHabit={habit} onClose={() => setShowEdit(false)} />}
+      <ConfirmDialog
+        isOpen={confirmState.isOpen}
+        title={confirmState.title}
+        message={confirmState.message}
+        confirmLabel={confirmState.confirmLabel}
+        type={confirmState.type}
+        onConfirm={confirmState.onConfirm}
+        onCancel={closeConfirm}
+      />
     </AppLayout>
   );
 }
+

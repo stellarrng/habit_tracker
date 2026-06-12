@@ -17,6 +17,7 @@ export interface IHabit extends Document {
   status:       HabitStatus;
   goalTargetType?: string;
   goalTargetValue?: number;
+  description?: string;
   createdAt:    Date;
 }
 
@@ -31,6 +32,7 @@ const HabitSchema = new Schema<IHabit>({
   status:       { type: String, enum: ['Active','Paused','Archived'], default: 'Active' },
   goalTargetType:  { type: String, enum: ['Streak', 'Total Completions'] },
   goalTargetValue: { type: Number, min: 1 },
+  description:     { type: String, trim: true },
 }, { timestamps: true });
 
 export default mongoose.model<IHabit>('Habit', HabitSchema);

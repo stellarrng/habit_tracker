@@ -1,4 +1,13 @@
-/* ── Layout ──────────────────────────────────────────────────── */
+/* ── Layout Container ────────────────────────────────────────── */
+.detailPageContainer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 8px 16px 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .backButton {
   background: none;
   border: none;
@@ -9,41 +18,24 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   padding: 0;
   transition: opacity var(--transition);
 }
 .backButton:hover { opacity: 0.75; }
 
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
-  box-shadow: var(--shadow-sm);
-}
-
-.statLabel {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* ── Header ──────────────────────────────────────────────────── */
+/* ── Header Row ────────────────────────────────────────────── */
 .headerRow {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .iconWrapper {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,26 +48,25 @@
 }
 
 .titleText {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.5px;
   margin: 0;
 }
 
 .statusIndicator {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: 99px;
-  padding: 2px 10px;
+  padding: 1px 8px;
   display: inline-block;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .chipsRow {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 28px;
   align-items: center;
 }
 
@@ -91,136 +82,64 @@
   gap: 4px;
 }
 
-/* ── Stats 3-column grid ─────────────────────────────────────── */
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-/* ── Goal card ───────────────────────────────────────────────── */
+/* ── Goal progress card ──────────────────────────────────────── */
 .goalCard {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 22px 24px;
+  padding: 20px;
   box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .goalCardHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 16px;
+}
+
+.goalCardTitleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .goalCardTitle {
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  color: var(--text-primary);
+}
+
+.goalCardSubtitle {
+  font-size: 12px;
   color: var(--text-muted);
+  font-weight: 500;
 }
 
-.goalTypeBadge {
-  font-size: 11px;
+.goalCardValues {
+  font-size: 16px;
   font-weight: 700;
-  padding: 3px 10px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary-light);
-  color: var(--color-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  color: var(--text-primary);
 }
 
-.goalTypeBadgeComplete {
-  background: var(--color-success-light);
-  color: var(--color-success);
-}
-
-.goalBody {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.goalRingWrap {
-  flex-shrink: 0;
-  position: relative;
-}
-
-.goalRingText {
-  position: absolute;
-  inset: 0;
+.goalCardBody {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.goalRingPct {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--color-primary);
-  line-height: 1;
-}
-
-.goalRingPctComplete {
-  color: var(--color-success);
-}
-
-.goalRingLabel {
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-.goalDetails {
-  flex: 1;
-  min-width: 0;
-}
-
-.goalValues {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.goalCurrent {
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: -1.5px;
-  line-height: 1;
-  color: var(--color-primary);
-}
-
-.goalCurrentComplete {
-  color: var(--color-success);
-}
-
-.goalDenom {
-  font-size: 15px;
-  color: var(--text-secondary);
-  font-weight: 500;
+  gap: 8px;
 }
 
 .goalBarTrack {
   height: 8px;
   background: #EEF0F7;
-  border-radius: var(--radius-full);
+  border-radius: 99px;
   overflow: hidden;
-  margin-bottom: 6px;
 }
 
 .goalBarFill {
   height: 100%;
-  border-radius: var(--radius-full);
+  border-radius: 99px;
   background: linear-gradient(90deg, var(--color-primary), #6EB5FF);
   transition: width 0.4s ease;
 }
@@ -229,35 +148,25 @@
   background: linear-gradient(90deg, var(--color-success), #69DB7C);
 }
 
-.goalBarLabels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.goalMsg {
-  margin-top: 14px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
+.goalBarFooter {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
 }
 
-.goalMsgNear {
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+.goalBarPct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.goalMsgAchieved {
-  background: var(--color-success-light);
-  color: var(--color-success);
+.goalBarMsg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-/* ── No-goal empty state ─────────────────────────────────────── */
+/* ── No Goal state ──────────────────────────────────────────── */
 .emptyGoalCard {
   display: flex;
   align-items: center;
@@ -265,8 +174,8 @@
 }
 
 .emptyGoalIcon {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
   background: var(--bg-page);
   border: 1.5px dashed var(--border);
@@ -276,7 +185,9 @@
   flex-shrink: 0;
 }
 
-.emptyGoalContent { flex: 1; }
+.emptyGoalContent {
+  flex: 1;
+}
 
 .emptyGoalTitle {
   font-size: 14px;
@@ -290,122 +201,222 @@
   color: var(--text-secondary);
 }
 
-/* ── Streak card ─────────────────────────────────────────────── */
-.streakValueRow {
+/* ── Statistics card ────────────────────────────────────────── */
+.statsCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statsCardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 0;
+  text-align: center;
 }
 
-.streakValText {
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--color-primary);
-  letter-spacing: -1px;
+.statCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.streakIconBox {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #FFF3BF;
+.statColDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.statsDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.weeklySection {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #E67700;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.dotContainer {
+.weeklyHeader {
   display: flex;
-  gap: 4px;
-  margin: 10px 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weeklyValue {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.weeklyLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dotTrack {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dotItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .dot {
-  flex: 1;
-  height: 5px;
-  border-radius: 99px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #EEF0F7;
+  border: 1px solid var(--border);
+  transition: background 0.3s;
 }
 
-.streakFooter {
-  font-size: 12px;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.dotCompleted {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
-/* ── Total completions card ──────────────────────────────────── */
-.totalValText {
-  font-size: 48px;
-  font-weight: 800;
-  color: #5C6370;
-  letter-spacing: -2px;
-  margin: 8px 0;
-}
-
-.totalSub {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.totalDaily {
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-/* ── Description ─────────────────────────────────────────────── */
-.descHeader {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.descTitle {
+.dotDayLabel {
+  font-size: 10px;
   font-weight: 700;
-  font-size: 17px;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
-.descContent {
+/* ── About card ─────────────────────────────────────────────── */
+.aboutCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aboutHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aboutTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.editLink {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--transition);
+}
+.editLink:hover { opacity: 0.8; }
+
+.aboutDesc {
   font-size: 14px;
   color: var(--text-secondary);
-  line-height: 1.7;
+  line-height: 1.6;
   margin: 0;
 }
 
-/* ── Motivation banner ───────────────────────────────────────── */
-.motivationCard {
-  border-radius: 16px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #1A1D23 0%, #2C3E6B 100%);
-  padding: 28px 32px;
-  margin-bottom: 28px;
-  display: flex;
-  align-items: flex-end;
-  min-height: 120px;
-}
-
-.motivationLabel {
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.5);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-}
-
-.motivationText {
-  font-size: 20px;
-  font-weight: 700;
-  color: #fff;
-}
-
-/* ── Actions ─────────────────────────────────────────────────── */
-.actionsArea {
+/* ── Actions Row ────────────────────────────────────────────── */
+.actionsRow {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
+
+.actionBtn {
+  flex: 1;
+  min-width: 130px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.editBtn {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.editBtn:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.pauseBtn:hover, .archiveBtn:hover {
+  background: var(--bg-page);
+  border-color: var(--text-secondary);
+}
+
+.deleteBtn {
+  border-color: #FFE3E3;
+  color: #C92A2A;
+  background: #FFF5F5;
+}
+
+.deleteBtn:hover {
+  background: #FFE3E3;
+}
+
+.goalHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

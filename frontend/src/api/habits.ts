@@ -78,6 +78,7 @@ export async function createHabit(input: CreateHabitInput): Promise<Habit> {
       status: 'Active',
       goalTargetType: input.goalTargetType,
       goalTargetValue: input.goalTargetValue,
+      description: input.description,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     const all = localRead();
