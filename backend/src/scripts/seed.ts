@@ -6,7 +6,8 @@ import User from '../models/User';
 import Habit from '../models/Habit';
 import CheckIn from '../models/CheckIn';
 import Goal from '../models/Goal';
-import type { WeekDay, CheckInStatus } from '../models/Habit';
+import type { WeekDay } from '../models/Habit';
+import type { CheckInStatus } from '../models/CheckIn';
 
 // Sun=0 … Sat=6, matching Date.getUTCDay()
 const UTC_DAY_NAMES: WeekDay[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
