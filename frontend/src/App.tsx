@@ -3,12 +3,12 @@ import { AuthProvider } from './context/AuthContext';
 import { HabitProvider } from './context/HabitContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
-import LoginPage    from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import DashboardPage from './pages/DashboardPage';
-import HabitsPage   from './pages/HabitsPage';
-import GoalsPage    from './pages/GoalsPage';
-import TodayPage    from './pages/TodayPage';
+import LoginPage from './pages/Auth/LoginPage';
+import RegisterPage from './pages/Auth/RegisterPage';
+import DashboardPage from './pages/Dashboard/DashboardPage';
+import HabitsPage from './pages/Habits/HabitsPage';
+import GoalsPage from './pages/Goals/GoalsPage';
+import TodayPage from './pages/Today/TodayPage';
 import HabitDetailPage from './pages/HabitDetailPage';
 
 export default function App() {
