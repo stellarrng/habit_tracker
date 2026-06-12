@@ -11,10 +11,11 @@ export interface FilterState {
   frequency: HabitFrequency | 'All';
   priority:  HabitPriority  | 'All';
   status:    HabitStatus    | 'All';
+  search:    string;
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  category: 'All', frequency: 'All', priority: 'All', status: 'All',
+  category: 'All', frequency: 'All', priority: 'All', status: 'All', search: '',
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────
@@ -65,6 +66,10 @@ export function HabitProvider({ children }: { children: ReactNode }) {
       if (filters.frequency !== 'All' && h.frequency !== filters.frequency) return false;
       if (filters.priority  !== 'All' && h.priority  !== filters.priority)  return false;
       if (filters.status    !== 'All' && h.status    !== filters.status)    return false;
+      if (filters.search && filters.search.trim() !== '') {
+        const query = filters.search.toLowerCase().trim();
+        if (!h.name.toLowerCase().includes(query)) return false;
+      }
       return true;
     });
   }, [habits, filters]);

@@ -9,6 +9,7 @@ import {
   StarIcon,
   TrashIcon
 } from '../shared/Icons';
+import styles from './HabitCard.module.css';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
@@ -25,40 +26,70 @@ function statusClass(s: string) {
   return `chip chip-${s.toLowerCase()}`;
 }
 
-
+/** Small SVG ring showing progress (r=16 → circumference ≈ 100) */
+function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
+  const r = 16;
+  const circ = 2 * Math.PI * r;
+  const dash = ((pct / 100) * circ).toFixed(1);
+  const color = complete ? 'var(--color-success)' : 'var(--color-primary)';
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" className={styles.goalRing}>
+      <circle cx="20" cy="20" r={r} fill="none" stroke="#EEF0F7" strokeWidth="4" />
+      <circle
+        cx="20" cy="20" r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeDasharray={`${dash} ${circ}`}
+        strokeDashoffset="0"
+        transform="rotate(-90 20 20)"
+        style={{ transition: 'stroke-dasharray 0.4s ease' }}
+      />
+      <text
+        x="20" y="20"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="9"
+        fontWeight="700"
+        fill={color}
+      >
+        {pct}%
+      </text>
+    </svg>
+  );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────
 interface HabitCardProps {
-  habit:    Habit;
-  onEdit:   (habit: Habit) => void;
+  habit:  Habit;
+  onEdit: (habit: Habit) => void;
 }
 
-export default function HabitCard({ habit }: HabitCardProps) {
+export default function HabitCard({ habit, onEdit }: HabitCardProps) {
   const { changeStatus, removeHabit } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
 
-  // Determine if a goal is configured
-  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
+  // Goal config
+  const hasGoal  = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
-  const target = habit.goalTargetValue || 30;
+  const target   = habit.goalTargetValue || 30;
 
-  // Mock current progress values based on habit age/status
-  const age = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
-  const baseProgress = habit.status === 'Paused' ? Math.floor(age * 0.4) : Math.min(Math.floor(age * 0.85), 60);
-
+  // Stable progress derived from habit age only
+  const age          = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
+  const baseProgress = Math.max(0, Math.min(Math.floor(age * 0.75), 60));
   const currentValue = goalType === 'Streak'
     ? Math.min(baseProgress, target)
     : Math.min(Math.floor(baseProgress * 1.5), target);
-
-  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
+  const pct        = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
   const goalMsg = hasGoal
     ? isComplete
-      ? 'Goal Achieved! You hit your target!'
+      ? '🎉 Goal achieved!'
       : pct >= 80
-      ? "Almost there! Keep pushing."
+      ? `Almost there! ${target - currentValue} more to go.`
       : null
     : null;
 
@@ -86,10 +117,6 @@ export default function HabitCard({ habit }: HabitCardProps) {
       removeHabit(habit._id);
     }
   }
-
-  const metricLabel = hasGoal
-    ? goalType === 'Streak' ? 'Current Streak' : 'Total Completions'
-    : 'Streak (No goal set)';
 
   return (
     <div className={`habit-card ${habit.status.toLowerCase()}`} id={`habit-card-${habit._id}`}>
@@ -136,32 +163,58 @@ export default function HabitCard({ habit }: HabitCardProps) {
         <span className={priorityClass(habit.priority)}>{habit.priority}</span>
       </div>
 
-      {/* Progress */}
-      <div>
-        <div className="habit-progress-label">{metricLabel}</div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, margin: '4px 0 10px' }}>
-          <span className="habit-progress-value">{currentValue}</span>
-          <span className="habit-progress-suffix">/ {target} {goalType === 'Streak' ? 'days' : 'sessions'}</span>
-        </div>
-
-        <div className="habit-progress-bar-wrap">
-          <div
-            className={`habit-progress-bar ${isComplete ? 'complete' : ''}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-
-        {goalMsg && (
-          <div className={`habit-goal-msg ${isComplete ? 'achieved' : 'near'}`} style={{ marginTop: 6 }}>
-            {goalMsg}
+      {/* ── Goal Section ─────────────────────────────────────────── */}
+      {hasGoal ? (
+        <div className={styles.goalSection}>
+          {/* Header row: type label + pct badge */}
+          <div className={styles.goalHeader}>
+            <span className={styles.goalTypeLabel}>
+              {goalType === 'Streak' ? 'Streak target' : 'Completion target'}
+            </span>
+            <span className={`${styles.goalPct} ${isComplete ? styles.goalPctComplete : ''}`}>
+              {pct}%
+            </span>
           </div>
-        )}
-        {!hasGoal && (
-          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 6 }}>
-            No goal target configured for this habit.
+
+          {/* Ring + numbers */}
+          <div className={styles.goalProgressRow}>
+            <GoalRing pct={pct} complete={isComplete} />
+            <div className={styles.goalNumbers}>
+              <div className={`${styles.goalValue} ${isComplete ? styles.goalValueComplete : ''}`}>
+                {currentValue}
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 4 }}>
+                  / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
+                </span>
+              </div>
+              {/* Progress bar */}
+              <div className={styles.goalBar} style={{ marginTop: 8 }}>
+                <div
+                  className={`${styles.goalBarFill} ${isComplete ? styles.goalBarFillComplete : ''}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Status message */}
+          {goalMsg && (
+            <div className={`${styles.goalMsg} ${isComplete ? styles.goalMsgAchieved : styles.goalMsgNear}`}>
+              {goalMsg}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className={styles.noGoalRow}>
+          <span className={styles.noGoalText}>No goal target set</span>
+          <button
+            className={styles.noGoalLink}
+            onClick={() => onEdit(habit)}
+            id={`set-goal-${habit._id}`}
+          >
+            Set a goal →
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="habit-card-footer">
@@ -170,8 +223,8 @@ export default function HabitCard({ habit }: HabitCardProps) {
             Resume
           </button>
         ) : (
-          <button className="habit-view-link" onClick={() => navigate(`/habits/${habit._id}`)} id={`edit-${habit._id}`}>
-            View Details
+          <button className="habit-view-link" onClick={() => navigate(`/habits/${habit._id}`)} id={`view-${habit._id}`}>
+            View Details →
           </button>
         )}
         <button

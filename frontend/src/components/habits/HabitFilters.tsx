@@ -1,5 +1,6 @@
 import { useHabitContext, FilterState } from '../../context/HabitContext';
 import { HabitCategory, HabitFrequency, HabitPriority, HabitStatus } from '../../types';
+import { SearchIcon } from '../shared/Icons';
 
 const CATEGORIES: (HabitCategory | 'All')[] = ['All', 'Health', 'Study', 'Work', 'Mindfulness', 'Other'];
 const FREQUENCIES: (HabitFrequency | 'All')[] = ['All', 'Daily', 'Specific days'];
@@ -15,6 +16,25 @@ export default function HabitFilters() {
 
   return (
     <div className="filter-row">
+      <div className="search-wrap" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginRight: '16px' }}>
+        <input
+          type="text"
+          id="search-habits"
+          className="form-input"
+          placeholder="Search habits..."
+          value={filters.search}
+          onChange={e => handle('search', e.target.value)}
+          style={{
+            width: '240px',
+            paddingLeft: '34px',
+            background: 'var(--bg-card)',
+          }}
+        />
+        <span style={{ position: 'absolute', left: 12, display: 'flex', alignItems: 'center', pointerEvents: 'none', color: 'var(--text-muted)' }}>
+          <SearchIcon style={{ width: 14, height: 14 }} />
+        </span>
+      </div>
+
       <span className="filter-label">Filter by:</span>
 
       <select

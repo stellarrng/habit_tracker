@@ -9,7 +9,7 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import HabitsPage from './pages/Habits/HabitsPage';
 import GoalsPage from './pages/Goals/GoalsPage';
 import TodayPage from './pages/Today/TodayPage';
-import HabitDetailPage from './pages/HabitDetailPage';
+import HabitDetailPage from './pages/HabitDetail/HabitDetailPage';
 
 export default function App() {
   return (
