@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { Habit, CheckIn, Goal, HabitCategory, CheckInStatus } from "../../types";
 import styles from './TodayPage.module.css';
+import AppLayout from "../../components/layout/AppLayout";
+import HabitForm from "../../components/habits/HabitForm";
 
 interface HabitWithCheckIn {
   habit: Habit;
@@ -194,97 +196,107 @@ export default function TodayPage() {
     setLastAction(null);
   }
 
+  const [showForm, setShowForm] = useState(false);
+
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
+    <AppLayout onNewHabit={() => setShowForm(true)}>
+      <div className={styles.page}>
+        <div className={styles.container}>
 
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.greeting}>{greeting("Alex")}</h1>
-            <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
-          </div>
-          {lastAction && (
-            <button className={styles.undoBtn} onClick={undoLast}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M2 8a6 6 0 1 0 1.5-4L2 2" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="2,2 2,6 6,6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Undo last action
-            </button>
-          )}
-        </div>
-
-        <ProgressBar percent={progressPct} />
-
-        {/* Week strip */}
-        <div className={styles.weekStrip}>
-          {weekDays.map(d => (
-            <button
-              key={d.iso}
-              onClick={() => setActiveDay(d.iso)}
-              className={`${styles.dayBtn} ${activeDay === d.iso ? styles.dayBtnActive : ""}`}
-            >
-              <span className={styles.dayLabel}>{d.label}</span>
-              <span className={styles.dayDate}>{d.date}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Habits */}
-        <section>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionTitle}>Active Habits</span>
-            <span className={styles.sectionCount}>{activeHabits.length} items</span>
-          </div>
-          <div className={styles.habitList}>
-            {activeHabits.map(row => (
-              <HabitRow
-                key={row.habit._id}
-                row={row}
-                onIncrement={id => updateCount(id, 1)}
-                onDecrement={id => updateCount(id, -1)}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Bottom cards */}
-        <div className={styles.bottomCards}>
-          <div className={styles.tipCard}>
-            <div className={styles.tipHeader}>
-              <span>💡</span>
-              <span className={styles.tipTitle}>Consistency Tip</span>
-            </div>
-            <p className={styles.tipBody}>
-              Drinking water right after you wake up helps anchor your morning routine.
-              You've hit this mark 5 days in a row!
-            </p>
-          </div>
-          <div className={styles.settingsCard}>
+          {/* Header */}
+          <div className={styles.header}>
             <div>
-              <p className={styles.settingsTitle}>Settings</p>
-              <p className={styles.settingsSubtitle}>Manage your profile and data</p>
+              <h1 className={styles.greeting}>{greeting("Alex")}</h1>
+              <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
             </div>
-            <button className={styles.resetBtn}>Reset Data</button>
+            {lastAction && (
+              <button className={styles.undoBtn} onClick={undoLast}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2 8a6 6 0 1 0 1.5-4L2 2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="2,2 2,6 6,6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Undo last action
+              </button>
+            )}
           </div>
-        </div>
 
-        <button className={styles.newHabitBtn}>
-          <span>+</span>
-          New Habit
-        </button>
+          <ProgressBar percent={progressPct} />
 
-        <footer className={styles.footer}>
-          <span>© 2024 HabitFlow. Built for clarity.</span>
-          <div className={styles.footerLinks}>
-            {["Privacy", "Support", "Terms"].map(l => (
-              <a key={l} href="#" className={styles.footerLink}>{l}</a>
+          {/* Week strip */}
+          <div className={styles.weekStrip}>
+            {weekDays.map(d => (
+              <button
+                key={d.iso}
+                onClick={() => setActiveDay(d.iso)}
+                className={`${styles.dayBtn} ${activeDay === d.iso ? styles.dayBtnActive : ""}`}
+              >
+                <span className={styles.dayLabel}>{d.label}</span>
+                <span className={styles.dayDate}>{d.date}</span>
+              </button>
             ))}
           </div>
-        </footer>
 
+          {/* Habits */}
+          <section>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionTitle}>Active Habits</span>
+              <span className={styles.sectionCount}>{activeHabits.length} items</span>
+            </div>
+            <div className={styles.habitList}>
+              {activeHabits.map(row => (
+                <HabitRow
+                  key={row.habit._id}
+                  row={row}
+                  onIncrement={id => updateCount(id, 1)}
+                  onDecrement={id => updateCount(id, -1)}
+                />
+              ))}
+            </div>
+          </section>
+
+          {/* Bottom cards */}
+          <div className={styles.bottomCards}>
+            <div className={styles.tipCard}>
+              <div className={styles.tipHeader}>
+                <span>💡</span>
+                <span className={styles.tipTitle}>Consistency Tip</span>
+              </div>
+              <p className={styles.tipBody}>
+                Drinking water right after you wake up helps anchor your morning routine.
+                You've hit this mark 5 days in a row!
+              </p>
+            </div>
+            <div className={styles.settingsCard}>
+              <div>
+                <p className={styles.settingsTitle}>Settings</p>
+                <p className={styles.settingsSubtitle}>Manage your profile and data</p>
+              </div>
+              <button className={styles.resetBtn}>Reset Data</button>
+            </div>
+          </div>
+
+          <button className={styles.newHabitBtn} onClick={() => setShowForm(true)}>
+            <span>+</span>
+            New Habit
+          </button>
+
+          <footer className={styles.footer}>
+            <span>© 2024 HabitFlow. Built for clarity.</span>
+            <div className={styles.footerLinks}>
+              {["Privacy", "Support", "Terms"].map(l => (
+                <a key={l} href="#" className={styles.footerLink}>{l}</a>
+              ))}
+            </div>
+          </footer>
+
+        </div>
       </div>
-    </div>
+      {showForm && (
+        <HabitForm
+          editingHabit={null}
+          onClose={() => setShowForm(false)}
+        />
+      )}
+    </AppLayout>
   );
 }

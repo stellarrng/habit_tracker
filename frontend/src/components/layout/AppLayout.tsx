@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
+import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
   children:   ReactNode;
@@ -8,9 +9,9 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children, onNewHabit }: AppLayoutProps) {
   return (
-    <div className="app-shell">
+    <div className={styles.appShell}>
       <Sidebar onNewHabit={onNewHabit} />
-      <main className="app-main">
+      <main className={styles.appMain}>
         {children}
       </main>
     </div>
