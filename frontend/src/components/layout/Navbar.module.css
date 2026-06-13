@@ -1,0 +1,110 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 0;
+  background: rgba(248, 249, 250, 0.82);
+  backdrop-filter: blur(14px);
+}
+
+.navbar h1 {
+  color: #1f53c9;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.segmented {
+  display: flex;
+  min-height: 40px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #edeeef;
+}
+
+.segmented button,
+.iconButton {
+  border: 0;
+  background: transparent;
+}
+
+.segmented button {
+  min-width: 78px;
+  padding: 0 16px;
+  border-radius: 999px;
+  color: #434654;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.segmented .segmentActive {
+  background: #f8f9fa;
+  color: #1f53c9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: #434654;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.iconButton:hover {
+  opacity: 0.8;
+}
+
+.iconButton:active,
+.segmented button:active {
+  transform: scale(0.96);
+}
+
+.iconButton svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+@media (max-width: 760px) {
+  .navbar,
+  .actions {
+    align-items: flex-start;
+  }
+
+  .navbar {
+    flex-direction: column;
+  }
+
+  .actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .segmented {
+    width: 100%;
+  }
+
+  .segmented button {
+    min-width: 0;
+    flex: 1;
+  }
+}

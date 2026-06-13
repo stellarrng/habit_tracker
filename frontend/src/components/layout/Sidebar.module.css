@@ -1,0 +1,202 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px;
+  background: #f3f4f5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.brand {
+  margin-bottom: 64px;
+}
+
+.brandName {
+  display: block;
+  color: #1f53c9;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.brandTagline {
+  display: block;
+  margin-top: 2px;
+  color: #434654;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 8px;
+  color: #434654;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.navItem:hover {
+  background: rgba(199, 234, 225, 0.35);
+  color: #1f53c9;
+  text-decoration: none;
+}
+
+.navItemActive {
+  color: #1f53c9;
+  font-weight: 700;
+  transform: scale(0.99);
+}
+
+.navItemActive::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: -24px;
+  width: 4px;
+  height: 32px;
+  border-radius: 999px 0 0 999px;
+  background: #1f53c9;
+}
+
+.navIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  color: currentColor;
+}
+
+.navIcon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.bottom {
+  display: grid;
+  gap: 32px;
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.newButton {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 999px;
+  background: #1f53c9;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(31, 83, 201, 0.22);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.newButton:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.newButton:active {
+  transform: scale(0.96);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 8px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #c3c6d6;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #c7eae1, #406de4);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.profile strong,
+.profile span {
+  display: block;
+  line-height: 1.3;
+}
+
+.profile strong {
+  color: #191c1d;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.profile span {
+  color: #434654;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: static;
+    height: auto;
+    min-height: auto;
+    padding: 20px;
+    border-bottom: 1px solid #c3c6d6;
+  }
+
+  .brand {
+    margin-bottom: 18px;
+  }
+
+  .brandName {
+    font-size: 24px;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .navItem {
+    justify-content: center;
+  }
+
+  .navItemActive::after {
+    display: none;
+  }
+
+  .bottom {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding-top: 18px;
+  }
+}
