@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register as registerApi } from '../api/auth';
-import { useAuth } from '../context/AuthContext';
+import { register as registerApi } from '../../api/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterPage() {
   const { login } = useAuth();
