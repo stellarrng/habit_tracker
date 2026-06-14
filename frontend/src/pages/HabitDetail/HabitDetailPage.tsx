@@ -1,10 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
-import { HabitStatus } from '../../types';
+import { HabitStatus, CheckIn } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
 import HabitForm from '../../components/habits/HabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { useStreaks } from '../../hooks/useStreaks';
+import { getCheckIns } from '../../api/checkins';
 import {
   DropletIcon,
   BookIcon,
@@ -31,13 +33,6 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   Paused:   { bg: '#F1F3F5', color: '#868E96' },
   Archived: { bg: '#FFF3CD', color: '#E67700' },
 };
-
-function fakeStats(habit: { createdAt: string; _id: string }) {
-  const ageDays = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
-  const streak  = Math.max(0, Math.min(Math.floor(ageDays * 0.75), 60));
-  const total   = Math.floor(ageDays * 0.9);
-  return { streak, total };
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────
 export default function HabitDetailPage() {
@@ -78,35 +73,52 @@ export default function HabitDetailPage() {
 
   const habit = habits.find(h => h._id === id);
 
-  // 1. Stable mock calendar days and completion calculations
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [loadingCheckIns, setLoadingCheckIns] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    let alive = true;
+    setLoadingCheckIns(true);
+    getCheckIns({ habitId: id })
+      .then(data => {
+        if (alive) setCheckIns(data);
+      })
+      .catch(err => {
+        console.error('Failed to fetch check-ins for habit:', err);
+      })
+      .finally(() => {
+        if (alive) setLoadingCheckIns(false);
+      });
+    return () => { alive = false; };
+  }, [id]);
+
+  const streaks = useStreaks(checkIns);
+
+  // 1. Calendar days and completion calculations using real check-ins
   const last7Days = useMemo(() => {
     if (!habit) return [];
     const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const ageDays = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
+    
+    // Create a set of completed dates for quick lookup
+    const completedDates = new Set(
+      checkIns
+        .filter(c => c.completedCount >= habit.targetPerDay)
+        .map(c => c.date)
+    );
 
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       const dayLabel = labels[d.getDay()][0]; // Single character S, M, T, W...
+      const dateStr = d.toISOString().slice(0, 10);
       
-      const dayDiff = 6 - i;
-      const isBeforeCreation = dayDiff > ageDays;
-      
-      let completed = false;
-      if (!isBeforeCreation) {
-        // Stable pseudo-random completion based on habit ID and date
-        const hash = (habit._id.charCodeAt(0) + d.getDate() * 7 + d.getMonth() * 31) % 10;
-        completed = hash > 2; // ~70% completion rate
-      }
+      const completed = completedDates.has(dateStr);
       return { label: dayLabel, completed };
     });
-  }, [habit]);
+  }, [habit, checkIns]);
 
-  const completionRate = useMemo(() => {
-    if (!last7Days.length) return 0;
-    const completed = last7Days.filter(d => d.completed).length;
-    return Math.round((completed / 7) * 100);
-  }, [last7Days]);
+  const completionRate = streaks.completionRate;
 
   if (!habit) {
     return (
@@ -125,14 +137,25 @@ export default function HabitDetailPage() {
     );
   }
 
-  const { streak: baseStreak, total: baseTotal } = fakeStats(habit);
-  const longestStreak = baseStreak > 0 ? Math.round(baseStreak * 1.5) : 0;
+  if (loadingCheckIns) {
+    return (
+      <AppLayout onNewHabit={() => navigate('/habits')}>
+        <div className="loading-center">
+          <div className="spinner" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const currentStreak = streaks.current;
+  const longestStreak = streaks.longest;
+  const totalCompletions = streaks.totalSessions;
 
   // Goal details
   const hasGoal  = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
   const target   = habit.goalTargetValue || 30;
-  const currentValue = goalType === 'Streak' ? baseStreak : baseTotal;
+  const currentValue = goalType === 'Streak' ? currentStreak : totalCompletions;
   const pct        = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -338,7 +361,7 @@ export default function HabitDetailPage() {
           
           <div className={styles.statsRow}>
             <div className={styles.statCol}>
-              <span className={styles.statValue}>{baseStreak} days</span>
+              <span className={styles.statValue}>{currentStreak} days</span>
               <span className={styles.statLabel}>Current streak</span>
             </div>
             <div className={styles.statColDivider} />
@@ -348,7 +371,7 @@ export default function HabitDetailPage() {
             </div>
             <div className={styles.statColDivider} />
             <div className={styles.statCol}>
-              <span className={styles.statValue}>{baseTotal}</span>
+              <span className={styles.statValue}>{totalCompletions}</span>
               <span className={styles.statLabel}>Total completions</span>
             </div>
           </div>

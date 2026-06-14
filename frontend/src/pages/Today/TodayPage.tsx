@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Habit, CheckIn, Goal, HabitCategory, CheckInStatus } from "../../types";
 import styles from './TodayPage.module.css';
 import AppLayout from "../../components/layout/AppLayout";
 import HabitForm from "../../components/habits/HabitForm";
+import { useHabitContext } from "../../context/HabitContext";
+import { useAuth } from "../../context/AuthContext";
+import { getCheckIns, checkInHabit } from "../../api/checkins";
+import EmptyState from "../../components/shared/EmptyState";
 
 interface HabitWithCheckIn {
   habit: Habit;
@@ -144,59 +148,136 @@ function ProgressBar({ percent }: { percent: number }) {
   );
 }
 
-// ── Mock data (replace with API call) ────────────────────────────────────────
+// ── Realtime active date ────────────────────────────────────────
 
 const TODAY = todayISO();
-
-const MOCK_DATA: HabitWithCheckIn[] = [
-  {
-    habit: { _id: "h1", userId: "u1", name: "Hydration Goal", category: "Health", frequency: "Daily", specificDays: [], targetPerDay: 8, priority: "High", status: "Active", createdAt: "", updatedAt: "" },
-    checkIn: { _id: "c1", userId: "u1", habitId: "h1", date: TODAY, completedCount: 8, status: "Completed", note: "" },
-    goal: null,
-  },
-  {
-    habit: { _id: "h2", userId: "u1", name: "Daily Reading", category: "Study", frequency: "Daily", specificDays: [], targetPerDay: 45, priority: "Medium", status: "Active", createdAt: "", updatedAt: "" },
-    checkIn: { _id: "c2", userId: "u1", habitId: "h2", date: TODAY, completedCount: 20, status: "In Progress", note: "" },
-    goal: null,
-  },
-  {
-    habit: { _id: "h3", userId: "u1", name: "Morning Workout", category: "Health", frequency: "Daily", specificDays: [], targetPerDay: 1, priority: "High", status: "Active", createdAt: "", updatedAt: "" },
-    checkIn: { _id: "c3", userId: "u1", habitId: "h3", date: TODAY, completedCount: 0, status: "Not Started", note: "" },
-    goal: null,
-  },
-];
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TodayPage() {
-  const [rows, setRows] = useState<HabitWithCheckIn[]>(MOCK_DATA);
+  const { user } = useAuth();
+  const { habits, loading: habitsLoading } = useHabitContext();
   const [activeDay, setActiveDay] = useState(TODAY);
-  const [lastAction, setLastAction] = useState<{ habitId: string; delta: number } | null>(null);
+  const [checkIns, setCheckIns] = useState<Record<string, CheckIn>>({});
+  const [checkInsLoading, setCheckInsLoading] = useState(true);
+  const [lastAction, setLastAction] = useState<{ habitId: string; prevCount: number; newCount: number } | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const weekDays = buildWeekDays(TODAY);
-  const activeHabits = rows.filter(r => r.habit.status === "Active");
-  const totalGoal = activeHabits.reduce((s, r) => s + r.habit.targetPerDay, 0);
-  const totalDone = activeHabits.reduce((s, r) => s + Math.min(r.checkIn.completedCount, r.habit.targetPerDay), 0);
+  const activeHabits = habits.filter(h => h.status === "Active");
+
+  // Load check-ins for the selected date
+  useEffect(() => {
+    let alive = true;
+    setCheckInsLoading(true);
+    getCheckIns({ date: activeDay })
+      .then(data => {
+        if (!alive) return;
+        const map: Record<string, CheckIn> = {};
+        data.forEach(c => {
+          map[c.habitId] = c;
+        });
+        setCheckIns(map);
+      })
+      .catch(err => {
+        console.error('Failed to load check-ins:', err);
+      })
+      .finally(() => {
+        if (alive) setCheckInsLoading(false);
+      });
+    return () => { alive = false; };
+  }, [activeDay]);
+
+  // Derive rows for the active habits and their check-in statuses
+  const rows: HabitWithCheckIn[] = activeHabits.map(habit => {
+    const checkIn = checkIns[habit._id] || {
+      _id: `temp-${habit._id}`,
+      userId: habit.userId,
+      habitId: habit._id,
+      date: activeDay,
+      completedCount: 0,
+      status: 'Not Started',
+      note: '',
+    };
+    return {
+      habit,
+      checkIn,
+      goal: null,
+    };
+  });
+
+  const totalGoal = activeHabits.reduce((s, h) => s + h.targetPerDay, 0);
+  const totalDone = activeHabits.reduce((s, h) => {
+    const count = checkIns[h._id]?.completedCount ?? 0;
+    return s + Math.min(count, h.targetPerDay);
+  }, 0);
   const progressPct = totalGoal > 0 ? Math.round((totalDone / totalGoal) * 100) : 0;
 
-  function updateCount(habitId: string, delta: number) {
-    setRows(prev => prev.map(r => {
-      if (r.habit._id !== habitId) return r;
-      const raw = r.checkIn.completedCount + delta;
-      const count = Math.max(0, delta > 0 ? Math.min(raw, r.habit.targetPerDay) : raw);
-      const status = deriveStatus(count, r.habit.targetPerDay);
-      return { ...r, checkIn: { ...r.checkIn, completedCount: count, status } };
+  async function handleUpdateCount(habitId: string, newCount: number) {
+    const currentCheckIn = checkIns[habitId];
+    const prevCount = currentCheckIn ? currentCheckIn.completedCount : 0;
+
+    // Optimistically update local state
+    setCheckIns(prev => ({
+      ...prev,
+      [habitId]: {
+        ...(prev[habitId] || {
+          _id: `temp-${habitId}`,
+          userId: user?._id || '',
+          habitId,
+          date: activeDay,
+          note: '',
+        }),
+        completedCount: newCount,
+        status: deriveStatus(newCount, habits.find(h => h._id === habitId)?.targetPerDay || 1),
+      } as CheckIn,
     }));
-    setLastAction({ habitId, delta });
+
+    setLastAction({ habitId, prevCount, newCount });
+
+    try {
+      const updated = await checkInHabit({
+        habitId,
+        date: activeDay,
+        completedCount: newCount,
+      });
+      setCheckIns(prev => ({
+        ...prev,
+        [habitId]: updated,
+      }));
+    } catch (err) {
+      console.error('Failed to save check-in:', err);
+      // Rollback on error
+      setCheckIns(prev => ({
+        ...prev,
+        [habitId]: {
+          ...(prev[habitId] || {}),
+          completedCount: prevCount,
+          status: deriveStatus(prevCount, habits.find(h => h._id === habitId)?.targetPerDay || 1),
+        } as CheckIn,
+      }));
+      setLastAction(null);
+    }
   }
 
-  function undoLast() {
+  async function undoLast() {
     if (!lastAction) return;
-    updateCount(lastAction.habitId, -lastAction.delta);
+    const { habitId, prevCount } = lastAction;
     setLastAction(null);
+    await handleUpdateCount(habitId, prevCount);
   }
 
-  const [showForm, setShowForm] = useState(false);
+  if (habitsLoading || checkInsLoading) {
+    return (
+      <AppLayout onNewHabit={() => setShowForm(true)}>
+        <div className="loading-center">
+          <div className="spinner" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const name = user?.name ?? "User";
 
   return (
     <AppLayout onNewHabit={() => setShowForm(true)}>
@@ -206,7 +287,7 @@ export default function TodayPage() {
           {/* Header */}
           <div className={styles.header}>
             <div>
-              <h1 className={styles.greeting}>{greeting("Alex")}</h1>
+              <h1 className={styles.greeting}>{greeting(name)}</h1>
               <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
             </div>
             {lastAction && (
@@ -242,16 +323,26 @@ export default function TodayPage() {
               <span className={styles.sectionTitle}>Active Habits</span>
               <span className={styles.sectionCount}>{activeHabits.length} items</span>
             </div>
-            <div className={styles.habitList}>
-              {activeHabits.map(row => (
-                <HabitRow
-                  key={row.habit._id}
-                  row={row}
-                  onIncrement={id => updateCount(id, 1)}
-                  onDecrement={id => updateCount(id, -1)}
+            {activeHabits.length === 0 ? (
+              <div style={{ marginTop: 24 }}>
+                <EmptyState
+                  title="No active habits yet"
+                  subtitle="Start tracking by adding a new habit today!"
+                  action={{ label: "Add New Habit", onClick: () => setShowForm(true) }}
                 />
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className={styles.habitList}>
+                {rows.map(row => (
+                  <HabitRow
+                    key={row.habit._id}
+                    row={row}
+                    onIncrement={id => handleUpdateCount(id, Math.min(row.checkIn.completedCount + 1, row.habit.targetPerDay))}
+                    onDecrement={id => handleUpdateCount(id, Math.max(0, row.checkIn.completedCount - 1))}
+                  />
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Bottom cards */}
