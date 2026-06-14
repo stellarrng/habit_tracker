@@ -84,3 +84,47 @@ select {
   background-color: var(--color-gray-200);
   border-radius: var(--radius-full);
 }
+
+/* ── Breakpoints ─────────────────────────────────────────────────────────────
+ *
+ *  Use these values consistently across ALL *.module.css files.
+ *  CSS custom properties cannot be used inside @media conditions (browser
+ *  limitation), so we document them here as the single source of truth.
+ *
+ *  We follow a MOBILE-FIRST approach:
+ *    - Default styles (no media query) target mobile phones
+ *    - Add @media (min-width: ...) to progressively enhance for larger screens
+ *
+ *  ┌─────────┬───────────┬─────────────────────────────────┐
+ *  │  Name   │   Value   │  Target                         │
+ *  ├─────────┼───────────┼─────────────────────────────────┤
+ *  │   sm    │   480px   │  Phone landscape                │
+ *  │   md    │   768px   │  Tablet portrait                │
+ *  │   lg    │  1024px   │  Desktop                        │
+ *  │   xl    │  1280px   │  Wide desktop                   │
+ *  └─────────┴───────────┴─────────────────────────────────┘
+ *
+ *  Usage example in any *.module.css:
+ *
+ *    .grid {
+ *      grid-template-columns: 1fr;         ← mobile default
+ *    }
+ *
+ *    @media (min-width: 768px) {           ← md: tablet and up
+ *      .grid {
+ *        grid-template-columns: 1fr 1fr;
+ *      }
+ *    }
+ *
+ *    @media (min-width: 1024px) {          ← lg: desktop and up
+ *      .grid {
+ *        grid-template-columns: 1fr 1fr 1fr;
+ *      }
+ *    }
+ *
+ *  Rules:
+ *    - Never use arbitrary values like 500px, 900px, 1100px etc.
+ *    - Always use min-width (mobile-first), not max-width
+ *    - When in doubt, use md (768px) as the main breakpoint
+ *
+ * ─────────────────────────────────────────────────────────────────────────── */
