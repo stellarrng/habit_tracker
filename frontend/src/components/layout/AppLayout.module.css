@@ -1,23 +1,11 @@
 .appShell {
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 256px minmax(0, 1fr);
-  background: var(--bg-page);
-  color: var(--text-primary);
-  transition: background 0.2s ease, color 0.2s ease;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .appMain {
-  min-width: 0;
-  min-height: 100vh;
-  overflow-x: hidden;
+  flex: 1;
+  overflow-y: auto;
   background: var(--bg-page);
-  transition: background 0.2s ease;
-}
-
-@media (max-width: 900px) {
-  .appShell {
-    grid-template-columns: 1fr;
-  }
 }
