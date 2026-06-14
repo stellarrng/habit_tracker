@@ -34,8 +34,8 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
     <aside className={styles.appSidebar}>
       {/* Brand */}
       <div className={styles.sidebarBrand}>
-        <div className={styles.sidebarBrandName}>HabitFlow</div>
-        <div className={styles.sidebarBrandSub}>Stay consistent</div>
+        <div className={styles.sidebarBrandName}>Habit Tracker Pro</div>
+        <div className={styles.sidebarBrandSub}>Built for clarity</div>
       </div>
 
       {/* Nav */}
