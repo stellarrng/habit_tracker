@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { SettingsProvider } from './context/SettingsContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
 import LoginPage from './pages/Auth/LoginPage';
@@ -13,6 +14,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <SettingsProvider>
         <Routes>
           {/* Public */}
           <Route path="/login" element={<LoginPage />} />
@@ -27,6 +29,7 @@ export default function App() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
+        </SettingsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

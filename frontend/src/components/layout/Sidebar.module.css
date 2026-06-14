@@ -7,17 +7,16 @@
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
-  background: #f3f4f5;
+  background: var(--bg-sidebar);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s ease;
 }
 
-.brand {
-  margin-bottom: 64px;
-}
+.brand { margin-bottom: 64px; }
 
 .brandName {
   display: block;
-  color: #1f53c9;
+  color: var(--color-primary);
   font-size: 32px;
   font-weight: 800;
   line-height: 1.25;
@@ -26,7 +25,7 @@
 .brandTagline {
   display: block;
   margin-top: 2px;
-  color: #434654;
+  color: var(--text-secondary);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -45,7 +44,7 @@
   min-height: 48px;
   padding: 0 16px;
   border-radius: 8px;
-  color: #434654;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
@@ -53,13 +52,13 @@
 }
 
 .navItem:hover {
-  background: rgba(199, 234, 225, 0.35);
-  color: #1f53c9;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   text-decoration: none;
 }
 
 .navItemActive {
-  color: #1f53c9;
+  color: var(--color-primary);
   font-weight: 700;
   transform: scale(0.99);
 }
@@ -72,7 +71,7 @@
   width: 4px;
   height: 32px;
   border-radius: 999px 0 0 999px;
-  background: #1f53c9;
+  background: var(--color-primary);
 }
 
 .navIcon {
@@ -103,7 +102,7 @@
   width: 100%;
   min-height: 48px;
   border-radius: 999px;
-  background: #1f53c9;
+  background: var(--color-primary);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
@@ -115,14 +114,8 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.newButton:hover {
-  opacity: 0.9;
-  text-decoration: none;
-}
-
-.newButton:active {
-  transform: scale(0.96);
-}
+.newButton:hover { opacity: 0.9; text-decoration: none; }
+.newButton:active { transform: scale(0.96); }
 
 .profile {
   display: flex;
@@ -134,7 +127,7 @@
 .avatar {
   width: 40px;
   height: 40px;
-  border: 1px solid #c3c6d6;
+  border: 1px solid var(--border);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -145,20 +138,16 @@
   font-weight: 800;
 }
 
-.profile strong,
-.profile span {
-  display: block;
-  line-height: 1.3;
-}
+.profile strong, .profile span { display: block; line-height: 1.3; }
 
 .profile strong {
-  color: #191c1d;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
 }
 
 .profile span {
-  color: #434654;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -169,34 +158,12 @@
     height: auto;
     min-height: auto;
     padding: 20px;
-    border-bottom: 1px solid #c3c6d6;
+    border-bottom: 1px solid var(--border);
   }
-
-  .brand {
-    margin-bottom: 18px;
-  }
-
-  .brandName {
-    font-size: 24px;
-  }
-
-  .nav {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .navItem {
-    justify-content: center;
-  }
-
-  .navItemActive::after {
-    display: none;
-  }
-
-  .bottom {
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 16px;
-    padding-top: 18px;
-  }
+  .brand { margin-bottom: 18px; }
+  .brandName { font-size: 24px; }
+  .nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .navItem { justify-content: center; }
+  .navItemActive::after { display: none; }
+  .bottom { grid-template-columns: 1fr auto; align-items: center; gap: 16px; padding-top: 18px; }
 }

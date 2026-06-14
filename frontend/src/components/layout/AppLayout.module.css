@@ -3,15 +3,17 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns: 256px minmax(0, 1fr);
-  background: #f8f9fa;
-  color: #191c1d;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .appMain {
   min-width: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background: #f8f9fa;
+  background: var(--bg-page);
+  transition: background 0.2s ease;
 }
 
 @media (max-width: 900px) {

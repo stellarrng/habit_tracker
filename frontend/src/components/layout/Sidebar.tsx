@@ -1,37 +1,40 @@
 import { NavLink } from "react-router-dom";
+import { useSettings } from "../../context/SettingsContext";
 import styles from "./Sidebar.module.css";
 
-const navItems = [
-  {
-    label: "Today",
-    to: "/today",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 2v4M16 2v4M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Habits",
-    to: "/habits",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-      </svg>
-    ),
-  },
-  {
-    label: "Stats",
-    to: "/dashboard",
-    icon: (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-7M18 7h-4M18 7v4" />
-      </svg>
-    ),
-  },
-];
-
 export default function Sidebar() {
+  const { t } = useSettings();
+
+  const navItems = [
+    {
+      label: t("today"),
+      to: "/today",
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 2v4M16 2v4M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+        </svg>
+      ),
+    },
+    {
+      label: t("habits"),
+      to: "/habits",
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+        </svg>
+      ),
+    },
+    {
+      label: t("stats"),
+      to: "/dashboard",
+      icon: (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-7M18 7h-4M18 7v4" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <aside className={styles.sidebar} aria-label="Primary navigation">
       <div>
