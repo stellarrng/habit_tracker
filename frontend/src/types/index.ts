@@ -104,3 +104,11 @@ export interface CreateGoalInput {
   targetType: GoalTargetType;
   targetValue: number;
 }
+
+// ─── UI/View Model ─────────────────────────────────────────────────────────────
+
+export interface WeekStripDay {
+  label: WeekDay;
+  date: number;
+  iso: string;
+}

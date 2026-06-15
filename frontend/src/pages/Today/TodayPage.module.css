@@ -1,10 +1,10 @@
-/* ── Layout ─────────────────────────────────────────────────────────────────── */
+/* ── Layout ──────────────────────────────────────────────────────────────────── */
 
 .page {
   min-height: 100vh;
-  background-color: #f9fafb;
-  padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--color-gray-50);
+  padding: var(--space-6);
+  font-family: var(--font-sans);
 }
 
 .container {
@@ -12,7 +12,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */
@@ -24,105 +24,69 @@
 }
 
 .greeting {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
   margin: 0;
 }
 
 .subheading {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--text-sm);
+  color: var(--color-gray-500);
   margin: 2px 0 0;
 }
 
 .undoBtn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #2563eb;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-primary);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .undoBtn:hover {
-  color: #1d4ed8;
+  color: var(--color-primary-hover);
 }
 
 /* ── Progress bar ────────────────────────────────────────────────────────────── */
 
 .progressTrack {
   width: 100%;
-  height: 8px;
-  background-color: #f3f4f6;
-  border-radius: 9999px;
+  height: 10px;
+  background-color: var(--color-gray-100);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
-
+ 
 .progressFill {
+  position: relative;
   height: 100%;
-  background-color: #3b82f6;
-  border-radius: 9999px;
-  transition: width 0.5s ease;
+  border-radius: var(--radius-full);
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 0%,
+    #a5f3fc 100%
+  );
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
-
-/* ── Week strip ──────────────────────────────────────────────────────────────── */
-
-.weekStrip {
-  display: flex;
-  gap: 4px;
-}
-
-.dayBtn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  border-radius: 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.dayBtn:hover {
-  background-color: #f3f4f6;
-}
-
-.dayBtnActive {
-  background-color: #3b82f6;
-}
-
-.dayBtnActive:hover {
-  background-color: #3b82f6;
-}
-
-.dayLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-}
-
-.dayBtnActive .dayLabel {
-  color: #fff;
-}
-
-.dayDate {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #111827;
-  margin-top: 2px;
-}
-
-.dayBtnActive .dayDate {
-  color: #fff;
+ 
+.progressGlow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  border-radius: var(--radius-full);
 }
 
 /* ── Section header ──────────────────────────────────────────────────────────── */
@@ -131,69 +95,165 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #9ca3af;
+  color: var(--color-gray-400);
 }
 
 .sectionCount {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
 }
 
-/* ── Habit list ──────────────────────────────────────────────────────────────── */
+/* ── Habit list ────────────────────────────────────────────────────────────── */
 
 .habitList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
+/* ── Habit row ─────────────────────────────────────────────────────────────── */
+
 .habitRow {
+  position: relative;
+  overflow: hidden;
+ 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #f3f4f6;
+ 
+  padding: 14px var(--space-5);   /* slightly more horizontal padding */
+  gap: var(--space-4);            /* gap keeps left and right from touching */
+ 
   background-color: #fff;
-  transition: border-color 0.15s;
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-lg);
+ 
+  transition: border-color var(--transition-fast);
 }
 
 .habitRowCompleted {
-  border-color: #d1fae5;
+  border-color: var(--color-success-light);
 }
 
 .habitRowAtRisk {
-  border-color: #fee2e2;
+  border-color: var(--color-danger-light);
+}
+
+/* ── Priority indicators ───────────────────────────────────────────────────── */
+
+.priorityLow {
+  border-left: 5px solid var(--color-secondary);
+}
+
+.priorityMedium {
+  border-left: 5px solid var(--color-tertiary);
+}
+
+.priorityHigh {
+  border-left: 5px solid var(--color-danger);
+}
+
+/* ── Progress fill ─────────────────────────────────────────────────────────── */
+
+.habitProgressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+
+  z-index: 0;
+
+  background: var(--color-success-light);
+
+  transition:
+    width 350ms ease,
+    background-color 350ms ease;
+}
+
+.habitRowCompleted .habitProgressFill {
+  width: 100% !important;
+  background: var(--color-success);
+}
+
+/* ── Completed state overrides ───────────────────────────────────────────────
+ *
+ * When the green fill covers the full row, flip all child elements to
+ * white/light so they stay readable against the green background.
+ *
+ * Add these right after your .habitRowCompleted .habitProgressFill rule.
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* Row border matches the fill */
+.habitRowCompleted {
+  border-color: var(--color-success);
+}
+
+/* Habit name → white */
+.habitRowCompleted .habitName {
+  color: #fff;
+}
+
+/* Icon background → slightly lighter green, icon color → white */
+.habitRowCompleted .habitIcon {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Counter value → white, the /total part → semi-transparent white */
+.habitRowCompleted .counterValue {
+  color: #fff;
+}
+
+.habitRowCompleted .counterTotal {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Counter buttons → white ghost circles */
+.habitRowCompleted .counterBtn {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+  background: transparent;
+}
+
+.habitRowCompleted .counterBtn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Check button (binary) → white ring with white check */
+.habitRowCompleted .checkBtnDone {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
+.habitRowCompleted .checkBtnDone:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Category icon color → white (since you use lucide icons with color from parent) */
+.habitRowCompleted .habitIcon svg {
+  color: #fff;
+}
+
+/* ── Habit content ─────────────────────────────────────────────────────────── */
+
+.habitLeft,
+.counter {
+  position: relative;
+  z-index: 1;
 }
 
 .habitLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.habitIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.habitIconCompleted {
-  background-color: #ecfdf5;
+  gap: var(--space-3);
 }
 
 .habitInfo {
@@ -204,49 +264,70 @@
 .habitNameRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .habitName {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-800);
+}
+
+/* ── Habit icon ────────────────────────────────────────────────────────────── */
+
+.habitIcon {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  font-size: var(--text-lg);
+
+  background-color: var(--color-gray-50);
+  border-radius: var(--radius-full);
+}
+
+.habitIconCompleted {
+  background-color: var(--color-success-bg);
 }
 
 /* ── Category badge ──────────────────────────────────────────────────────────── */
 
-.categoryBadge {
+/* .categoryBadge {
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: var(--font-bold);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   padding: 2px 6px;
-  border-radius: 4px;
-}
+  border-radius: var(--radius-sm);
+} */
 
 .categoryHealth {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--color-category-health-bg);
+  color: var(--color-category-health-text);
 }
 
 .categoryStudy {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: var(--color-category-study-bg);
+  color: var(--color-category-study-text);
 }
 
 .categoryWork {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-category-work-bg);
+  color: var(--color-category-work-text);
 }
 
 .categoryMindfulness {
-  background-color: #ede9fe;
-  color: #5b21b6;
+  background-color: var(--color-category-mindfulness-bg);
+  color: var(--color-category-mindfulness-text);
 }
 
 .categoryOther {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: var(--color-category-other-bg);
+  color: var(--color-category-other-text);
 }
 
 /* ── Status line ─────────────────────────────────────────────────────────────── */
@@ -254,31 +335,45 @@
 .statusLine {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  margin-top: 2px;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  margin-top: 3px;
+  line-height: 1.4;
 }
 
 .statusCompleted {
-  color: #059669;
-  font-weight: 500;
+  color: var(--color-success);
+  font-weight: var(--font-medium);
 }
 
 .statusAtRisk {
-  color: #ef4444;
-  font-weight: 500;
+  color: var(--color-danger);
+  font-weight: var(--font-medium);
+}
+
+.statusNotStarted {
+  color: var(--color-gray-400);
 }
 
 .statusInProgress {
-  color: #9ca3af;
+  color: var(--color-gray-500);
 }
 
 .statusDot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background-color: #10b981;
+  background-color: var(--color-success);
   flex-shrink: 0;
+}
+
+/* When row is completed (green background), flip status text to white */
+.habitRowCompleted .statusLine {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.habitRowCompleted .statusDot {
+  background-color: rgba(255, 255, 255, 0.7);
 }
 
 /* ── Counter ─────────────────────────────────────────────────────────────────── */
@@ -286,27 +381,43 @@
 .counter {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+/* Pill wrapper for multi-step counter */
+.counterPill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: transparent;
+  border: transparent;
 }
 
 .counterBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #e5e7eb;
-  background: none;
-  color: #6b7280;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-gray-300);
+  background: #fff;
+  color: var(--color-gray-600);
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.15s;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .counterBtn:hover:not(:disabled) {
-  background-color: #f3f4f6;
+  background-color: var(--color-gray-100);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-900);
 }
 
 .counterBtn:disabled {
@@ -315,88 +426,98 @@
 }
 
 .counterValue {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  width: 64px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-800);
+  min-width: 44px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+.counterTotal {
+  font-weight: var(--font-normal);
+  color: var(--color-gray-400);
+  font-size: var(--text-xs);
+}
+
+/* ── Binary check button ─────────────────────────────────────────────────────── */
+/* Circle ring → fills green on completion                                        */
+
+.checkBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-gray-300);
+  background: none;
+  color: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.checkBtn:hover:not(:disabled) {
+  border-color: var(--color-success);
+  color: var(--color-success-light);
+  transform: scale(1.08);
+}
+
+.checkBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.checkBtnDone {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: #fff;
+}
+
+.checkBtnDone:hover:not(:disabled) {
+  background-color: #047857;
+  border-color: #047857;
+  color: #fff;
+  transform: scale(1.08);
 }
 
 /* ── Bottom cards ────────────────────────────────────────────────────────────── */
 
 .bottomCards {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .tipCard {
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 16px;
+  background-color: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
 }
 
 .tipHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin-bottom: 6px;
-  font-size: 1rem;
+  font-size: var(--text-base);
 }
 
 .tipTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #92400e;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-warning);
 }
 
 .tipBody {
-  font-size: 0.75rem;
-  color: #b45309;
+  font-size: var(--text-xs);
+  color: var(--color-warning);
   line-height: 1.5;
   margin: 0;
-}
-
-.settingsCard {
-  background-color: #fff;
-  border: 1px solid #f3f4f6;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.settingsTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.settingsSubtitle {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin: 2px 0 0;
-}
-
-.resetBtn {
-  margin-top: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-  transition: color 0.15s;
-}
-
-.resetBtn:hover {
-  color: #dc2626;
 }
 
 /* ── New habit button ────────────────────────────────────────────────────────── */
@@ -404,25 +525,25 @@
 .newHabitBtn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: #3b82f6;
+  gap: var(--space-2);
+  background-color: var(--color-primary);
   color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 10px 16px;
-  border-radius: 12px;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  padding: 10px var(--space-4);
+  border-radius: var(--radius-lg);
   border: none;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.15s;
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-fast);
 }
 
 .newHabitBtn:hover {
-  background-color: #2563eb;
+  background-color: var(--color-primary-hover);
 }
 
 .newHabitBtn span {
-  font-size: 1.125rem;
+  font-size: var(--text-lg);
   line-height: 1;
 }
 
@@ -432,22 +553,171 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
-  color: #d1d5db;
-  padding: 8px 0 4px;
+  font-size: var(--text-xs);
+  color: var(--color-gray-200);
+  padding: var(--space-2) 0 var(--space-1);
 }
 
 .footerLinks {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .footerLink {
-  color: #d1d5db;
+  color: var(--color-gray-200);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: color var(--transition-fast);
 }
 
 .footerLink:hover {
-  color: #9ca3af;
+  color: var(--color-gray-400);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeletonBox {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeletonGreeting {
+  width: 220px;
+  height: 28px;
+}
+
+.skeletonProgress {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonWeek {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.skeletonDay {
+  flex: 1;
+  height: 56px;
+  border-radius: var(--radius-lg);
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-100);
+  background: #fff;
+}
+
+.skeletonLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeletonIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.skeletonTitle {
+  width: 140px;
+  height: 14px;
+}
+
+.skeletonSub {
+  width: 90px;
+  height: 11px;
+}
+
+.skeletonCounter {
+  width: 80px;
+  height: 28px;
+  border-radius: var(--radius-full);
+}
+
+/* ── Pending state ───────────────────────────────────────────────────────────── */
+
+.habitRowPending {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ── Error state ─────────────────────────────────────────────────────────────── */
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  background: #fff;
+  border: 1px solid var(--color-danger-light);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.errorText {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.retryBtn {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: #fff;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.retryBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────────── */
+
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+  background: #fff;
+  border: 1px dashed var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }

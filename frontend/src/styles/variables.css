@@ -1,23 +1,45 @@
 :root {
-  /* ── Brand ───────────────────────────────────────────────────────── */
-  --color-primary:       #1f53c9;
-  --color-primary-hover: #1844a8;
-  --color-primary-light: rgba(31, 83, 201, 0.1);
+  /* ── Brand ───────────────────────────────────────── */
 
-  /* ── Semantic ────────────────────────────────────────────────────── */
-  --color-danger:  #ba1a1a;
-  --color-success: #45645e;
-  --color-warning: #8a4c00;
+  --color-primary:       #5D87FF;
+  --color-primary-hover: #4C73E8;
+  --color-primary-light: #E8EEFF;
 
-  /* ── Tone colors (light mode) ────────────────────────────────────── */
-  --tone-blue-bg:    rgba(31, 83, 201, 0.10);
-  --tone-blue-fg:    #1f53c9;
-  --tone-amber-bg:   #ffdcc1;
-  --tone-amber-fg:   #8a4c00;
-  --tone-mint-bg:    rgba(69, 100, 94, 0.12);
-  --tone-mint-fg:    #45645e;
-  --tone-red-bg:     rgba(186, 26, 26, 0.10);
-  --tone-red-fg:     #ba1a1a;
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #6F9088;
+  --color-secondary-light: #DCE7E4;
+
+  --color-tertiary:       #D27700;
+  --color-tertiary-hover: #B76600;
+  --color-tertiary-light: #FCE8CC;
+
+  /* ── Semantic ────────────────────────────────────── */
+
+  --color-success:       #84A59D;
+  --color-success-light: #DCE7E4;
+  --color-success-bg:    #F3F7F6;
+
+  --color-danger:        #C62828;
+  --color-danger-hover:  #A91F1F;
+  --color-danger-light:  #FDECEC;
+
+  --color-warning:       #D27700;
+  --color-warning-hover: #B76600;
+  --color-warning-light: #FCE8CC;
+  --color-warning-bg:    #FFF8EF;
+
+  /* ── Neutrals ────────────────────────────────────── */
+
+  --color-gray-50:  #F8F9FA;
+  --color-gray-100: #EEF1F4;
+  --color-gray-200: #DDE3E8;
+  --color-gray-300: #C9D0D7;
+  --color-gray-400: #9FA8B2;
+  --color-gray-500: #707A84;
+  --color-gray-600: #59616B;
+  --color-gray-700: #434A54;
+  --color-gray-800: #2F3640;
+  --color-gray-900: #1C2128;
 
   /* ── Surfaces (light mode) ───────────────────────────────────────── */
   --bg-page:        #f8f9fa;
