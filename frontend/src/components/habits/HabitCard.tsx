@@ -10,6 +10,7 @@ import {
   TrashIcon
 } from '../shared/Icons';
 import styles from './HabitCard.module.css';
+import HabitCategoryIcon from '../shared/HabitCategoryIcon';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
@@ -62,7 +63,7 @@ function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
 
 // ─── Component ────────────────────────────────────────────────────────────
 interface HabitCardProps {
-  habit:  Habit;
+  habit: Habit;
   onEdit: (habit: Habit) => void;
 }
 
@@ -72,25 +73,25 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
   const isActive = habit.status === 'Active';
 
   // Goal config
-  const hasGoal  = !!habit.goalTargetType && !!habit.goalTargetValue;
+  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
-  const target   = habit.goalTargetValue || 30;
+  const target = habit.goalTargetValue || 30;
 
   // Stable progress derived from habit age only
-  const age          = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
+  const age = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
   const baseProgress = Math.max(0, Math.min(Math.floor(age * 0.75), 60));
   const currentValue = goalType === 'Streak'
     ? Math.min(baseProgress, target)
     : Math.min(Math.floor(baseProgress * 1.5), target);
-  const pct        = Math.min(Math.round((currentValue / target) * 100), 100);
+  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
   const goalMsg = hasGoal
     ? isComplete
       ? '🎉 Goal achieved!'
       : pct >= 80
-      ? `Almost there! ${target - currentValue} more to go.`
-      : null
+        ? `Almost there! ${target - currentValue} more to go.`
+        : null
     : null;
 
   const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
@@ -98,11 +99,11 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
   function renderCategoryIcon() {
     const props = { style: { color: 'rgba(0,0,0,0.6)' } };
     switch (habit.category) {
-      case 'Health':      return <DropletIcon {...props} />;
-      case 'Study':       return <BookIcon {...props} />;
-      case 'Work':        return <BriefcaseIcon {...props} />;
+      case 'Health': return <DropletIcon {...props} />;
+      case 'Study': return <BookIcon {...props} />;
+      case 'Work': return <BriefcaseIcon {...props} />;
       case 'Mindfulness': return <LotusIcon {...props} />;
-      default:            return <StarIcon {...props} />;
+      default: return <StarIcon {...props} />;
     }
   }
 
@@ -123,9 +124,14 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
 
       {/* Header */}
       <div className="habit-card-header">
-        <div className="habit-icon" style={{ background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* <div className="habit-icon" style={{ background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {renderCategoryIcon()}
-        </div>
+        </div> */}
+        {/* Component for Category Icon */}
+        <HabitCategoryIcon
+          category={habit.category}
+          size={45}
+        />
         <div
           className="habit-card-title-group"
           style={{ cursor: 'pointer' }}

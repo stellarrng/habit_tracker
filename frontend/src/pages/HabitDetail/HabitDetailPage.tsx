@@ -18,25 +18,26 @@ import {
   CalendarIcon
 } from '../../components/shared/Icons';
 import styles from './HabitDetailPage.module.css';
+import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
 
 // ─── Color maps ──────────────────────────────────────────────────────────
 const CATEGORY_COLORS: Record<string, string> = {
   Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
 };
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
-  Low:    { bg: '#DBF4FF', color: '#1864AB' },
+  Low: { bg: '#DBF4FF', color: '#1864AB' },
   Medium: { bg: '#FFF3BF', color: '#855C04' },
-  High:   { bg: '#FFE3E3', color: '#C92A2A' },
+  High: { bg: '#FFE3E3', color: '#C92A2A' },
 };
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  Active:   { bg: '#D3F9D8', color: '#2F9E44' },
-  Paused:   { bg: '#F1F3F5', color: '#868E96' },
+  Active: { bg: '#D3F9D8', color: '#2F9E44' },
+  Paused: { bg: '#F1F3F5', color: '#868E96' },
   Archived: { bg: '#FFF3CD', color: '#E67700' },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────
 export default function HabitDetailPage() {
-  const { id }   = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { habits, changeStatus, removeHabit } = useHabitContext();
   const [showEdit, setShowEdit] = useState(false);
@@ -51,7 +52,7 @@ export default function HabitDetailPage() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   function triggerConfirm(params: {
@@ -99,7 +100,7 @@ export default function HabitDetailPage() {
   const last7Days = useMemo(() => {
     if (!habit) return [];
     const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    
+
     // Create a set of completed dates for quick lookup
     const completedDates = new Set(
       checkIns
@@ -112,7 +113,7 @@ export default function HabitDetailPage() {
       d.setDate(d.getDate() - (6 - i));
       const dayLabel = labels[d.getDay()][0]; // Single character S, M, T, W...
       const dateStr = d.toISOString().slice(0, 10);
-      
+
       const completed = completedDates.has(dateStr);
       return { label: dayLabel, completed };
     });
@@ -152,34 +153,34 @@ export default function HabitDetailPage() {
   const totalCompletions = streaks.totalSessions;
 
   // Goal details
-  const hasGoal  = !!habit.goalTargetType && !!habit.goalTargetValue;
+  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
-  const target   = habit.goalTargetValue || 30;
+  const target = habit.goalTargetValue || 30;
   const currentValue = goalType === 'Streak' ? currentStreak : totalCompletions;
-  const pct        = Math.min(Math.round((currentValue / target) * 100), 100);
+  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
-  const isActive      = habit.status === 'Active';
-  const iconBg        = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
-  const statusStyle   = STATUS_COLORS[habit.status]   ?? STATUS_COLORS.Active;
+  const isActive = habit.status === 'Active';
+  const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
+  const statusStyle = STATUS_COLORS[habit.status] ?? STATUS_COLORS.Active;
   const priorityStyle = PRIORITY_COLORS[habit.priority] ?? PRIORITY_COLORS.Medium;
 
   const goalMsg = hasGoal
     ? isComplete
       ? '🎉 Goal achieved — amazing work!'
       : pct >= 80
-      ? 'Almost there! Keep going!'
-      : `Keep going! ${target - currentValue} more to reach your goal.`
+        ? 'Almost there! Keep going!'
+        : `Keep going! ${target - currentValue} more to reach your goal.`
     : null;
 
   function renderCategoryIcon() {
     const props = { style: { color: 'rgba(0,0,0,0.6)', width: 24, height: 24 } };
     switch (habit!.category) {
-      case 'Health':      return <DropletIcon {...props} />;
-      case 'Study':       return <BookIcon {...props} />;
-      case 'Work':        return <BriefcaseIcon {...props} />;
+      case 'Health': return <DropletIcon {...props} />;
+      case 'Study': return <BookIcon {...props} />;
+      case 'Work': return <BriefcaseIcon {...props} />;
       case 'Mindfulness': return <LotusIcon {...props} />;
-      default:            return <StarIcon {...props} />;
+      default: return <StarIcon {...props} />;
     }
   }
 
@@ -253,9 +254,14 @@ export default function HabitDetailPage() {
 
         {/* ── Header Row ────────────────────────────────────────── */}
         <div className={styles.headerRow}>
-          <div className={styles.iconWrapper} style={{ background: iconBg }}>
+          {/* <div className={styles.iconWrapper} style={{ background: iconBg }}>
             {renderCategoryIcon()}
-          </div>
+          </div> */}
+          {/* Component for Category Icon */}
+          <HabitCategoryIcon
+            category={habit.category}
+            size={55}
+          />
           <div className={styles.titleArea}>
             <h1 className={styles.titleText}>{habit.name}</h1>
             <span className={styles.statusIndicator} style={{ color: statusStyle.color, background: statusStyle.bg }}>
@@ -358,7 +364,7 @@ export default function HabitDetailPage() {
         {/* ── Statistics card ─────────────────────────────────────── */}
         <div className={styles.statsCard}>
           <div className={styles.statsCardTitle}>Statistics</div>
-          
+
           <div className={styles.statsRow}>
             <div className={styles.statCol}>
               <span className={styles.statValue}>{currentStreak} days</span>
@@ -383,7 +389,7 @@ export default function HabitDetailPage() {
               <span className={styles.weeklyValue}>{completionRate}%</span>
               <span className={styles.weeklyLabel}>Completion rate (last 7 days)</span>
             </div>
-            
+
             <div className={styles.dotTrack}>
               {last7Days.map((day, idx) => (
                 <div key={idx} className={styles.dotItem}>
