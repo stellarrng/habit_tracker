@@ -442,6 +442,7 @@ export default function TodayPage() {
     if (!lastAction) return;
     await updateCount(lastAction.row, -lastAction.delta);
     setLastAction(null);
+    await handleUpdateCount(habitId, prevCount);
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -479,6 +480,9 @@ export default function TodayPage() {
             </button>
           )}
         </div>
+      </AppLayout>
+    );
+  }
 
         <ProgressBar percent={progressPct} />
 
@@ -490,11 +494,21 @@ export default function TodayPage() {
           onSelectDate={setSelectedDate}
         />
 
-        {/* Habits */}
-        <section>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionTitle}>Active Habits</span>
-            <span className={styles.sectionCount}>{activeHabits.length} items</span>
+          {/* Header */}
+          <div className={styles.header}>
+            <div>
+              <h1 className={styles.greeting}>{greeting(name)}</h1>
+              <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
+            </div>
+            {lastAction && (
+              <button className={styles.undoBtn} onClick={undoLast}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M2 8a6 6 0 1 0 1.5-4L2 2" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="2,2 2,6 6,6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Undo last action
+              </button>
+            )}
           </div>
           <div className={styles.habitList}>
             {activeHabits.length === 0 ? (
@@ -514,14 +528,12 @@ export default function TodayPage() {
               ))
             )}
           </div>
-        </section>
 
-        {/* Bottom cards */}
-        <div className={styles.bottomCards}>
-          <div className={styles.tipCard}>
-            <div className={styles.tipHeader}>
-              <span>💡</span>
-              <span className={styles.tipTitle}>Consistency Tip</span>
+          {/* Habits */}
+          <section>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionTitle}>Active Habits</span>
+              <span className={styles.sectionCount}>{activeHabits.length} items</span>
             </div>
             <p className={styles.tipBody}>
               Drinking water right after you wake up helps anchor your morning routine.
@@ -543,7 +555,14 @@ export default function TodayPage() {
           </div>
         </footer>
 
+        </div>
       </div>
-    </div>
+      {showForm && (
+        <HabitForm
+          editingHabit={null}
+          onClose={() => setShowForm(false)}
+        />
+      )}
+    </AppLayout>
   );
 }

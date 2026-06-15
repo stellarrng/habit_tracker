@@ -1,0 +1,422 @@
+/* ── Layout Container ────────────────────────────────────────── */
+.detailPageContainer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 8px 16px 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 0;
+  transition: opacity var(--transition);
+}
+.backButton:hover { opacity: 0.75; }
+
+/* ── Header Row ────────────────────────────────────────────── */
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.iconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.titleArea {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleText {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.statusIndicator {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 99px;
+  padding: 1px 8px;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.chipsRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.priorityChip {
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Goal progress card ──────────────────────────────────────── */
+.goalCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.goalCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.goalCardTitleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.goalCardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goalCardSubtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.goalCardValues {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goalCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goalBarTrack {
+  height: 8px;
+  background: #EEF0F7;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.goalBarFill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-primary), #6EB5FF);
+  transition: width 0.4s ease;
+}
+
+.goalBarFillComplete {
+  background: linear-gradient(90deg, var(--color-success), #69DB7C);
+}
+
+.goalBarFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goalBarPct {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.goalBarMsg {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── No Goal state ──────────────────────────────────────────── */
+.emptyGoalCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.emptyGoalIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+  border: 1.5px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emptyGoalContent {
+  flex: 1;
+}
+
+.emptyGoalTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.emptyGoalSub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ── Statistics card ────────────────────────────────────────── */
+.statsCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.statsCardTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.statCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statColDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.statsDivider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.weeklySection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.weeklyHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weeklyValue {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.weeklyLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dotTrack {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.dotItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #EEF0F7;
+  border: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.dotCompleted {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.dotDayLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ── About card ─────────────────────────────────────────────── */
+.aboutCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aboutHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aboutTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.editLink {
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--transition);
+}
+.editLink:hover { opacity: 0.8; }
+
+.aboutDesc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Actions Row ────────────────────────────────────────────── */
+.actionsRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.actionBtn {
+  flex: 1;
+  min-width: 130px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.editBtn {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.editBtn:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.pauseBtn:hover, .archiveBtn:hover {
+  background: var(--bg-page);
+  border-color: var(--text-secondary);
+}
+
+.deleteBtn {
+  border-color: #FFE3E3;
+  color: #C92A2A;
+  background: #FFF5F5;
+}
+
+.deleteBtn:hover {
+  background: #FFE3E3;
+}
+
+.goalHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

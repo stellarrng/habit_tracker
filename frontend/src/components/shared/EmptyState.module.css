@@ -1,0 +1,10 @@
+.emptyState {
+  text-align: center;
+  padding: 60px 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border);
+}
+.emptyStateIcon { font-size: 52px; margin-bottom: 12px; }
+.emptyStateTitle { font-size: var(--font-size-lg); font-weight: 700; margin-bottom: 8px; }
+.emptyStateSub { font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
