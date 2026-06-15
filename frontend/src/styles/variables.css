@@ -1,32 +1,45 @@
 :root {
-  /* ── Colors: Brand ───────────────────────────────────────────────── */
-  --color-primary:       #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-light: #dbeafe;
+  /* ── Brand ───────────────────────────────────────── */
 
-  /* ── Colors: Semantic ────────────────────────────────────────────── */
-  --color-success:       #059669;
-  --color-success-light: #d1fae5;
-  --color-success-bg:    #ecfdf5;
+  --color-primary:       #5D87FF;
+  --color-primary-hover: #4C73E8;
+  --color-primary-light: #E8EEFF;
 
-  --color-danger:        #ef4444;
-  --color-danger-hover:  #dc2626;
-  --color-danger-light:  #fee2e2;
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #6F9088;
+  --color-secondary-light: #DCE7E4;
 
-  --color-warning:       #b45309;
-  --color-warning-light: #fde68a;
-  --color-warning-bg:    #fffbeb;
+  --color-tertiary:       #D27700;
+  --color-tertiary-hover: #B76600;
+  --color-tertiary-light: #FCE8CC;
 
-  /* ── Colors: Neutrals ────────────────────────────────────────────── */
-  --color-gray-50:  #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
+  /* ── Semantic ────────────────────────────────────── */
+
+  --color-success:       #84A59D;
+  --color-success-light: #DCE7E4;
+  --color-success-bg:    #F3F7F6;
+
+  --color-danger:        #C62828;
+  --color-danger-hover:  #A91F1F;
+  --color-danger-light:  #FDECEC;
+
+  --color-warning:       #D27700;
+  --color-warning-hover: #B76600;
+  --color-warning-light: #FCE8CC;
+  --color-warning-bg:    #FFF8EF;
+
+  /* ── Neutrals ────────────────────────────────────── */
+
+  --color-gray-50:  #F8F9FA;
+  --color-gray-100: #EEF1F4;
+  --color-gray-200: #DDE3E8;
+  --color-gray-300: #C9D0D7;
+  --color-gray-400: #9FA8B2;
+  --color-gray-500: #707A84;
+  --color-gray-600: #59616B;
+  --color-gray-700: #434A54;
+  --color-gray-800: #2F3640;
+  --color-gray-900: #1C2128;
 
   /* ── Colors: Categories ──────────────────────────────────────────── */
   --color-category-health-bg:      #d1fae5;

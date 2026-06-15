@@ -15,3 +15,21 @@ export async function deleteCheckIn(id: string): Promise<{ message: string }> {
   const res = await api.delete<{ message: string }>(`/checkins/${id}`);
   return res.data;
 }
+// GET /api/checkins?habitId=&date=
+export const getCheckIns = async (date: string, habitId?: string): Promise<CheckIn[]> => {
+  const params: Record<string, string> = { date };
+  if (habitId) params.habitId = habitId;
+  const res = await api.get<CheckIn[]>('/checkins', { params });
+  return res.data;
+};
+
+// POST /api/checkins — creates or updates (upsert) a check-in
+export const upsertCheckIn = async (data: CreateCheckInInput): Promise<CheckIn> => {
+  const res = await api.post<CheckIn>('/checkins', data);
+  return res.data;
+};
+
+// DELETE /api/checkins/:id
+export const deleteCheckIn = async (id: string): Promise<void> => {
+  await api.delete(`/checkins/${id}`);
+};
