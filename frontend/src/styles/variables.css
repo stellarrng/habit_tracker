@@ -53,6 +53,18 @@
   --border:         rgba(195, 198, 214, 0.2);
   --shadow-card:    0 4px 20px rgba(0, 0, 0, 0.04);
 
+  /* ── Colors: Categories ──────────────────────────────────────────── */
+  --color-category-health-bg:      #d1fae5;
+  --color-category-health-text:    #065f46;
+  --color-category-study-bg:       #dbeafe;
+  --color-category-study-text:     #1e40af;
+  --color-category-work-bg:        #fef3c7;
+  --color-category-work-text:      #92400e;
+  --color-category-mindfulness-bg: #ede9fe;
+  --color-category-mindfulness-text: #5b21b6;
+  --color-category-other-bg:       #f3f4f6;
+  --color-category-other-text:     #4b5563;
+
   /* ── Typography ──────────────────────────────────────────────────── */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --text-xs:   0.75rem;
