@@ -18,11 +18,12 @@ html {
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  color: var(--color-gray-800);
-  background-color: var(--color-gray-50);
+  color: var(--text-primary);
+  background-color: var(--bg-page);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ── Typography ──────────────────────────────────────────────────────────── */
