@@ -4,9 +4,9 @@ import { CalendarIcon, TargetIcon, BarChartIcon, PlusIcon } from '../shared/Icon
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
-  { to: '/today',     label: 'Today',  icon: 'today' },
-  { to: '/habits',    label: 'Habits', icon: 'habits' },
-  { to: '/dashboard', label: 'Stats',  icon: 'stats' },
+  { to: '/today', label: 'Today', icon: 'today' },
+  { to: '/habits', label: 'Habits', icon: 'habits' },
+  { to: '/dashboard', label: 'Stats', icon: 'stats' },
 ];
 
 interface SidebarProps {
@@ -16,17 +16,17 @@ interface SidebarProps {
 export default function Sidebar({ onNewHabit }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
+  
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
   function getNavIcon(icon: string) {
     switch (icon) {
-      case 'today':  return <CalendarIcon />;
+      case 'today': return <CalendarIcon />;
       case 'habits': return <TargetIcon />;
-      case 'stats':  return <BarChartIcon />;
-      default:       return null;
+      case 'stats': return <BarChartIcon />;
+      default: return null;
     }
   }
 
