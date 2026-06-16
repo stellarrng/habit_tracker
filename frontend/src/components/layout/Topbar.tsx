@@ -185,7 +185,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 }
 
 // ── Topbar ────────────────────────────────────────────────────────────────────
-const APP_NAME = 'HabitMind';
+const APP_NAME = 'HabitFlow';
 
 interface TopbarProps {
   title: string;

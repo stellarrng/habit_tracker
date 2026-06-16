@@ -21,7 +21,7 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
     <aside className={styles.sidebar}>
       {/* Brand */}
       <div className={styles.brand}>
-        <span className={styles.brandName}>HabitMind</span>
+        <span className={styles.brandName}>HabitFlow</span>
         <span className={styles.brandSub}>Stay mindful</span>
       </div>
 
