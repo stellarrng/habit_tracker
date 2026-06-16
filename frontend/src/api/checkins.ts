@@ -1,8 +1,18 @@
 import api from './axiosInstance';
 import { CheckIn, CreateCheckInInput } from '../types';
 
+export async function getCheckIns(params?: { date?: string; habitId?: string }): Promise<CheckIn[]> {
+  const res = await api.get<CheckIn[]>('/checkins', { params });
+  return res.data;
+}
+
+export async function checkInHabit(input: CreateCheckInInput): Promise<CheckIn> {
+  const res = await api.post<CheckIn>('/checkins', input);
+  return res.data;
+}
+
 // GET /api/checkins?habitId=&date=
-export const getCheckIns = async (date: string, habitId?: string): Promise<CheckIn[]> => {
+export const getCheckInsByDate = async (date: string, habitId?: string): Promise<CheckIn[]> => {
   const params: Record<string, string> = { date };
   if (habitId) params.habitId = habitId;
   const res = await api.get<CheckIn[]>('/checkins', { params });

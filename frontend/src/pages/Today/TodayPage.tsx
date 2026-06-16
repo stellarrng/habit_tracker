@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import type { Habit, CheckIn, Goal, HabitCategory, CheckInStatus, WeekStripDay, WeekDay } from "../../types";
-import { getHabits } from "../../api/habits";
-import { getCheckIns, upsertCheckIn } from "../../api/checkins";
+import type { Habit, CheckIn, Goal, CheckInStatus, WeekStripDay, WeekDay } from "../../types";
+import { getCheckInsByDate, upsertCheckIn } from "../../api/checkins";
 import { getGoals } from "../../api/goals";
 import styles from "./TodayPage.module.css";
 import WeekStrip from "@/components/WeekStrip/WeekStrip";
-import { Heart, BookOpen, Briefcase, Brain, Sparkles } from "lucide-react";
+import AppLayout from "@/components/layout/AppLayout";
+import { useHabitContext } from "../../context/HabitContext";
+import { useNavigate } from "react-router-dom";
+import HabitCategoryIcon from "@/components/shared/HabitCategoryIcon";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -53,34 +55,6 @@ function greeting(name: string) {
   const time = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
   return `Good ${time}, ${name}!`;
 }
-
-// ── Category config ───────────────────────────────────────────────────────────
-
-const CATEGORY_CONFIG: Record<HabitCategory, {
-  colorClass: string;
-  icon: React.ReactNode;
-}> = {
-  Health: {
-    colorClass: styles.categoryHealth,
-    icon: <Heart size={20} />,
-  },
-  Study: {
-    colorClass: styles.categoryStudy,
-    icon: <BookOpen size={20} />,
-  },
-  Work: {
-    colorClass: styles.categoryWork,
-    icon: <Briefcase size={20} />,
-  },
-  Mindfulness: {
-    colorClass: styles.categoryMindfulness,
-    icon: <Brain size={20} />,
-  },
-  Other: {
-    colorClass: styles.categoryOther,
-    icon: <Sparkles size={20} />,
-  },
-};
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -223,7 +197,6 @@ function HabitRow({ row, onIncrement, onDecrement, isPending }: {
   const status = deriveStatus(checkIn.completedCount, habit.targetPerDay);
   const isCompleted = status === "Completed";
   const isAtRisk = status === "Not Started";
-  const { icon, colorClass } = CATEGORY_CONFIG[habit.category];
   const isBinary = habit.targetPerDay === 1;
 
   const progress = Math.min((checkIn.completedCount / habit.targetPerDay) * 100, 100);
@@ -242,12 +215,20 @@ function HabitRow({ row, onIncrement, onDecrement, isPending }: {
         style={{ width: `${progress}%` }}
       />
       <div className={styles.habitLeft}>
-        <div className={`${styles.habitIcon} ${colorClass} ${isCompleted ? styles.habitIconCompleted : ""}`}>
-          {icon}
-        </div>
+        <HabitCategoryIcon
+          category={habit.category}
+          size={40}
+          completed={isCompleted}
+        />
         <div className={styles.habitInfo}>
           <div className={styles.habitNameRow}>
             <span className={styles.habitName}>{habit.name}</span>
+            <span
+              className={`${styles.priorityBadge} ${styles[`priorityBadge${habit.priority}`]
+                }`}
+            >
+              {habit.priority.toUpperCase()}
+            </span>
           </div>
           <StatusLine
             status={status}
@@ -317,13 +298,15 @@ function ProgressBar({ percent }: { percent: number }) {
 const TODAY = formatLocalDate(new Date());
 
 export default function TodayPage() {
+  const { habits, loading: habitsLoading, error: habitsError } = useHabitContext();
   const [rows, setRows] = useState<HabitWithCheckIn[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(TODAY);
+  const navigate = useNavigate();
 
   const [pendingId, setPendingId] = useState<string | null>(null); // habitId currently saving
-  const [lastAction, setLastAction] = useState<{ row: HabitWithCheckIn; delta: number } | null>(null);
+  const [lastAction, setLastAction] = useState<{ habitId: string, delta: number; } | null>(null);
 
   const weekDays = buildWeekDays(TODAY);
 
@@ -343,6 +326,8 @@ export default function TodayPage() {
   const totalGoal = activeHabits.reduce((s, r) => s + r.habit.targetPerDay, 0);
   const totalDone = activeHabits.reduce((s, r) => s + Math.min(r.checkIn.completedCount, r.habit.targetPerDay), 0);
   const progressPct = totalGoal > 0 ? Math.round((totalDone / totalGoal) * 100) : 0;
+  const pageError = error ?? habitsError;
+  const isLoading = loading || habitsLoading;
 
   // ── Fetch today's data ──────────────────────────────────────────────────────
 
@@ -351,13 +336,11 @@ export default function TodayPage() {
       setLoading(true);
       setError(null);
 
-      const [habits, checkIns, goals] = await Promise.all([
-        getHabits(),
-        getCheckIns(date),
+      const activeHabits = habits.filter(h => h.status === "Active");
+      const [checkIns, goals] = await Promise.all([
+        getCheckInsByDate(date),
         getGoals(),
       ]);
-
-      const activeHabits = habits.filter(h => h.status === "Active");
 
       // For habits with no check-in today, create a default one optimistically
       const checkInMap = new Map(checkIns.map(c => [c.habitId, c]));
@@ -387,31 +370,38 @@ export default function TodayPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [habits]);
 
   useEffect(() => {
-    fetchData(selectedDate);
-  }, [fetchData]);
+    if (!habitsLoading) {
+      fetchData(selectedDate);
+    }
+  }, [fetchData, habitsLoading, selectedDate]);
 
   // ── Update count ────────────────────────────────────────────────────────────
 
-  async function updateCount(row: HabitWithCheckIn, delta: number) {
+  async function updateCount(row: HabitWithCheckIn, delta: number, trackUndo = true) {
     const { habit, checkIn } = row;
     const raw = checkIn.completedCount + delta;
     const count = Math.max(0, delta > 0 ? Math.min(raw, habit.targetPerDay) : raw);
 
     // Optimistic update
     setRows(prev => prev.map(r =>
-      r.habit._id !== habit._id ? r : {
-        ...r,
-        checkIn: {
-          ...r.checkIn,
-          completedCount: count,
-          status: deriveStatus(count, habit.targetPerDay),
-        },
-      }
+      r.habit._id !== habit._id
+        ? r
+        : {
+          ...r,
+          checkIn: {
+            ...r.checkIn,
+            completedCount: count,
+            status: deriveStatus(count, habit.targetPerDay),
+          },
+        }
     ));
-    setLastAction({ row, delta });
+
+    if (trackUndo) {
+      setLastAction({ habitId: habit._id, delta });
+    }
     setPendingId(habit._id);
 
     try {
@@ -440,110 +430,140 @@ export default function TodayPage() {
 
   async function undoLast() {
     if (!lastAction) return;
-    await updateCount(lastAction.row, -lastAction.delta);
+
+    const row = rows.find(r => r.habit._id === lastAction.habitId);
+    if (!row) return;
+
+    const action = lastAction;
     setLastAction(null);
+    await updateCount(row, -action.delta, false);
   }
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
-  if (loading) return <PageSkeleton />;
-
-  if (error) return (
+  if (pageError) return (
     <div className={styles.page}>
       <div className={styles.container}>
         <div className={styles.errorBox}>
-          <p className={styles.errorText}>{error}</p>
-          <button className={styles.retryBtn} onClick={() => fetchData(selectedDate)}>Try again</button>
+          <p className={styles.errorText}>{pageError}</p>
+          <button
+            className={styles.retryBtn}
+            onClick={() => {
+              if (error) {
+                fetchData(selectedDate);
+                return;
+              }
+              window.location.reload();
+            }}
+          >
+            Try again
+          </button>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className={styles.page}>
-      <div className={styles.container}>
+    <AppLayout onNewHabit={() => navigate("/habits")}>
+      {isLoading ? (
+        <PageSkeleton />
+      ) : (
+        <div className={styles.page}>
+          <div className={styles.container}>
 
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.greeting}>{greeting("Alex")}</h1>
-            <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
-          </div>
-          {lastAction && (
-            <button className={styles.undoBtn} onClick={undoLast}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M2 8a6 6 0 1 0 1.5-4L2 2" strokeLinecap="round" strokeLinejoin="round" />
-                <polyline points="2,2 2,6 6,6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Undo last action
-            </button>
-          )}
-        </div>
-
-        <ProgressBar percent={progressPct} />
-
-        {/* Week strip */}
-        <WeekStrip
-          days={weekDays}
-          selectedDate={selectedDate}
-          today={TODAY}
-          onSelectDate={setSelectedDate}
-        />
-
-        {/* Habits */}
-        <section>
-          <div className={styles.sectionHeader}>
-            <span className={styles.sectionTitle}>Active Habits</span>
-            <span className={styles.sectionCount}>{activeHabits.length} items</span>
-          </div>
-          <div className={styles.habitList}>
-            {activeHabits.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p>No active habits yet.</p>
-                <p>Create one to get started!</p>
+            {/* Header */}
+            <div className={styles.header}>
+              <div>
+                <h1 className={styles.greeting}>{greeting("Alex")}</h1>
+                <p className={styles.subheading}>You're {progressPct}% of the way to your daily goal.</p>
               </div>
-            ) : (
-              activeHabits.map(row => (
-                <HabitRow
-                  key={row.habit._id}
-                  row={row}
-                  onIncrement={r => updateCount(r, 1)}
-                  onDecrement={r => updateCount(r, -1)}
-                  isPending={pendingId === row.habit._id}
-                />
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* Bottom cards */}
-        <div className={styles.bottomCards}>
-          <div className={styles.tipCard}>
-            <div className={styles.tipHeader}>
-              <span>💡</span>
-              <span className={styles.tipTitle}>Consistency Tip</span>
+              {lastAction && (
+                <button className={styles.undoBtn} onClick={undoLast}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M2 8a6 6 0 1 0 1.5-4L2 2" strokeLinecap="round" strokeLinejoin="round" />
+                    <polyline points="2,2 2,6 6,6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Undo last action
+                </button>
+              )}
             </div>
-            <p className={styles.tipBody}>
-              Drinking water right after you wake up helps anchor your morning routine.
-            </p>
+
+            <ProgressBar percent={progressPct} />
+
+            {/* Week strip */}
+            <WeekStrip
+              days={weekDays}
+              selectedDate={selectedDate}
+              today={TODAY}
+              onSelectDate={setSelectedDate}
+            />
+
+            {/* Habits */}
+            <section>
+              <div className={styles.sectionHeader}>
+                <span className={styles.sectionTitle}>Active Habits</span>
+                <span className={styles.sectionCount}>{activeHabits.length} items</span>
+              </div>
+              <div className={styles.habitList}>
+                {activeHabits.length === 0 ? (
+                  <div className={styles.emptyState}>
+                    <p>No active habits yet.</p>
+                    <p>Create one to get started!</p>
+                  </div>
+                ) : (
+                  activeHabits.map(row => (
+                    <HabitRow
+                      key={row.habit._id}
+                      row={row}
+                      onIncrement={r => updateCount(r, 1)}
+                      onDecrement={r => updateCount(r, -1)}
+                      isPending={pendingId === row.habit._id}
+                    />
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* Bottom cards */}
+            <div className={styles.bottomCards}>
+              <div className={styles.tipCard}>
+                <div className={styles.tipHeader}>
+                  <span>💡</span>
+                  <span className={styles.tipTitle}>Consistency Tip</span>
+                </div>
+                <p className={styles.tipBody}>
+                  Drinking water right after you wake up helps anchor your morning routine.
+                </p>
+              </div>
+
+              <div className={styles.statsCard}>
+                <div className={styles.statsHeader}>
+                  <span>📊</span>
+                  <span className={styles.statsTitle}>Today at a Glance</span>
+                </div>
+                <div className={styles.statsGrid}>
+                  <div className={styles.statsItem}>
+                    <span className={styles.statsValue}>{activeHabits.length}</span>
+                    <span className={styles.statsLabel}>active habits</span>
+                  </div>
+                  <div className={styles.statsItem}>
+                    <span className={styles.statsValue}>{progressPct}%</span>
+                    <span className={styles.statsLabel}>daily progress</span>
+                  </div>
+                  <div className={styles.statsItem}>
+                    <span className={styles.statsValue}>{totalDone}</span>
+                    <span className={styles.statsLabel}>goal points done</span>
+                  </div>
+                  <div className={styles.statsItem}>
+                    <span className={styles.statsValue}>{Math.max(totalGoal - totalDone, 0)}</span>
+                    <span className={styles.statsLabel}>left to reach target</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <button className={styles.newHabitBtn}>
-          <span>+</span>
-          New Habit
-        </button>
-
-        <footer className={styles.footer}>
-          <span>© 2026 HabitFlow. Built for clarity.</span>
-          <div className={styles.footerLinks}>
-            {["Privacy", "Support", "Terms"].map(l => (
-              <a key={l} href="#" className={styles.footerLink}>{l}</a>
-            ))}
-          </div>
-        </footer>
-
-      </div>
-    </div>
+      )}
+    </AppLayout>
   );
 }

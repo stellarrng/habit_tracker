@@ -1,0 +1,136 @@
+/* ── Goal Section ────────────────────────────────────────────── */
+.goalSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.goalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goalTypeLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--text-muted);
+}
+
+.goalPct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.goalPctComplete {
+  color: var(--color-success);
+}
+
+.goalProgressRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goalRing {
+  flex-shrink: 0;
+}
+
+.goalNumbers {
+  flex: 1;
+  min-width: 0;
+}
+
+.goalValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.goalValueComplete {
+  color: var(--color-success);
+}
+
+.goalTotal {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.goalBar {
+  height: 5px;
+  background: #EEF0F7;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.goalBarFill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-primary), #6EB5FF);
+  transition: width 0.4s ease;
+}
+
+.goalBarFillComplete {
+  background: linear-gradient(90deg, var(--color-success), #69DB7C);
+}
+
+.goalMsg {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.goalMsgNear {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.goalMsgAchieved {
+  color: var(--color-success);
+  background: var(--color-success-light);
+}
+
+/* ── No-goal placeholder ─────────────────────────────────────── */
+.noGoalRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-page);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  min-height: 98px;
+  flex-grow: 1;
+}
+
+.noGoalText {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.noGoalLink {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  white-space: nowrap;
+  opacity: 0.85;
+  transition: opacity var(--transition);
+}
+
+.noGoalLink:hover {
+  opacity: 1;
+}

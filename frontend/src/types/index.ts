@@ -28,6 +28,9 @@ export interface Habit {
   targetPerDay: number;
   priority: HabitPriority;
   status: HabitStatus;
+  goalTargetType?: GoalTargetType | null;
+  goalTargetValue?: number | null;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +80,9 @@ export interface CreateHabitInput {
   specificDays?: WeekDay[];
   targetPerDay: number;
   priority?: HabitPriority;
+  goalTargetType?: GoalTargetType | null;
+  goalTargetValue?: number | null;
+  description?: string;
 }
 
 export type UpdateHabitInput = Partial<CreateHabitInput> & { status?: HabitStatus };
