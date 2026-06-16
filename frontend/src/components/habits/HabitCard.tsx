@@ -1,13 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { Habit, HabitStatus } from '../../types';
+import { Habit, HabitStatus, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
+import { getCheckIns } from '../../api/checkins';
+import { useStreaks } from '../../hooks/useStreaks';
 import {
-  DropletIcon,
-  BookIcon,
-  BriefcaseIcon,
-  LotusIcon,
-  StarIcon,
   TrashIcon,
   MoreVerticalIcon
 } from '../shared/Icons';
@@ -15,9 +12,6 @@ import styles from './HabitCard.module.css';
 import HabitCategoryIcon from '../shared/HabitCategoryIcon';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
-const CATEGORY_COLORS: Record<string, string> = {
-  Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
-};
 
 function categoryClass(cat: string) {
   return `chip chip-category-${cat.toLowerCase().replace(/\s+/g, '')}`;
@@ -80,10 +74,20 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Goal config
-  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
-  const goalType = habit.goalTargetType || 'Streak';
-  const target = habit.goalTargetValue || 30;
+  // Check-ins and streaks
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const streaks = useStreaks(checkIns);
+
+  // Fetch check-ins for this habit
+  useEffect(() => {
+    let alive = true;
+    getCheckIns({ habitId: habit._id })
+      .then(data => {
+        if (alive) setCheckIns(data);
+      })
+      .catch(err => console.error('Failed to fetch check-ins:', err));
+    return () => { alive = false; };
+  }, [habit._id]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -99,12 +103,15 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
     }
   }, [menuOpen]);
 
-  // Stable progress derived from habit age only
-  const age = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
-  const baseProgress = Math.max(0, Math.min(Math.floor(age * 0.75), 60));
+  // Goal config
+  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
+  const goalType = habit.goalTargetType || 'Streak';
+  const target = habit.goalTargetValue || 30;
+
+  // Calculate progress from real check-in data
   const currentValue = goalType === 'Streak'
-    ? Math.min(baseProgress, target)
-    : Math.min(Math.floor(baseProgress * 1.5), target);
+    ? streaks.current
+    : streaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -115,24 +122,6 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
         ? `Almost there! ${target - currentValue} more to go.`
         : null
     : null;
-
-  const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
-
-  function renderCategoryIcon() {
-    const props = { style: { color: 'rgba(0,0,0,0.6)' } };
-    switch (habit.category) {
-      case 'Health': return <DropletIcon {...props} />;
-      case 'Study': return <BookIcon {...props} />;
-      case 'Work': return <BriefcaseIcon {...props} />;
-      case 'Mindfulness': return <LotusIcon {...props} />;
-      default: return <StarIcon {...props} />;
-    }
-  }
-
-  function toggleStatus() {
-    const next: HabitStatus = isActive ? 'Paused' : 'Active';
-    changeStatus(habit._id, next);
-  }
 
   function handlePause() {
     const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
