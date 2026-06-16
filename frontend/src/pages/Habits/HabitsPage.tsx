@@ -5,6 +5,8 @@ import AppLayout from '../../components/layout/AppLayout';
 import HabitFilters from '../../components/habits/HabitFilters';
 import HabitCard from '../../components/habits/HabitCard';
 import HabitForm from '../../components/habits/HabitForm';
+import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import Toast from '../../components/shared/Toast';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorMessage from '../../components/shared/ErrorMessage';
 import { TargetIcon, SearchIcon, SparklesIcon, PlusIcon } from '../../components/shared/Icons';
@@ -21,10 +23,13 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
-  const { filteredHabits, habits, loading, error, clearError } = useHabitContext();
+  const { filteredHabits, habits, loading, error, clearError, changeStatus } = useHabitContext();
 
   const [showForm, setShowForm]         = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Group filtered habits by category
   const habitsByCategory = useMemo(() => {
@@ -48,6 +53,23 @@ export default function HabitsPage() {
   function openCreate() { setEditingHabit(null); setShowForm(true); }
   function openEdit(habit: Habit) { setEditingHabit(habit); setShowForm(true); }
   function closeForm() { setShowForm(false); setEditingHabit(null); }
+  
+  function requestArchive(habit: Habit) {
+    setHabitToArchive(habit);
+    setShowArchiveDialog(true);
+  }
+  
+  function confirmArchive() {
+    if (habitToArchive) {
+      changeStatus(habitToArchive._id, 'Archived');
+      setShowArchiveDialog(false);
+      setHabitToArchive(null);
+    }
+  }
+  
+  function handlePauseNotification(habitName: string) {
+    setToastMessage(`${habitName} paused successfully`);
+  }
 
   return (
     <AppLayout onNewHabit={openCreate}>
@@ -120,7 +142,7 @@ export default function HabitsPage() {
                       key={habit._id}
                       style={{ animationDelay: `${idx * 50}ms` }}
                     >
-                      <HabitCard habit={habit} onEdit={openEdit} />
+                      <HabitCard habit={habit} onEdit={openEdit} onArchiveRequest={requestArchive} onPause={handlePauseNotification} />
                     </div>
                   ))}
                 </div>
@@ -157,6 +179,28 @@ export default function HabitsPage() {
         <HabitForm
           editingHabit={editingHabit}
           onClose={closeForm}
+        />
+      )}
+
+      {/* Archive Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showArchiveDialog}
+        title="Archive Habit"
+        message={habitToArchive ? `Are you sure you want to archive "${habitToArchive.name}"? You can restore it later.` : ''}
+        type="warning"
+        confirmLabel="Archive"
+        cancelLabel="Cancel"
+        onConfirm={confirmArchive}
+        onCancel={() => setShowArchiveDialog(false)}
+      />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          duration={3000}
+          onClose={() => setToastMessage(null)}
         />
       )}
     </AppLayout>

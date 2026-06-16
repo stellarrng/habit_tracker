@@ -1,0 +1,77 @@
+.modalBackdrop {
+  position: fixed; inset: 0;
+  background: rgba(10,14,26,.45);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn .18s ease;
+}
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp .22s ease;
+}
+.modalHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 22px;
+}
+.modalTitle { font-size: var(--font-size-lg); font-weight: 700; }
+.modalClose {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 22px; line-height: 1;
+  padding: 4px 6px; border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
+}
+.modalClose:hover { color: var(--text-primary); background: var(--bg-page); }
+.modalFooter {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: 12px; margin-top: 24px;
+  padding-top: 20px; border-top: 1px solid var(--border);
+}
+
+.formGrid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.formGroup { display: flex; flex-direction: column; gap: 6px; }
+.formLabel { font-size: var(--font-size-sm); font-weight: 600; color: var(--text-primary); }
+.formLabel span { color: var(--color-danger); margin-left: 2px; }
+.formInput, .formSelect, .formTextarea {
+  width: 100%;
+  padding: 10px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  font-family: inherit;
+}
+.formInput:focus, .formSelect:focus, .formTextarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+  background: #fff;
+}
+.formInput.error, .formSelect.error, .formTextarea.error { border-color: var(--color-danger); }
+.formError { font-size: var(--font-size-xs); color: var(--color-danger); font-weight: 500; }
+.formSelect { appearance: none; cursor: pointer; }
+.formTextarea { resize: vertical; min-height: 90px; }
+.goalSuffix { font-size: var(--font-size-sm); color: var(--text-muted); white-space: nowrap; }
+.readOnlyField {
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+.error {
+  border-color: var(--color-danger) !important;
+}

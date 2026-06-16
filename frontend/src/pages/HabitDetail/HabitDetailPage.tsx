@@ -3,7 +3,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
 import { HabitStatus, CheckIn } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
-import HabitForm from '../../components/habits/HabitForm';
+import InforHabitForm from '../../components/habits/InforHabitForm';
+import GoalHabitForm from '../../components/habits/GoalHabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import { useStreaks } from '../../hooks/useStreaks';
 import { getCheckIns } from '../../api/checkins';
@@ -41,6 +42,7 @@ export default function HabitDetailPage() {
   const navigate = useNavigate();
   const { habits, changeStatus, removeHabit } = useHabitContext();
   const [showEdit, setShowEdit] = useState(false);
+  const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     title: string;
@@ -214,6 +216,12 @@ export default function HabitDetailPage() {
   }
 
   function handleOpenEdit() {
+    setEditMode('info');
+    setShowEdit(true);
+  }
+
+  function handleOpenGoalEdit() {
+    setEditMode('goal');
     setShowEdit(true);
   }
 
@@ -293,15 +301,31 @@ export default function HabitDetailPage() {
         {/* ── About Card ─────────────────────────────────────────── */}
         <div className={styles.aboutCard}>
           <div className={styles.aboutHeader}>
-            <span className={styles.aboutTitle}>About</span>
+            <span className={styles.aboutTitle}>Information</span>
             <button className={styles.editLink} onClick={handleOpenEdit}>
               Edit
             </button>
           </div>
-          <p className={styles.aboutDesc}>
-            {habit.description ||
-              `Track your ${habit.name} habit consistently. Stay focused on your ${habit.category.toLowerCase()} goals and build a lasting routine. Every session counts toward your progress.`}
-          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
+            </div>
+          </div>
         </div>
 
         {/* ── Goal progress card ──────────────────────────────────── */}
@@ -320,7 +344,7 @@ export default function HabitDetailPage() {
                 <span className={styles.goalCardValues}>
                   {currentValue} / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
                 </span>
-                <button className={styles.editLink} onClick={handleOpenEdit}>
+                <button className={styles.editLink} onClick={handleOpenGoalEdit}>
                   Edit
                 </button>
               </div>
@@ -352,7 +376,7 @@ export default function HabitDetailPage() {
               </div>
               <button
                 className="btn btn-secondary btn-sm"
-                onClick={handleOpenEdit}
+                onClick={handleOpenGoalEdit}
                 id="set-goal-detail"
               >
                 Set Goal
@@ -404,7 +428,7 @@ export default function HabitDetailPage() {
         {/* ── Actions Row ────────────────────────────────────────── */}
         <div className={styles.actionsRow}>
           <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={handleOpenEdit} id={`detail-edit-${habit._id}`}>
-            Edit Habit
+            Edit Habit Information
           </button>
           {habit.status !== 'Archived' ? (
             <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleArchive}>
@@ -421,7 +445,17 @@ export default function HabitDetailPage() {
         </div>
       </div>
 
-      {showEdit && <HabitForm editingHabit={habit} onClose={() => setShowEdit(false)} />}
+      {showEdit && editMode === 'info' && (
+        <InforHabitForm editingHabit={habit} onClose={() => setShowEdit(false)} />
+      )}
+      {showEdit && editMode === 'goal' && (
+        <GoalHabitForm
+          editingHabit={habit}
+          onClose={() => setShowEdit(false)}
+          currentStreak={currentStreak}
+          totalCompletions={totalCompletions}
+        />
+      )}
       <ConfirmDialog
         isOpen={confirmState.isOpen}
         title={confirmState.title}

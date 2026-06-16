@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
 import { Habit, HabitStatus } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import {
@@ -7,7 +8,8 @@ import {
   BriefcaseIcon,
   LotusIcon,
   StarIcon,
-  TrashIcon
+  TrashIcon,
+  MoreVerticalIcon
 } from '../shared/Icons';
 import styles from './HabitCard.module.css';
 import HabitCategoryIcon from '../shared/HabitCategoryIcon';
@@ -65,17 +67,37 @@ function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
 interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
+  onArchiveRequest?: (habit: Habit) => void;
+  onPause?: (habitName: string) => void;
 }
 
-export default function HabitCard({ habit, onEdit }: HabitCardProps) {
+export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: HabitCardProps) {
   const { changeStatus, removeHabit } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
+
+  // Menu state
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Goal config
   const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
   const target = habit.goalTargetValue || 30;
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [menuOpen]);
 
   // Stable progress derived from habit age only
   const age = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
@@ -112,6 +134,22 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
     changeStatus(habit._id, next);
   }
 
+  function handlePause() {
+    const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
+    changeStatus(habit._id, nextStatus);
+    setMenuOpen(false);
+    if (isActive && onPause) {
+      onPause(habit.name);
+    }
+  }
+
+  function handleArchive() {
+    if (onArchiveRequest) {
+      onArchiveRequest(habit);
+    }
+    setMenuOpen(false);
+  }
+
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
     if (window.confirm(`Delete "${habit.name}"? This cannot be undone.`)) {
@@ -143,18 +181,27 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
             <span className={statusClass(habit.status)}>{habit.status}</span>
           </div>
         </div>
-        {/* Active/Pause toggle */}
+        {/* 3-dot menu */}
         {habit.status !== 'Archived' && (
-          <label className="toggle" title={isActive ? 'Pause habit' : 'Resume habit'}>
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={toggleStatus}
-              id={`toggle-${habit._id}`}
-            />
-            <span className="toggle-track" />
-            <span className="toggle-thumb" />
-          </label>
+          <div className={styles.menuContainer} ref={menuRef}>
+            <button
+              className={styles.menuButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+              title="More options"
+            >
+              <MoreVerticalIcon style={{ width: 18, height: 18 }} />
+            </button>
+            {menuOpen && (
+              <div className={styles.menu}>
+                <button className={styles.menuItem} onClick={handlePause}>
+                  {isActive ? 'Pause' : 'Resume'}
+                </button>
+                <button className={styles.menuItem} onClick={handleArchive}>
+                  Archive
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

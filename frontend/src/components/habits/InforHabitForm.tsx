@@ -3,7 +3,7 @@ import { Habit, HabitCategory, HabitFrequency, HabitPriority, WeekDay, CreateHab
 import { useHabitContext } from '../../context/HabitContext';
 import { CloseIcon } from '../shared/Icons';
 import ConfirmDialog from '../shared/ConfirmDialog';
-import styles from './HabitForm.module.css';
+import styles from './InforHabitForm.module.css';
 
 const CATEGORIES: HabitCategory[]  = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'];
 const FREQUENCIES: HabitFrequency[] = ['Daily', 'Specific days'];
@@ -18,7 +18,7 @@ interface FormErrors {
   goalTargetValue?: string;
 }
 
-interface HabitFormProps {
+interface InforHabitFormProps {
   editingHabit?: Habit | null;
   onClose: () => void;
 }
@@ -27,12 +27,9 @@ const BLANK = {
   name: '', category: 'Health' as HabitCategory,
   frequency: 'Daily' as HabitFrequency, specificDays: [] as WeekDay[],
   targetPerDay: 1, priority: 'Medium' as HabitPriority,
-  enableGoal: false,
-  goalTargetType: 'Streak' as 'Streak' | 'Total Completions',
-  goalTargetValue: 30,
 };
 
-export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
+export default function InforHabitForm({ editingHabit, onClose }: InforHabitFormProps) {
   const { addHabit, editHabit } = useHabitContext();
   const isEdit = !!editingHabit;
 
@@ -51,9 +48,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
         specificDays: editingHabit.specificDays,
         targetPerDay: editingHabit.targetPerDay,
         priority:    editingHabit.priority,
-        enableGoal:  !!editingHabit.goalTargetType,
-        goalTargetType: editingHabit.goalTargetType ?? 'Streak',
-        goalTargetValue: editingHabit.goalTargetValue ?? 30,
       });
     } else {
       setForm({ ...BLANK });
@@ -67,11 +61,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
     if (form.targetPerDay < 1) e.targetPerDay = 'Target must be at least 1.';
     if (form.frequency === 'Specific days' && form.specificDays.length === 0)
       e.specificDays = 'Select at least one day.';
-    if (form.enableGoal) {
-      if (!form.goalTargetValue || form.goalTargetValue < 1) {
-        e.goalTargetValue = 'Goal target must be at least 1.';
-      }
-    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -90,8 +79,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
   async function saveHabit() {
     setSubmitting(true);
     try {
-      const goalTargetType = form.enableGoal ? form.goalTargetType : null;
-      const goalTargetValue = form.enableGoal ? form.goalTargetValue : null;
 
       if (isEdit && editingHabit) {
         const input: UpdateHabitInput = {
@@ -101,8 +88,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           specificDays: form.specificDays,
           targetPerDay: form.targetPerDay,
           priority:    form.priority,
-          goalTargetType,
-          goalTargetValue,
         };
         await editHabit(editingHabit._id, input);
       } else {
@@ -113,8 +98,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           specificDays: form.specificDays,
           targetPerDay: form.targetPerDay,
           priority:    form.priority,
-          goalTargetType,
-          goalTargetValue,
         };
         await addHabit(input);
       }
@@ -237,84 +220,6 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
               {errors.specificDays && <span className={styles.formError}>{errors.specificDays}</span>}
             </div>
           )}
-
-          {/* Goal / Target */}
-          <div className={styles.formGroup} style={{ marginBottom: 18 }}>
-            <label className={styles.formLabel} htmlFor="habit-target">Goal / Target per day</label>
-            <div className={styles.goalRow}>
-              <input
-                id="habit-target"
-                type="number"
-                className={`${styles.formInput} ${errors.targetPerDay ? styles.error : ''}`}
-                min={1}
-                value={form.targetPerDay}
-                onChange={e => {
-                  const v = parseInt(e.target.value, 10);
-                  setForm(p => ({ ...p, targetPerDay: isNaN(v) ? 1 : Math.max(1, v) }));
-                }}
-              />
-              <span className={styles.goalSuffix}>
-                {form.targetPerDay === 1 ? 'session / day' : 'times / day'}
-              </span>
-            </div>
-            {errors.targetPerDay && <span className={styles.formError}>{errors.targetPerDay}</span>}
-          </div>
-
-          {/* Long-Term Goal Target */}
-          <div className={styles.formGroup} style={{ marginBottom: 18, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
-            <label className={styles.formLabel} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 600 }}>
-              <input
-                type="checkbox"
-                checked={form.enableGoal}
-                onChange={e => setForm(p => ({ ...p, enableGoal: e.target.checked }))}
-                style={{ width: 16, height: 16, cursor: 'pointer' }}
-              />
-              Define a Measurable Goal Target
-            </label>
-            <p style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '4px 0 10px 24px' }}>
-              Set a long-term milestone (e.g. a 30-day streak or 100 completions total) to stay motivated.
-            </p>
-
-            {form.enableGoal && (
-              <div style={{ marginLeft: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className={styles.formLabel} htmlFor="goal-type" style={{ fontSize: '12px' }}>Target Type</label>
-                  <select
-                    id="goal-type"
-                    className={styles.formInput}
-                    value={form.goalTargetType}
-                    onChange={e => setForm(p => ({ ...p, goalTargetType: e.target.value as any }))}
-                    style={{ padding: '8px 12px', fontSize: '14px' }}
-                  >
-                    <option value="Streak">Streak Target (Consecutive Days)</option>
-                    <option value="Total Completions">Total Completions Target (Total Sessions)</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <label className={styles.formLabel} htmlFor="goal-value" style={{ fontSize: '12px' }}>Target Value</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      id="goal-value"
-                      type="number"
-                      className={`${styles.formInput} ${errors.goalTargetValue ? styles.error : ''}`}
-                      min={1}
-                      value={form.goalTargetValue}
-                      onChange={e => {
-                        const v = parseInt(e.target.value, 10);
-                        setForm(p => ({ ...p, goalTargetValue: isNaN(v) ? 1 : Math.max(1, v) }));
-                      }}
-                      style={{ maxWidth: 120 }}
-                    />
-                    <span className={styles.goalSuffix}>
-                      {form.goalTargetType === 'Streak' ? 'days in a row' : 'completed sessions'}
-                    </span>
-                  </div>
-                  {errors.goalTargetValue && <span className={styles.formError}>{errors.goalTargetValue}</span>}
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Footer */}
           <div className={styles.modalFooter}>
