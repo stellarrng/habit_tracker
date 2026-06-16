@@ -12,6 +12,37 @@
   margin-top: 16px;
 }
 
+/* ── Date range picker ────────────────────────────────────────────────────── */
+.rangeRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.rangeBtn {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--divider);
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.rangeBtn:hover {
+  background: var(--bg-nav-active);
+  color: var(--text-primary);
+}
+
+.rangeBtnActive {
+  background: var(--progress-fill);
+  border-color: var(--progress-fill);
+  color: #fff;
+  font-weight: 600;
+}
+
 .cardTop, .sectionHeader, .habitHeader {
   display: flex;
   align-items: center;

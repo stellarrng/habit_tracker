@@ -4,6 +4,15 @@
   overflow: hidden;
 }
 
+/* Right column: topbar + scrollable content */
+.appRight {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .appMain {
   flex: 1;
   overflow-y: auto;

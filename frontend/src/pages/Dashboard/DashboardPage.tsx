@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
 import Footer from "../../components/layout/Footer";
-import Navbar from "../../components/layout/Navbar";
 import { useSettings } from "../../context/SettingsContext";
 import styles from "./DashboardPage.module.css";
 
@@ -291,9 +290,21 @@ export default function DashboardPage() {
   return (
     <AppLayout onNewHabit={() => navigate("/habits")}>
       <div className={styles.content}>
-        <Navbar onRangeChange={setRange} />
 
         <section className={styles.dashboardSection}>
+          {/* Date range picker */}
+          <div className={styles.rangeRow}>
+            {(["7 Days", "30 Days", "Year"] as DateRange[]).map((r) => (
+              <button
+                key={r}
+                className={`${styles.rangeBtn} ${range === r ? styles.rangeBtnActive : ""}`}
+                onClick={() => setRange(r)}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+
           {/* Summary cards */}
           <div className={styles.summaryGrid}>
             {/* Completed Today */}
