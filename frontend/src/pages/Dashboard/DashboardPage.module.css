@@ -238,10 +238,11 @@
 
 .categorySpacer { min-height: 20px; }
 
-.blueDot, .brownDot {
+.blueDot, .mintDot, .brownDot {
   width: 12px; height: 12px; border-radius: 50%;
 }
 .blueDot  { background: #1f53c9; }
+.mintDot  { background: #45645e; }
 .brownDot { background: #8a4c00; }
 
 .habitCard { min-height: 242px; padding: 24px; }
