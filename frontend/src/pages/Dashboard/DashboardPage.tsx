@@ -3,166 +3,220 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../../components/layout/AppLayout";
 import Footer from "../../components/layout/Footer";
 import { useSettings } from "../../context/SettingsContext";
+import { useHabitContext } from "../../context/HabitContext";
+import { getCheckIns } from "../../api/checkins";
+import type { CheckIn, Habit } from "../../types";
 import styles from "./DashboardPage.module.css";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type DateRange = "7 Days" | "30 Days" | "Year";
-type SortKey = "default" | "rate" | "streak" | "name";
-type Category = string;
+type SortKey   = "default" | "rate" | "streak" | "name";
+type Category  = string;
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "default", label: "Default" },
-  { key: "rate", label: "Rate (high → low)" },
-  { key: "streak", label: "Streak (long → short)" },
-  { key: "name", label: "Name (A → Z)" },
+  { key: "default", label: "Default"              },
+  { key: "rate",    label: "Rate (high → low)"    },
+  { key: "streak",  label: "Streak (long → short)"},
+  { key: "name",    label: "Name (A → Z)"         },
 ];
 
-interface MockHabit {
-  id: string;
-  name: string;
-  nameVi: string;
-  category: string;
-  categoryTone: string;
-  time: string;
-  timeVi: string;
-  icon: "run" | "drop" | "mind";
-  tone: "blue" | "mint" | "amber";
-  dailyRates: number[];
+// ── Category display config ───────────────────────────────────────────────────
+
+const CATEGORY_DISPLAY: Record<string, {
+  tone:     "blue" | "mint" | "amber";
+  icon:     "run"  | "drop" | "mind";
+  dotClass: "blueDot" | "mintDot" | "brownDot";
+  letter:   string;
+}> = {
+  Health:      { tone: "mint",  icon: "drop", dotClass: "mintDot",  letter: "H" },
+  Study:       { tone: "blue",  icon: "mind", dotClass: "blueDot",  letter: "S" },
+  Work:        { tone: "blue",  icon: "run",  dotClass: "blueDot",  letter: "W" },
+  Mindfulness: { tone: "amber", icon: "mind", dotClass: "brownDot", letter: "M" },
+  Other:       { tone: "blue",  icon: "run",  dotClass: "blueDot",  letter: "O" },
+};
+
+function categoryDisplay(cat: string) {
+  return CATEGORY_DISPLAY[cat] ?? CATEGORY_DISPLAY.Other;
 }
 
-// ── Mock data generator ───────────────────────────────────────────────────────
+// ── Computed stat type ────────────────────────────────────────────────────────
 
-function generateRates(baseRate: number, trend: "up" | "down" | "flat", days = 365): number[] {
-  const rates: number[] = [];
-  for (let i = 0; i < days; i++) {
-    const progress = i / days;
-    const trendDelta = trend === "up" ? progress * 0.2 : trend === "down" ? -progress * 0.3 : 0;
-    const noise = (Math.sin(i * 2.3) * 0.15) + (Math.sin(i * 0.7) * 0.1);
-    rates.push(Math.min(1, Math.max(0, baseRate + trendDelta + noise)));
-  }
-  return rates;
+interface HabitStat {
+  id:        string;
+  name:      string;
+  category:  string;
+  frequency: string;
+  tone:      "blue" | "mint" | "amber";
+  icon:      "run"  | "drop" | "mind";
+  dotClass:  "blueDot" | "mintDot" | "brownDot";
+  streak:    number;
+  longest:   string;
+  total:     string;
+  rate:      string;
+  rateNum:   number;
+  bars:      number[];
+  badge:     string;
+  badgeIcon: "fire" | "down";
+  badgeTone: "blue" | "amber" | "red";
 }
 
-const MOCK_HABITS: MockHabit[] = [
-  {
-    id: "h1",
-    name: "Morning Run",       nameVi: "Chạy bộ buổi sáng",
-    category: "Health & Fitness", categoryTone: "blue",
-    time: "Daily - 6:30 AM",  timeVi: "Hàng ngày - 6:30 SA",
-    icon: "run", tone: "blue",
-    dailyRates: generateRates(0.85, "up"),
-  },
-  {
-    id: "h2",
-    name: "Drink Water",       nameVi: "Uống nước",
-    category: "Health & Fitness", categoryTone: "blue",
-    time: "Hourly - 2L Target", timeVi: "Mỗi giờ - 2L mục tiêu",
-    icon: "drop", tone: "mint",
-    dailyRates: generateRates(0.6, "down"),
-  },
-  {
-    id: "h3",
-    name: "Meditation",        nameVi: "Thiền",
-    category: "Mindfulness",   categoryTone: "brown",
-    time: "Daily - 10 mins",   timeVi: "Hàng ngày - 10 phút",
-    icon: "mind", tone: "amber",
-    dailyRates: generateRates(0.95, "flat"),
-  },
-];
+// ── Date helpers ──────────────────────────────────────────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtDate(d: Date): string {
+  const y  = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const dy = String(d.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${dy}`;
+}
+
+function buildDateRange(days: number): string[] {
+  const today = new Date();
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (days - 1 - i));
+    return fmtDate(d);
+  });
+}
 
 function rangeDays(range: DateRange): number {
-  if (range === "7 Days") return 7;
+  if (range === "7 Days")  return 7;
   if (range === "30 Days") return 30;
   return 365;
 }
 
-function computeStats(habit: MockHabit, days: number) {
-  const slice = habit.dailyRates.slice(-days);
+// ── Per-habit stat computation ────────────────────────────────────────────────
 
-  // completion rate for range
-  const avgRate = slice.reduce((s, r) => s + r, 0) / slice.length;
-  const completedDays = slice.filter((r) => r >= 0.8).length;
+function computeHabitStat(
+  habit: Habit,
+  checkInMap: Map<string, CheckIn>,
+  days: number,
+): HabitStat {
+  const dates   = buildDateRange(days);
+  const display = categoryDisplay(habit.category);
 
-  // current streak (from today backwards)
+  const rates = dates.map(dateStr => {
+    const ci = checkInMap.get(dateStr);
+    if (!ci || ci.completedCount <= 0) return 0;
+    return Math.min(ci.completedCount / habit.targetPerDay, 1);
+  });
+
+  const isDone = (r: number) => r >= 1;
+
   let streak = 0;
-  for (let i = habit.dailyRates.length - 1; i >= 0; i--) {
-    if (habit.dailyRates[i] >= 0.8) streak++;
+  for (let i = rates.length - 1; i >= 0; i--) {
+    if (isDone(rates[i])) streak++;
     else break;
   }
 
-  // longest streak in range
   let longest = 0, cur = 0;
-  for (const r of slice) {
-    if (r >= 0.8) { cur++; longest = Math.max(longest, cur); }
+  for (const r of rates) {
+    if (isDone(r)) { cur++; longest = Math.max(longest, cur); }
     else cur = 0;
   }
 
-  // bar chart: group by day (7/30) or by week (year → 52 bars)
+  const completedDays = rates.filter(isDone).length;
+  const rateNum = days > 0 ? Math.round((completedDays / days) * 100) : 0;
+
   let bars: number[];
   if (days <= 30) {
-    bars = slice.map((r) => Math.round(r * 100));
+    bars = rates.map(r => Math.round(r * 100));
   } else {
-    // group into 52 weekly averages
-    const weeks: number[] = [];
-    for (let w = 0; w < 52; w++) {
-      const start = w * 7;
-      const week = slice.slice(start, start + 7);
-      weeks.push(Math.round((week.reduce((s, r) => s + r, 0) / week.length) * 100));
-    }
-    bars = weeks;
+    bars = Array.from({ length: 52 }, (_, w) => {
+      const week = rates.slice(w * 7, w * 7 + 7);
+      if (!week.length) return 0;
+      return Math.round((week.reduce((s, r) => s + r, 0) / week.length) * 100);
+    });
   }
 
+  const freqLabel = habit.frequency === "Daily"
+    ? `Daily · ${habit.targetPerDay}× per day`
+    : `${habit.specificDays.join(", ")} · ${habit.targetPerDay}× per day`;
+
   return {
+    id:        habit._id,
+    name:      habit.name,
+    category:  habit.category,
+    frequency: freqLabel,
+    tone:      display.tone,
+    icon:      display.icon,
+    dotClass:  display.dotClass,
     streak,
-    longest: `${longest}d`,
-    total: `${completedDays}`,
-    rate: `${Math.round(avgRate * 100)}%`,
+    longest:   `${longest}d`,
+    total:     `${completedDays}`,
+    rate:      `${rateNum}%`,
+    rateNum,
     bars,
+    badge:     streak >= 1 ? `${streak} day${streak > 1 ? "s" : ""}` : "0 days",
     badgeIcon: streak >= 3 ? "fire" : "down",
-    badgeTone: streak >= 3 ? (habit.tone === "blue" ? "blue" : "amber") : "red",
-    badge: streak >= 1 ? `${streak} day${streak > 1 ? "s" : ""}` : "0 days",
+    badgeTone: streak >= 3 ? (display.tone === "amber" ? "amber" : "blue") : "red",
   };
 }
 
-function computeSummary(habits: MockHabit[], days: number, tFn: (k: string) => string) {
-  const slices = habits.map((h) => h.dailyRates.slice(-days));
+// ── Summary computation ───────────────────────────────────────────────────────
 
-  const todayRates = habits.map((h) => h.dailyRates[h.dailyRates.length - 1]);
-  const todayPct = Math.round((todayRates.reduce((s, r) => s + r, 0) / todayRates.length) * 100);
+function computeSummary(
+  activeHabits: Habit[],
+  checkInsByHabit: Map<string, Map<string, CheckIn>>,
+  days: number,
+  tFn: (k: string) => string,
+) {
+  const today     = fmtDate(new Date());
+  const yesterday = fmtDate(new Date(Date.now() - 86_400_000));
+  const dates     = buildDateRange(days);
 
-  const prevSlices = habits.map((h) => h.dailyRates.slice(-days * 2, -days));
-  const prevFlat = prevSlices.flat();
-  const prevPct = prevFlat.length
-    ? Math.round((prevFlat.reduce((s, r) => s + r, 0) / prevFlat.length) * 100)
-    : todayPct;
-  const diff = todayPct - prevPct;
-  const diffLabel = `${diff >= 0 ? "+" : ""}${diff}% ${tFn("vsLastPeriod")}`;
+  const todayDone = activeHabits.filter(h =>
+    checkInsByHabit.get(h._id)?.get(today)?.status === "Completed"
+  ).length;
+  const todayPct = activeHabits.length
+    ? Math.round((todayDone / activeHabits.length) * 100)
+    : 0;
 
-  const activeCount = slices.filter((s) => s.some((r) => r >= 0.8)).length;
+  const yestDone = activeHabits.filter(h =>
+    checkInsByHabit.get(h._id)?.get(yesterday)?.status === "Completed"
+  ).length;
+  const yestPct = activeHabits.length
+    ? Math.round((yestDone / activeHabits.length) * 100)
+    : 0;
+  const diff = todayPct - yestPct;
+  const diffLabel = diff === 0
+    ? "same as yesterday"
+    : `${diff > 0 ? "+" : ""}${diff}% ${tFn("vsLastPeriod")}`;
 
-  const atRisk = habits.filter((h) => {
-    const slice = h.dailyRates.slice(-days);
-    const avg = slice.reduce((s, r) => s + r, 0) / slice.length;
-    return avg < 0.5;
+  const activeCount = activeHabits.filter(h => {
+    const hMap = checkInsByHabit.get(h._id);
+    return dates.some(d => (hMap?.get(d)?.completedCount ?? 0) > 0);
+  }).length;
+
+  const atRisk = activeHabits.filter(h => {
+    const hMap = checkInsByHabit.get(h._id);
+    const done = dates.filter(d => hMap?.get(d)?.status === "Completed").length;
+    return (done / dates.length) < 0.5;
   });
 
-  const progressWidth = `${todayPct}%`;
+  let maxStreak = 0;
+  for (const h of activeHabits) {
+    const hMap = checkInsByHabit.get(h._id);
+    let s = 0;
+    for (let i = dates.length - 1; i >= 0; i--) {
+      if (hMap?.get(dates[i])?.status === "Completed") s++;
+      else break;
+    }
+    maxStreak = Math.max(maxStreak, s);
+  }
 
-  return { todayPct, diffLabel, activeCount, atRisk, progressWidth };
+  return { todayPct, diffLabel, activeCount, atRisk, progressWidth: `${todayPct}%`, maxStreak };
 }
 
 // ── Filter dropdown ───────────────────────────────────────────────────────────
 
 interface FilterDropdownProps {
   categories: Category[];
-  category: Category;
-  sort: SortKey;
+  category:   Category;
+  sort:       SortKey;
   onCategory: (c: Category) => void;
-  onSort: (s: SortKey) => void;
-  onClose: () => void;
+  onSort:     (s: SortKey) => void;
+  onClose:    () => void;
 }
 
 function FilterDropdown({ categories, category, sort, onCategory, onSort, onClose }: FilterDropdownProps) {
@@ -207,7 +261,7 @@ function FilterDropdown({ categories, category, sort, onCategory, onSort, onClos
   );
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Icon components ───────────────────────────────────────────────────────────
 
 function TrendIcon() {
   return (
@@ -241,57 +295,124 @@ function HabitIcon({ type }: { type: string }) {
   );
 }
 
+// ── Loading skeleton ──────────────────────────────────────────────────────────
+
+function DashboardSkeleton() {
+  return (
+    <div className={styles.content}>
+      <div className={styles.dashboardSection}>
+        <div className={styles.rangeRow}>
+          {[0, 1, 2].map(i => (
+            <div key={i} className={styles.skeletonPill} />
+          ))}
+        </div>
+        <div className={styles.summaryGrid}>
+          {[0, 1, 2].map(i => (
+            <div key={i} className={`${styles.summaryCard} ${styles.skeletonCard}`}>
+              <div className={styles.skeletonLine} style={{ width: "40%", height: 14, marginBottom: 12 }} />
+              <div className={styles.skeletonLine} style={{ width: "60%", height: 40 }} />
+            </div>
+          ))}
+        </div>
+        <div className={styles.habitGrid}>
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className={`${styles.habitCard} ${styles.skeletonCard}`}>
+              <div className={styles.skeletonLine} style={{ width: "70%", height: 18, marginBottom: 16 }} />
+              <div className={styles.skeletonLine} style={{ width: "100%", height: 58 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [range, setRange] = useState<DateRange>("7 Days");
+  const [range, setRange]           = useState<DateRange>("7 Days");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [category, setCategory] = useState<Category>("All");
-  const [sort, setSort] = useState<SortKey>("default");
-  const { settings, t } = useSettings();
-  const isVi = settings.language === "Vietnamese";
+  const [category, setCategory]     = useState<Category>("All");
+  const [sort, setSort]             = useState<SortKey>("default");
+  const { t }                        = useSettings();
 
-  const days = rangeDays(range);
-  const summary = useMemo(() => computeSummary(MOCK_HABITS, days, t), [days, t]);
+  const { habits, loading: habitsLoading } = useHabitContext();
+  const [allCheckIns, setAllCheckIns]      = useState<CheckIn[]>([]);
+  const [checkInsLoading, setCheckInsLoading] = useState(true);
 
-  // derive unique categories from data — auto-expands when new habits are added
+  // Fetch all check-ins once on mount
+  useEffect(() => {
+    let alive = true;
+    setCheckInsLoading(true);
+    getCheckIns()
+      .then(data  => { if (alive) setAllCheckIns(data); })
+      .catch(() => {})
+      .finally(() => { if (alive) setCheckInsLoading(false); });
+    return () => { alive = false; };
+  }, []);
+
+  // Rebuild lookup whenever check-ins change: habitId → date → CheckIn
+  const checkInsByHabit = useMemo(() => {
+    const map = new Map<string, Map<string, CheckIn>>();
+    for (const ci of allCheckIns) {
+      if (!map.has(ci.habitId)) map.set(ci.habitId, new Map());
+      map.get(ci.habitId)!.set(ci.date, ci);
+    }
+    return map;
+  }, [allCheckIns]);
+
+  const days         = rangeDays(range);
+  const activeHabits = useMemo(() => habits.filter(h => h.status === "Active"), [habits]);
+
+  const summary = useMemo(
+    () => computeSummary(activeHabits, checkInsByHabit, days, t),
+    [activeHabits, checkInsByHabit, days, t],
+  );
+
   const categories = useMemo(
-    () => [...new Set(MOCK_HABITS.map((h) => h.category))].sort(),
-    []
+    () => [...new Set(activeHabits.map(h => h.category))].sort(),
+    [activeHabits],
   );
 
   const habitStats = useMemo(() => {
-    let list = MOCK_HABITS.map((h) => ({ ...h, computed: computeStats(h, days) }));
-
-    // filter by category
-    if (category !== "All") {
-      list = list.filter((h) => h.category === category);
-    }
-
-    // sort
-    if (sort === "rate") {
-      list = [...list].sort((a, b) => parseFloat(b.computed.rate) - parseFloat(a.computed.rate));
-    } else if (sort === "streak") {
-      list = [...list].sort((a, b) => b.computed.streak - a.computed.streak);
-    } else if (sort === "name") {
-      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-    }
-
+    let list = activeHabits.map(h =>
+      computeHabitStat(h, checkInsByHabit.get(h._id) ?? new Map(), days)
+    );
+    if (category !== "All") list = list.filter(h => h.category === category);
+    if (sort === "rate")   list = [...list].sort((a, b) => b.rateNum - a.rateNum);
+    if (sort === "streak") list = [...list].sort((a, b) => b.streak  - a.streak);
+    if (sort === "name")   list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [days, category, sort]);
+  }, [activeHabits, checkInsByHabit, days, category, sort]);
 
   const chartLabel = range === "Year"
     ? t("lastWeeksActivity")
     : t("lastDaysActivity").replace("{n}", String(days));
 
   const hasActiveFilter = category !== "All" || sort !== "default";
+  const isLoading = habitsLoading || checkInsLoading;
+
+  // Category initials for avatar stack
+  const categoryLetters = useMemo(() =>
+    [...new Set(activeHabits.map(h => categoryDisplay(h.category).letter))].slice(0, 3),
+    [activeHabits],
+  );
+
+  if (isLoading) {
+    return (
+      <AppLayout onNewHabit={() => navigate("/habits")}>
+        <DashboardSkeleton />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout onNewHabit={() => navigate("/habits")}>
       <div className={styles.content}>
 
         <section className={styles.dashboardSection}>
+
           {/* Date range picker */}
           <div className={styles.rangeRow}>
             {(["7 Days", "30 Days", "Year"] as DateRange[]).map((r) => (
@@ -307,6 +428,7 @@ export default function DashboardPage() {
 
           {/* Summary cards */}
           <div className={styles.summaryGrid}>
+
             {/* Completed Today */}
             <article className={styles.summaryCard}>
               <div className={styles.cardTop}>
@@ -316,9 +438,7 @@ export default function DashboardPage() {
                     <circle cx="12" cy="12" r="8" />
                   </svg>
                 </span>
-                <span className={`${styles.statusText} ${styles.blueText}`}>
-                  {summary.diffLabel}
-                </span>
+                <span className={`${styles.statusText} ${styles.blueText}`}>{summary.diffLabel}</span>
               </div>
               <p>{t("completedToday")}</p>
               <div className={styles.metric}>
@@ -346,10 +466,10 @@ export default function DashboardPage() {
                 <span>{t("inRange")} {t(range)}</span>
               </div>
               <div className={styles.avatarStack} aria-label="Habit categories">
-                <span>M</span>
-                <span>H</span>
-                <span>W</span>
-                <span>+{Math.max(0, summary.activeCount - 3)}</span>
+                {categoryLetters.map((l, i) => <span key={i}>{l}</span>)}
+                {activeHabits.length > 3 && (
+                  <span>+{activeHabits.length - 3}</span>
+                )}
               </div>
             </article>
 
@@ -381,6 +501,7 @@ export default function DashboardPage() {
                 </em>
               )}
             </article>
+
           </div>
 
           {/* Habit breakdown */}
@@ -400,84 +521,87 @@ export default function DashboardPage() {
                     categories={categories}
                     category={category}
                     sort={sort}
-                    onCategory={(c) => { setCategory(c); }}
-                    onSort={(s) => { setSort(s); }}
+                    onCategory={(c) => setCategory(c)}
+                    onSort={(s) => setSort(s)}
                     onClose={() => setFilterOpen(false)}
                   />
                 )}
               </div>
             </div>
 
-            {habitStats.length === 0 ? (
+            {activeHabits.length === 0 ? (
+              <p className={styles.emptyFilter}>
+                No active habits yet. <button onClick={() => navigate("/habits")} style={{ color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", fontWeight: 600 }}>Add one →</button>
+              </p>
+            ) : habitStats.length === 0 ? (
               <p className={styles.emptyFilter}>No habits found for "{category}".</p>
             ) : (
-            <div className={styles.habitGrid}>
-              {habitStats.map((habit, index) => {
-                const showCategory =
-                  index === 0 || habitStats[index - 1].category !== habit.category;
-                const { computed } = habit;
+              <div className={styles.habitGrid}>
+                {habitStats.map((habit, index) => {
+                  const showCategory =
+                    index === 0 || habitStats[index - 1].category !== habit.category;
 
-                return (
-                  <div className={styles.habitGroup} key={habit.id}>
-                    {showCategory ? (
-                      <h3 className={styles.categoryLabel}>
-                        <span className={styles[`${habit.categoryTone}Dot`]} />
-                        {t(habit.category)}
-                      </h3>
-                    ) : (
-                      <div className={styles.categorySpacer} />
-                    )}
-                    <article className={styles.habitCard}>
-                      <div className={styles.habitHeader}>
-                        <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
-                          <HabitIcon type={habit.icon} />
-                        </span>
-                        <div>
-                          <h4>{isVi ? habit.nameVi : habit.name}</h4>
-                          <p>{isVi ? habit.timeVi : habit.time}</p>
-                        </div>
-                        <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
-                          {computed.badge}
-                          {computed.badgeIcon === "fire" ? (
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M12 22c4 0 7-2.8 7-6.8 0-2.7-1.4-5.2-4.2-7.5.1 2.1-.7 3.4-2.1 4.1.2-3.3-1.4-6-4.4-8.1.2 3.3-1 5.4-2.3 7.1A7 7 0 0 0 5 15.2C5 19.2 8 22 12 22Z" />
-                            </svg>
-                          ) : (
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="m7 7 10 10M17 17H9M17 17V9" />
-                            </svg>
-                          )}
-                        </span>
-                      </div>
-
-                      <div className={styles.statGrid}>
-                        {[
-                          { label: t("longest"), value: computed.longest },
-                          { label: t("total"),   value: computed.total },
-                          { label: t("rate"),    value: computed.rate },
-                        ].map(({ label, value }) => (
-                          <div key={label}>
-                            <span>{label}</span>
-                            <strong>{value}</strong>
+                  return (
+                    <div className={styles.habitGroup} key={habit.id}>
+                      {showCategory ? (
+                        <h3 className={styles.categoryLabel}>
+                          <span className={styles[habit.dotClass]} />
+                          {t(habit.category)}
+                        </h3>
+                      ) : (
+                        <div className={styles.categorySpacer} />
+                      )}
+                      <article className={styles.habitCard}>
+                        <div className={styles.habitHeader}>
+                          <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
+                            <HabitIcon type={habit.icon} />
+                          </span>
+                          <div>
+                            <h4>{habit.name}</h4>
+                            <p>{habit.frequency}</p>
                           </div>
-                        ))}
-                      </div>
+                          <span className={`${styles.badge} ${styles[`${habit.badgeTone}Badge`]}`}>
+                            {habit.badge}
+                            {habit.badgeIcon === "fire" ? (
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 22c4 0 7-2.8 7-6.8 0-2.7-1.4-5.2-4.2-7.5.1 2.1-.7 3.4-2.1 4.1.2-3.3-1.4-6-4.4-8.1.2 3.3-1 5.4-2.3 7.1A7 7 0 0 0 5 15.2C5 19.2 8 22 12 22Z" />
+                              </svg>
+                            ) : (
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="m7 7 10 10M17 17H9M17 17V9" />
+                              </svg>
+                            )}
+                          </span>
+                        </div>
 
-                      <p className={styles.chartLabel}>{chartLabel}</p>
-                      <div className={`${styles.bars} ${styles[`${habit.tone}Bars`]}`}
-                        style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
-                      >
-                        {computed.bars.map((height, i) => (
-                          <span key={i} style={{ height: `${Math.max(4, height)}%` }} />
-                        ))}
-                      </div>
-                    </article>
-                  </div>
-                );
-              })}
-            </div>
+                        <div className={styles.statGrid}>
+                          {[
+                            { label: t("longest"), value: habit.longest },
+                            { label: t("total"),   value: habit.total   },
+                            { label: t("rate"),    value: habit.rate    },
+                          ].map(({ label, value }) => (
+                            <div key={label}>
+                              <span>{label}</span>
+                              <strong>{value}</strong>
+                            </div>
+                          ))}
+                        </div>
+
+                        <p className={styles.chartLabel}>{chartLabel}</p>
+                        <div
+                          className={`${styles.bars} ${styles[`${habit.tone}Bars`]}`}
+                          style={{ gridTemplateColumns: `repeat(${habit.bars.length}, 1fr)` }}
+                        >
+                          {habit.bars.map((height, i) => (
+                            <span key={i} style={{ height: `${Math.max(4, height)}%` }} />
+                          ))}
+                        </div>
+                      </article>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-
           </section>
 
           {/* Banner */}
@@ -487,11 +611,16 @@ export default function DashboardPage() {
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAanMMqLfbMWVb7Jqznbi1GBuGhoSYPAg5AcIJYym-fKC0LCr7UUGsl5wzY5BXjbPfUfUciI2-gVEfD7G_fRsGMYchGPt_i52dYzFAzVZIMc-omSp2-c7QJ5_WqLWLB_ohSOeuap1B2mCJVZgWYLNQLScPRZegzAL00wO2B56jTzFAMpKvnPd9tTNb60TSWA7ztSOxJEo-xkUayNC9o4TfmN2w6_k3UhfKVNXQ90Z8B1LcEHsIv9SxhzD1_IAooJ4YkSomISvwMpqBh"
             />
             <div className={styles.bannerOverlay}>
-              <span>Consistency is Key</span>
-              <h2>You're on a {habitStats[0]?.computed.streak ?? 0}-day total completion streak!</h2>
+              <span>{t("consistencyTip")}</span>
+              <h2>
+                {summary.maxStreak > 0
+                  ? `You're on a ${summary.maxStreak}-day streak!`
+                  : "Start your streak today!"}
+              </h2>
               <p>The best way to predict the future is to create it, one habit at a time.</p>
             </div>
           </section>
+
         </section>
 
         <Footer />
