@@ -3,7 +3,6 @@ import type { CheckIn, Goal, CheckInStatus, WeekStripDay, WeekDay } from "../../
 import { getCheckIns, upsertCheckIn } from "../../api/checkins";
 import { getGoals } from "../../api/goals";
 import styles from "./TodayPage.module.css";
-import WeekStrip from "@/components/WeekStrip/WeekStrip";
 import AppLayout from "@/components/layout/AppLayout";
 import { useHabitContext } from "../../context/HabitContext";
 import { useAuth } from "../../context/AuthContext";
@@ -38,15 +37,94 @@ function deriveStatus(completedCount: number, targetPerDay: number): CheckInStat
   return "In Progress";
 }
 
-function buildWeekDays(todayStr: string): WeekStripDay[] {
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function buildWeekDays(todayStr: string, weekOffset = 0): WeekStripDay[] {
   const today        = new Date(todayStr + "T00:00:00");
   const mondayOffset = (today.getDay() + 6) % 7;
   const labels: WeekDay[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
-    d.setDate(today.getDate() - mondayOffset + i);
+    d.setDate(today.getDate() - mondayOffset + weekOffset * 7 + i);
     return { label: labels[d.getDay()], date: d.getDate(), iso: formatLocalDate(d) };
   });
+}
+
+// ── Date navigator ────────────────────────────────────────────────────────────
+
+function ChevronLeft() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+function ChevronRight() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function DateNavigator({
+  weekDays, selectedDate, todayStr,
+  onPrevWeek, onNextWeek, onSelectDate, onToday, weekOffset,
+}: {
+  weekDays: WeekStripDay[]; selectedDate: string; todayStr: string; weekOffset: number;
+  onPrevWeek: () => void; onNextWeek: () => void;
+  onSelectDate: (d: string) => void; onToday: () => void;
+}) {
+  const start = new Date(weekDays[0].iso + "T00:00:00");
+  const end   = new Date(weekDays[6].iso + "T00:00:00");
+  const monthLabel = start.getMonth() === end.getMonth()
+    ? `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()}`
+    : `${MONTH_NAMES[start.getMonth()]} – ${MONTH_NAMES[end.getMonth()]} ${end.getFullYear()}`;
+
+  return (
+    <div className={styles.dateNav}>
+      <div className={styles.dateNavHeader}>
+        <div className={styles.dateNavLeft}>
+          <button className={styles.navArrowBtn} onClick={onPrevWeek} aria-label="Previous week">
+            <ChevronLeft />
+          </button>
+          <button className={styles.navArrowBtn} onClick={onNextWeek} aria-label="Next week">
+            <ChevronRight />
+          </button>
+          <span className={styles.dateNavMonth}>{monthLabel}</span>
+        </div>
+        {weekOffset !== 0 && (
+          <button className={styles.todayNavBtn} onClick={onToday}>↩ Today</button>
+        )}
+      </div>
+      <div className={styles.dateNavStrip}>
+        {weekDays.map(day => {
+          const isSelected = day.iso === selectedDate;
+          const isToday    = day.iso === todayStr;
+          const isFuture   = day.iso > todayStr;
+          return (
+            <button
+              key={day.iso}
+              className={[
+                styles.dayCell,
+                isSelected               ? styles.dayCellSelected : "",
+                isToday && !isSelected   ? styles.dayCellToday    : "",
+                isFuture                 ? styles.dayCellFuture   : "",
+                !isFuture && !isSelected ? styles.dayCellPast     : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => onSelectDate(day.iso)}
+            >
+              <span className={styles.dayLabel}>{day.label}</span>
+              <span className={styles.dayNum}>{day.date}</span>
+              {isToday && <span className={styles.todayDot} />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function greeting(name: string) {
@@ -299,10 +377,11 @@ export default function TodayPage() {
   const [dataLoading,  setDataLoading] = useState(true);
   const [error,        setError]       = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(TODAY);
+  const [weekOffset,   setWeekOffset]   = useState(0);
   const [pendingId,    setPendingId]   = useState<string | null>(null);
   const [lastAction,   setLastAction]  = useState<{ habitId: string; delta: number } | null>(null);
 
-  const weekDays = useMemo(() => buildWeekDays(TODAY), []);
+  const weekDays = useMemo(() => buildWeekDays(TODAY, weekOffset), [weekOffset]);
 
   // ── Fetch once on mount (or when habits load) ──────────────────────────────
 
@@ -501,11 +580,22 @@ export default function TodayPage() {
               <span className={styles.progressLabel}>Daily Goal: {progressPct}%</span>
             </div>
 
-            <WeekStrip
-              days={weekDays}
+            <DateNavigator
+              weekDays={weekDays}
               selectedDate={selectedDate}
-              today={TODAY}
-              onSelectDate={setSelectedDate}
+              todayStr={TODAY}
+              weekOffset={weekOffset}
+              onPrevWeek={() => setWeekOffset(w => w - 1)}
+              onNextWeek={() => setWeekOffset(w => w + 1)}
+              onSelectDate={d => {
+                setSelectedDate(d);
+                const diffDays = Math.round(
+                  (new Date(d + "T00:00:00").getTime() - new Date(TODAY + "T00:00:00").getTime()) / 86_400_000
+                );
+                const todayDow = (new Date(TODAY + "T00:00:00").getDay() + 6) % 7;
+                setWeekOffset(Math.floor((diffDays + todayDow) / 7));
+              }}
+              onToday={() => { setWeekOffset(0); setSelectedDate(TODAY); }}
             />
 
             <section>

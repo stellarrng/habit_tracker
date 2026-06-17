@@ -70,13 +70,116 @@ function fmtDate(d: Date): string {
   return `${y}-${mo}-${dy}`;
 }
 
-function buildDateRange(days: number): string[] {
-  const today = new Date();
+function buildDateRange(days: number, endDate: string): string[] {
+  const end = new Date(endDate + "T00:00:00");
   return Array.from({ length: days }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (days - 1 - i));
+    const d = new Date(end);
+    d.setDate(end.getDate() - (days - 1 - i));
     return fmtDate(d);
   });
+}
+
+// ── Week navigator helpers ────────────────────────────────────────────────────
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function buildViewWeek(weekOffset: number) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const mondayOff = (today.getDay() + 6) % 7;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - mondayOff + weekOffset * 7);
+  const todayStr = fmtDate(new Date());
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const iso = fmtDate(d);
+    return { label: DAY_LABELS[i], date: d.getDate(), month: d.getMonth(), iso, isToday: iso === todayStr };
+  });
+}
+
+// ── DateNavigator component ───────────────────────────────────────────────────
+
+function ChevronLeft() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRight() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function DateNavigator({
+  weekOffset, selectedDate,
+  onPrevWeek, onNextWeek, onSelectDate, onToday,
+}: {
+  weekOffset: number; selectedDate: string;
+  onPrevWeek: () => void; onNextWeek: () => void;
+  onSelectDate: (d: string) => void; onToday: () => void;
+}) {
+  const days = buildViewWeek(weekOffset);
+  const start = new Date(days[0].iso + "T00:00:00");
+  const end   = new Date(days[6].iso + "T00:00:00");
+  const monthLabel = start.getMonth() === end.getMonth()
+    ? `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()}`
+    : `${MONTH_NAMES[start.getMonth()]} – ${MONTH_NAMES[end.getMonth()]} ${end.getFullYear()}`;
+  const todayStr = fmtDate(new Date());
+
+  return (
+    <div className={styles.dateNav}>
+      {/* Row 1: month label + today shortcut */}
+      <div className={styles.dateNavHeader}>
+        <div className={styles.dateNavLeft}>
+          <button className={styles.navArrowBtn} onClick={onPrevWeek} aria-label="Previous week">
+            <ChevronLeft />
+          </button>
+          <button className={styles.navArrowBtn} onClick={onNextWeek} aria-label="Next week">
+            <ChevronRight />
+          </button>
+          <span className={styles.dateNavMonth}>{monthLabel}</span>
+        </div>
+        {weekOffset !== 0 && (
+          <button className={styles.todayBtn} onClick={onToday}>↩ Today</button>
+        )}
+      </div>
+
+      {/* Row 2: day cells */}
+      <div className={styles.dateNavStrip}>
+        {days.map(day => {
+          const isPast   = day.iso < todayStr;
+          const isFuture = day.iso > todayStr;
+          const isSelected = day.iso === selectedDate;
+          return (
+            <button
+              key={day.iso}
+              className={[
+                styles.dayCell,
+                isSelected           ? styles.dayCellSelected : "",
+                day.isToday && !isSelected ? styles.dayCellToday : "",
+                isFuture             ? styles.dayCellFuture   : "",
+                isPast               ? styles.dayCellPast     : "",
+              ].filter(Boolean).join(" ")}
+              onClick={() => onSelectDate(day.iso)}
+            >
+              <span className={styles.dayLabel}>{day.label}</span>
+              <span className={styles.dayNum}>{day.date}</span>
+              {day.isToday && <span className={styles.todayDot} />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function rangeDays(range: DateRange): number {
@@ -91,8 +194,9 @@ function computeHabitStat(
   habit: Habit,
   checkInMap: Map<string, CheckIn>,
   days: number,
+  endDate: string,
 ): HabitStat {
-  const dates   = buildDateRange(days);
+  const dates   = buildDateRange(days, endDate);
   const display = categoryDisplay(habit.category);
 
   const rates = dates.map(dateStr => {
@@ -160,10 +264,11 @@ function computeSummary(
   checkInsByHabit: Map<string, Map<string, CheckIn>>,
   days: number,
   tFn: (k: string) => string,
+  selectedDate: string,
 ) {
-  const today     = fmtDate(new Date());
-  const yesterday = fmtDate(new Date(Date.now() - 86_400_000));
-  const dates     = buildDateRange(days);
+  const today     = selectedDate;
+  const yesterday = fmtDate(new Date(new Date(selectedDate + "T00:00:00").getTime() - 86_400_000));
+  const dates     = buildDateRange(days, selectedDate);
 
   const todayDone = activeHabits.filter(h =>
     checkInsByHabit.get(h._id)?.get(today)?.status === "Completed"
@@ -335,6 +440,8 @@ export default function DashboardPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [category, setCategory]     = useState<Category>("All");
   const [sort, setSort]             = useState<SortKey>("default");
+  const [selectedDate, setSelectedDate] = useState(() => fmtDate(new Date()));
+  const [weekOffset, setWeekOffset]     = useState(0);
   const { t }                        = useSettings();
 
   const { habits, loading: habitsLoading } = useHabitContext();
@@ -366,8 +473,8 @@ export default function DashboardPage() {
   const activeHabits = useMemo(() => habits.filter(h => h.status === "Active"), [habits]);
 
   const summary = useMemo(
-    () => computeSummary(activeHabits, checkInsByHabit, days, t),
-    [activeHabits, checkInsByHabit, days, t],
+    () => computeSummary(activeHabits, checkInsByHabit, days, t, selectedDate),
+    [activeHabits, checkInsByHabit, days, t, selectedDate],
   );
 
   const categories = useMemo(
@@ -377,14 +484,14 @@ export default function DashboardPage() {
 
   const habitStats = useMemo(() => {
     let list = activeHabits.map(h =>
-      computeHabitStat(h, checkInsByHabit.get(h._id) ?? new Map(), days)
+      computeHabitStat(h, checkInsByHabit.get(h._id) ?? new Map(), days, selectedDate)
     );
     if (category !== "All") list = list.filter(h => h.category === category);
     if (sort === "rate")   list = [...list].sort((a, b) => b.rateNum - a.rateNum);
     if (sort === "streak") list = [...list].sort((a, b) => b.streak  - a.streak);
     if (sort === "name")   list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [activeHabits, checkInsByHabit, days, category, sort]);
+  }, [activeHabits, checkInsByHabit, days, category, sort, selectedDate]);
 
   const chartLabel = range === "Year"
     ? t("lastWeeksActivity")
@@ -412,6 +519,23 @@ export default function DashboardPage() {
       <div className={styles.content}>
 
         <section className={styles.dashboardSection}>
+
+          {/* Scrollable date navigator */}
+          <DateNavigator
+            weekOffset={weekOffset}
+            selectedDate={selectedDate}
+            onPrevWeek={() => setWeekOffset(w => w - 1)}
+            onNextWeek={() => setWeekOffset(w => w + 1)}
+            onSelectDate={(d) => {
+              setSelectedDate(d);
+              // sync week view to the week containing the selected date
+              const today = new Date(); today.setHours(0, 0, 0, 0);
+              const sel   = new Date(d + "T00:00:00");
+              const diffDays = Math.round((sel.getTime() - today.getTime()) / 86_400_000);
+              setWeekOffset(Math.floor((diffDays + ((today.getDay() + 6) % 7)) / 7));
+            }}
+            onToday={() => { setWeekOffset(0); setSelectedDate(fmtDate(new Date())); }}
+          />
 
           {/* Date range picker */}
           <div className={styles.rangeRow}>
