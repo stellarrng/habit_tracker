@@ -51,11 +51,11 @@ const CATEGORY_TONE: Record<CategoryKey, "blue" | "brown"> = {
   Other: "brown",
 };
 const CATEGORY_LINE_COLOR: Record<CategoryKey, string> = {
-  Health: "#1f53c9",
-  Study: "#8a4c00",
-  Work: "#2f7f6a",
-  Mindfulness: "#934f68",
-  Other: "#5f6b73",
+  Health: "var(--chart-health-line)",
+  Study: "var(--chart-study-line)",
+  Work: "var(--chart-work-line)",
+  Mindfulness: "var(--chart-mindfulness-line)",
+  Other: "var(--chart-other-line)",
 };
 
 function generateRates(baseRate: number, trend: "up" | "down" | "flat", days = 365): number[] {
@@ -949,13 +949,14 @@ export default function DashboardPage() {
                                   {CATEGORY_LABEL[categoryKey]}
                                 </h3>
                                 <div className={styles.habitGrid}>
-                                  {sectionHabits.map((habit) => {
-                                    const { computed } = habit;
-                                    const habitLineSeries = buildLineSeries(habit.dailyRates, range);
-                                    const statItems = [
-                                      { label: t("longest"), value: computed.longest },
-                                      { label: t("total"), value: computed.total },
-                                      { label: t("rate"), value: computed.rate },
+                                      {sectionHabits.map((habit) => {
+                                        const { computed } = habit;
+                                        const habitLineSeries = buildLineSeries(habit.dailyRates, range);
+                                        const habitLineColor = habit.tone === "blue" ? "var(--chart-health-line)" : habit.tone === "mint" ? "var(--chart-mint-line)" : "var(--chart-study-line)";
+                                        const statItems = [
+                                          { label: t("longest"), value: computed.longest },
+                                          { label: t("total"), value: computed.total },
+                                          { label: t("rate"), value: computed.rate },
                                     ];
 
                                     return (
@@ -1007,6 +1008,7 @@ export default function DashboardPage() {
                                             <svg viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label={`${habit.name} line chart`}>
                                               <polyline
                                                 className={styles.lineChartStroke}
+                                                style={{ stroke: habitLineColor }}
                                                 vectorEffect="non-scaling-stroke"
                                                 points={lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
                                                   const x = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
@@ -1020,12 +1022,11 @@ export default function DashboardPage() {
                                               {lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
                                                 const xPct = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
                                                 const yPct = (1 - habitLineSeries[idx] / 100) * 100;
-                                                const dotColor = habit.tone === "blue" ? "#1f53c9" : habit.tone === "mint" ? "#2e7d6a" : "#b56600";
                                                 return (
                                                   <span
                                                     key={`${habit.id}-dot-html-${idx}`}
                                                     className={styles.lineDotHtml}
-                                                    style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: dotColor }}
+                                                    style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: habitLineColor }}
                                                   />
                                                 );
                                               })}
