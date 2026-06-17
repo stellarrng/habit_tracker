@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
 import { HabitStatus, CheckIn } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
 import InforHabitForm from '../../components/habits/InforHabitForm';
 import GoalHabitForm from '../../components/habits/GoalHabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import Toast from '../../components/shared/Toast';
 import { useStreaks } from '../../hooks/useStreaks';
 import { getCheckIns } from '../../api/checkins';
 import {
@@ -16,7 +17,8 @@ import {
   StarIcon,
   InfoIcon,
   TrophyIcon,
-  CalendarIcon
+  CalendarIcon,
+  MoreVerticalIcon
 } from '../../components/shared/Icons';
 import styles from './HabitDetailPage.module.css';
 import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
@@ -43,6 +45,24 @@ export default function HabitDetailPage() {
   const { habits, changeStatus, removeHabit } = useHabitContext();
   const [showEdit, setShowEdit] = useState(false);
   const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [menuOpen]);
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
     title: string;
@@ -200,19 +220,20 @@ export default function HabitDetailPage() {
     });
   }
 
-  function handleToggle() {
-    const next: HabitStatus = isActive ? 'Paused' : 'Active';
-    const actionText = isActive ? 'pause' : 'resume';
-    triggerConfirm({
-      title: `${isActive ? 'Pause' : 'Resume'} Habit`,
-      message: `Are you sure you want to ${actionText} "${habit!.name}"?`,
-      confirmLabel: isActive ? 'Pause' : 'Resume',
-      type: 'warning',
-      onConfirm: () => {
-        changeStatus(habit!._id, next);
-        closeConfirm();
-      },
-    });
+  function handlePause() {
+    if (habit) {
+      changeStatus(habit._id, 'Paused');
+      setToastMessage(`"${habit.name}" paused successfully`);
+      setMenuOpen(false);
+    }
+  }
+
+  function handleResume() {
+    if (habit) {
+      changeStatus(habit._id, 'Active');
+      setToastMessage(`"${habit.name}" resumed successfully`);
+      setMenuOpen(false);
+    }
   }
 
   function handleOpenEdit() {
@@ -233,9 +254,11 @@ export default function HabitDetailPage() {
       type: 'warning',
       onConfirm: () => {
         changeStatus(habit!._id, 'Archived');
+        setToastMessage(`"${habit!.name}" archived successfully`);
         closeConfirm();
       },
     });
+    setMenuOpen(false);
   }
 
   function handleUnarchive() {
@@ -246,6 +269,7 @@ export default function HabitDetailPage() {
       type: 'info',
       onConfirm: () => {
         changeStatus(habit!._id, 'Active');
+        setToastMessage(`"${habit!.name}" unarchived successfully`);
         closeConfirm();
       },
     });
@@ -276,12 +300,27 @@ export default function HabitDetailPage() {
               ● {habit.status}
             </span>
           </div>
+          {/* 3-dot menu */}
           {habit.status !== 'Archived' && (
-            <label className="toggle" style={{ transform: 'scale(1.1)' }} title={isActive ? 'Pause habit' : 'Resume habit'}>
-              <input type="checkbox" checked={isActive} onChange={handleToggle} id={`detail-toggle-${habit._id}`} />
-              <span className="toggle-track" />
-              <span className="toggle-thumb" />
-            </label>
+            <div className={styles.menuContainer} ref={menuRef}>
+              <button
+                className={styles.menuButton}
+                onClick={() => setMenuOpen(!menuOpen)}
+                title="More options"
+              >
+                <MoreVerticalIcon style={{ width: 20, height: 20 }} />
+              </button>
+              {menuOpen && (
+                <div className={styles.menu}>
+                  <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
+                    {isActive ? 'Pause' : 'Resume'}
+                  </button>
+                  <button className={styles.menuItem} onClick={handleArchive}>
+                    Archive
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -465,6 +504,16 @@ export default function HabitDetailPage() {
         onConfirm={confirmState.onConfirm}
         onCancel={closeConfirm}
       />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type="success"
+          duration={3000}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
     </AppLayout>
   );
 }
