@@ -2,8 +2,8 @@
   width: 100%;
   margin-top: 64px;
   padding: 32px 24px;
-  border-top: 1px solid rgba(195, 198, 214, 0.3);
-  background: #ffffff;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -25,29 +25,29 @@
 }
 
 .brand {
-  color: #191c1d;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 700;
 }
 
 .divider {
-  color: #c3c6d6;
+  color: var(--border);
 }
 
 .footer a,
 .footer p {
-  color: #434654;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
 
 .footer a:hover {
-  color: #1f53c9;
+  color: var(--color-primary);
   text-decoration: none;
 }
 
 .footer p {
-  color: #45645e;
+  color: var(--text-muted);
 }
 
 @media (max-width: 560px) {

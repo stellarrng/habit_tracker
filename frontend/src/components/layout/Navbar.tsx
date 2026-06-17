@@ -1,109 +1,37 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useSettings, type Settings, type NotifPrefs, DATE_RANGES } from "../../context/SettingsContext";
+import { useSettings, type Settings, DATE_RANGES } from "../../context/SettingsContext";
+import { useNotifications, playTone, type NotifType } from "../../context/NotificationContext";
 import styles from "./Navbar.module.css";
 
 type DateRange = (typeof DATE_RANGES)[number];
-type NotifType = "warning" | "reminder" | "achievement";
+type SettingsTab = "profile" | "preferences" | "audio";
 
-interface Notification {
-  id: string;
-  type: NotifType;
-  title: string;
-  body: string;
-  read: boolean;
+// ── Audio settings (localStorage) ─────────────────────────────────────────────
+
+const AUDIO_STORAGE_KEY = "audio_settings";
+
+interface AudioSettings {
+  soundEnabled: boolean;
+  soundReminder: boolean;
+  soundWarning: boolean;
+  soundReward: boolean;
 }
 
-// ── Mock notifications ────────────────────────────────────────────────────────
-
-const INITIAL_NOTIFS: Notification[] = [
-  { id: "w1", type: "warning",     title: "Drink Water at risk",          body: "You haven't logged water today. Streak may break!",          read: false },
-  { id: "w2", type: "warning",     title: "Morning Meds streak breaking",  body: "Only 1 day left before your 14-day streak is lost.",        read: false },
-  { id: "r1", type: "reminder",    title: "Morning Run not checked in",    body: "You scheduled this for 6:30 AM — still time to log it.",    read: false },
-  { id: "r2", type: "reminder",    title: "Meditation reminder",           body: "10 minutes before bed keeps the streak alive.",             read: true  },
-  { id: "a1", type: "achievement", title: "32-day Meditation streak!",     body: "You've hit a new personal best. Keep it up!",               read: true  },
-  { id: "a2", type: "achievement", title: "Morning Run: 92% this month",   body: "Top completion rate across all your habits.",               read: true  },
-];
-
-const GROUP_CONFIG: Record<NotifType, { label: string; color: string }> = {
-  warning:     { label: "Warnings",     color: "#ba1a1a" },
-  reminder:    { label: "Reminders",    color: "#8a4c00" },
-  achievement: { label: "Achievements", color: "#1f53c9" },
-};
-
-// ── NotificationPanel ─────────────────────────────────────────────────────────
-
-interface NotificationPanelProps {
-  notifs: Notification[];
-  onRead: (id: string) => void;
-  onReadAll: () => void;
-  onReset: () => void;
-  onClose: () => void;
+function loadAudioSettings(): AudioSettings {
+  try {
+    const raw = localStorage.getItem(AUDIO_STORAGE_KEY);
+    const defaults = { soundEnabled: true, soundReminder: true, soundWarning: true, soundReward: true };
+    return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
+  } catch { return { soundEnabled: true, soundReminder: true, soundWarning: true, soundReward: true }; }
 }
 
-function NotificationPanel({ notifs, onRead, onReadAll, onReset, onClose }: NotificationPanelProps) {
-  const { t } = useSettings();
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
-
-  const unreadCount = notifs.filter((n) => !n.read).length;
-  const groups: NotifType[] = ["warning", "reminder", "achievement"];
-
-  return (
-    <div ref={ref} className={styles.notifPanel}>
-      <div className={styles.notifHeader}>
-        <span className={styles.notifTitle}>{t("notifications")}</span>
-        {unreadCount > 0 && (
-          <button className={styles.markAllBtn} onClick={onReadAll}>
-            {t("markAllRead")}
-          </button>
-        )}
-      </div>
-      {notifs.length === 0 ? (
-        <div className={styles.notifEmptyWrap}>
-          <p className={styles.notifEmpty}>{t("allCaughtUp")}</p>
-          <button className={styles.notifResetBtn} onClick={onReset}>
-            Load demo notifications
-          </button>
-        </div>
-      ) : (
-        groups.map((type) => {
-          const items = notifs.filter((n) => n.type === type);
-          if (items.length === 0) return null;
-          const { label, color } = GROUP_CONFIG[type];
-          return (
-            <div key={type} className={styles.notifGroup}>
-              <p className={styles.notifGroupLabel} style={{ color }}>{label}</p>
-              {items.map((n) => (
-                <button
-                  key={n.id}
-                  className={`${styles.notifItem} ${n.read ? styles.notifRead : ""}`}
-                  onClick={() => onRead(n.id)}
-                >
-                  <span className={styles.notifDot} style={{ background: n.read ? "#c3c6d6" : color }} />
-                  <div className={styles.notifText}>
-                    <span className={styles.notifItemTitle}>{n.title}</span>
-                    <span className={styles.notifItemBody}>{n.body}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
+function saveAudioSettings(s: AudioSettings) {
+  localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify(s));
 }
 
-// ── SettingsPanel ─────────────────────────────────────────────────────────────
+// ── Toggle ─────────────────────────────────────────────────────────────────────
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   return (
@@ -114,11 +42,15 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
   );
 }
 
+// ── SettingsPanel ──────────────────────────────────────────────────────────────
+
 function SettingsPanel({ onClose }: { onClose: () => void }) {
   const { user, logout } = useAuth();
   const { settings, setSettings, t } = useSettings();
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = useState<SettingsTab>("preferences");
+  const [audio, setAudioState] = useState<AudioSettings>(loadAudioSettings);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -136,72 +68,161 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
     setSettings({ ...settings, [key]: value });
   }
 
-  function setNotif(key: keyof NotifPrefs, value: boolean) {
-    setSettings({ ...settings, notifPrefs: { ...settings.notifPrefs, [key]: value } });
+  function setAudio(key: keyof AudioSettings, value: boolean) {
+    const updated = { ...audio, [key]: value };
+    setAudioState(updated);
+    saveAudioSettings(updated);
   }
+
+  const settingsTabs: { key: SettingsTab; label: string; icon: React.ReactNode }[] = [
+    {
+      key: "profile", label: "Profile",
+      icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="10" cy="7" r="3" /><path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" /></svg>,
+    },
+    {
+      key: "preferences", label: "Preferences",
+      icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="3" y1="6" x2="17" y2="6" /><line x1="3" y1="10" x2="17" y2="10" /><line x1="3" y1="14" x2="17" y2="14" /><circle cx="7" cy="6" r="1.5" fill="currentColor" /><circle cx="13" cy="10" r="1.5" fill="currentColor" /><circle cx="9" cy="14" r="1.5" fill="currentColor" /></svg>,
+    },
+    {
+      key: "audio", label: "Audio & Alerts",
+      icon: <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M5 8H3a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2l4 3V5L5 8z" /><path d="M14 7a4 4 0 0 1 0 6" /><path d="M16.5 4.5a8 8 0 0 1 0 11" /></svg>,
+    },
+  ];
 
   return (
     <div ref={ref} className={styles.settingsPanel}>
-      <div className={styles.settingsProfile}>
-        <div className={styles.settingsAvatar}>{initials}</div>
-        <div className={styles.settingsProfileInfo}>
-          <span className={styles.settingsName}>{user?.name ?? "Guest"}</span>
-          <span className={styles.settingsEmail}>{user?.email ?? ""}</span>
-        </div>
-      </div>
-
-      <div className={styles.settingsDivider} />
-
-      <div className={styles.settingsSection}>
-        <p className={styles.settingsSectionLabel}>{t("preferences")}</p>
-        <div className={styles.settingsRow}>
-          <span>{t("darkMode")}</span>
-          <Toggle on={settings.darkMode} onToggle={() => set("darkMode", !settings.darkMode)} />
-        </div>
-        <div className={styles.settingsRow}>
-          <span>{t("language")}</span>
-          <select className={styles.settingsSelect} value={settings.language}
-            onChange={(e) => set("language", e.target.value as Settings["language"])}>
-            <option value="English">English</option>
-            <option value="Vietnamese">Tiếng Việt</option>
-          </select>
-        </div>
-        <div className={styles.settingsRow}>
-          <span>{t("defaultRange")}</span>
-          <select className={styles.settingsSelect} value={settings.defaultRange}
-            onChange={(e) => set("defaultRange", e.target.value as DateRange)}>
-            {DATE_RANGES.map((r) => <option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div className={styles.settingsDivider} />
-
-      <div className={styles.settingsSection}>
-        <p className={styles.settingsSectionLabel}>{t("notifications")}</p>
-        {(["warnings", "reminders", "achievements"] as (keyof NotifPrefs)[]).map((key) => (
-          <div key={key} className={styles.settingsRow}>
-            <span>{t(key)}</span>
-            <Toggle on={settings.notifPrefs[key]} onToggle={() => setNotif(key, !settings.notifPrefs[key])} />
+      <div className={styles.settingsPanelHeader}>
+        <div className={styles.settingsPanelHeaderLeft}>
+          <div className={styles.settingsPanelIcon}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <circle cx="10" cy="10" r="2.5" /><path d="M10 1v2M10 17v2M1 10h2M17 10h2M3.5 3.5l1.4 1.4M15.1 15.1l1.4 1.4M3.5 16.5l1.4-1.4M15.1 4.9l1.4-1.4" />
+            </svg>
           </div>
-        ))}
+          <div>
+            <div className={styles.settingsPanelTitle}>Settings</div>
+            <div className={styles.settingsPanelSub}>Manage your preferences</div>
+          </div>
+        </div>
+        <button className={styles.notifCloseBtn} onClick={onClose}>
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="5" y1="5" x2="15" y2="15" /><line x1="15" y1="5" x2="5" y2="15" />
+          </svg>
+        </button>
       </div>
 
-      <div className={styles.settingsDivider} />
+      <div className={styles.settingsBody}>
+        <nav className={styles.settingsNav}>
+          {settingsTabs.map(tab => (
+            <button key={tab.key}
+              className={`${styles.settingsNavItem} ${activeTab === tab.key ? styles.settingsNavItemActive : ""}`}
+              onClick={() => setActiveTab(tab.key)}>
+              <span className={styles.settingsNavIcon}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+          <div className={styles.settingsNavDivider} />
+          <button className={styles.signOutBtn} onClick={() => { logout(); navigate("/login"); }}>
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 14l4-4-4-4M17 10H7" />
+            </svg>
+            Sign out
+          </button>
+        </nav>
 
-      <div className={styles.settingsSection}>
-        <button className={styles.signOutBtn} onClick={() => { logout(); navigate("/login"); }}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-          {t("signOut")}
-        </button>
+        <div className={styles.settingsContent}>
+          {activeTab === "profile" && (
+            <div>
+              <p className={styles.settingsSectionLabel}>YOUR ACCOUNT</p>
+              <div className={styles.profileCard}>
+                <div className={styles.settingsAvatar}>{initials}</div>
+                <div>
+                  <div className={styles.settingsName}>{user?.name ?? "Guest"}</div>
+                  <div className={styles.settingsEmail}>{user?.email ?? "—"}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "preferences" && (
+            <div>
+              <p className={styles.settingsSectionLabel}>APPEARANCE</p>
+              <div className={styles.settingsRows}>
+                <div className={styles.settingsRow}>
+                  <div>
+                    <div className={styles.settingsRowLabel}>{t("darkMode")}</div>
+                    <div className={styles.settingsRowDesc}>Switch to dark theme</div>
+                  </div>
+                  <Toggle on={settings.darkMode} onToggle={() => set("darkMode", !settings.darkMode)} />
+                </div>
+                <div className={styles.settingsRow}>
+                  <div>
+                    <div className={styles.settingsRowLabel}>{t("language")}</div>
+                    <div className={styles.settingsRowDesc}>Display language</div>
+                  </div>
+                  <select className={styles.settingsSelect} value={settings.language}
+                    onChange={(e) => set("language", e.target.value as Settings["language"])}>
+                    <option value="English">English</option>
+                    <option value="Vietnamese">Tiếng Việt</option>
+                  </select>
+                </div>
+                <div className={styles.settingsRow}>
+                  <div>
+                    <div className={styles.settingsRowLabel}>{t("defaultRange")}</div>
+                    <div className={styles.settingsRowDesc}>Default date range on dashboard</div>
+                  </div>
+                  <select className={styles.settingsSelect} value={settings.defaultRange}
+                    onChange={(e) => set("defaultRange", e.target.value as DateRange)}>
+                    {DATE_RANGES.map((r) => <option key={r} value={r}>{r}</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "audio" && (
+            <div>
+              <p className={styles.settingsSectionLabel}>AUDIO FEEDBACK & ALERTS</p>
+              <p className={styles.settingsSectionDesc}>Choose which events play a sound chime.</p>
+              <div className={styles.settingsRows}>
+                <div className={styles.settingsRow}>
+                  <div>
+                    <div className={styles.settingsRowLabel}>Master Sound</div>
+                    <div className={styles.settingsRowDesc}>Enable all notification sounds</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <button className={styles.testSoundBtn} onClick={() => playTone("reward")}>Test Sound</button>
+                    <Toggle on={audio.soundEnabled} onToggle={() => setAudio("soundEnabled", !audio.soundEnabled)} />
+                  </div>
+                </div>
+                {(["reminder", "warning", "reward"] as NotifType[]).map(type => (
+                  <div key={type} className={`${styles.settingsRow} ${!audio.soundEnabled ? styles.settingsRowDisabled : ""}`}>
+                    <div>
+                      <div className={styles.settingsRowLabel}>
+                        {type === "reminder" ? "🔔 Reminder Sound" : type === "warning" ? "⚠️ Warning Sound" : "🎉 Reward Sound"}
+                      </div>
+                      <div className={styles.settingsRowDesc}>
+                        {type === "reminder" ? "Play chime for habit reminders" : type === "warning" ? "Play chime for streak warnings" : "Play chime when habit is completed"}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button className={styles.testSoundBtn} disabled={!audio.soundEnabled} onClick={() => playTone(type)}>Test</button>
+                      <Toggle
+                        on={audio[`sound${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof AudioSettings] as boolean && audio.soundEnabled}
+                        onToggle={() => setAudio(`sound${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof AudioSettings, !audio[`sound${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof AudioSettings])}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Navbar ────────────────────────────────────────────────────────────────────
+// ── Navbar ─────────────────────────────────────────────────────────────────────
 
 interface NavbarProps {
   onRangeChange?: (range: DateRange) => void;
@@ -209,18 +230,14 @@ interface NavbarProps {
 
 export default function Navbar({ onRangeChange }: NavbarProps) {
   const { settings, t } = useSettings();
+  const { unreadCount, togglePanel, panelOpen } = useNotifications();
   const [activeRange, setActiveRange] = useState<DateRange>(settings.defaultRange);
-  const [notifOpen, setNotifOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [notifs, setNotifs] = useState<Notification[]>(INITIAL_NOTIFS);
 
   useEffect(() => {
     setActiveRange(settings.defaultRange);
     onRangeChange?.(settings.defaultRange);
   }, [settings.defaultRange]);
-
-  const visibleNotifs = notifs.filter((n) => settings.notifPrefs[n.type as keyof typeof settings.notifPrefs]);
-  const unreadCount = visibleNotifs.filter((n) => !n.read).length;
 
   function handleRange(range: DateRange) {
     setActiveRange(range);
@@ -229,7 +246,10 @@ export default function Navbar({ onRangeChange }: NavbarProps) {
 
   return (
     <header className={styles.navbar}>
-      <h1>{t("dashboard")}</h1>
+      <div>
+        <h1>{t("dashboard")}</h1>
+        <p className={styles.navbarSubtitle}>Track your consistency, build long-lasting habits</p>
+      </div>
 
       <div className={styles.actions}>
         <div className={styles.segmented} aria-label="Date range">
@@ -242,32 +262,25 @@ export default function Navbar({ onRangeChange }: NavbarProps) {
           ))}
         </div>
 
+        {/* Bell — toggles global panel */}
         <div className={styles.notifWrapper}>
-          <button className={`${styles.iconButton} ${notifOpen ? styles.iconActive : ""}`}
+          <button className={`${styles.iconButton} ${panelOpen ? styles.iconActive : ""}`}
             aria-label="Notifications"
-            onClick={() => { setNotifOpen((v) => !v); setSettingsOpen(false); }}>
+            onClick={() => { togglePanel(); setSettingsOpen(false); }}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7M13.7 21a2 2 0 0 1-3.4 0" />
             </svg>
             {unreadCount > 0 && (
-              <span className={styles.badge} aria-label={`${unreadCount} unread`}>
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
+              <span className={styles.badge}>{unreadCount > 9 ? "9+" : unreadCount}</span>
             )}
           </button>
-          {notifOpen && (
-            <NotificationPanel notifs={visibleNotifs}
-              onRead={(id) => setNotifs((p) => p.map((n) => n.id === id ? { ...n, read: true } : n))}
-              onReadAll={() => setNotifs((p) => p.map((n) => ({ ...n, read: true })))}
-              onReset={() => setNotifs(INITIAL_NOTIFS)}
-              onClose={() => setNotifOpen(false)} />
-          )}
         </div>
 
+        {/* Settings */}
         <div className={styles.notifWrapper}>
           <button className={`${styles.iconButton} ${settingsOpen ? styles.iconActive : ""}`}
             aria-label="Settings"
-            onClick={() => { setSettingsOpen((v) => !v); setNotifOpen(false); }}>
+            onClick={() => { setSettingsOpen(v => !v); }}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
               <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.3 7A2 2 0 1 1 7.1 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 20.1 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />

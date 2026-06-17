@@ -28,9 +28,9 @@
   --color-other:      #94D82D;
 
   /* Surfaces */
-  --bg-page:    #F4F6FB;
+  --bg-page:    #FCF5F6;
   --bg-card:    #FFFFFF;
-  --bg-sidebar: #FFFFFF;
+  --bg-sidebar: #FFF9FA;
   --border:     #E9ECEF;
   --border-focus: #3B5BDB;
 
@@ -277,6 +277,35 @@ input, select, textarea { font-family: inherit; }
 
 
 
+
+/* ─── Dark mode overrides for global components ──────────────────────────── */
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6 {
+  color: var(--text-primary);
+}
+
+body.dark .toggle-track {
+  background: var(--color-gray-300);
+}
+
+body.dark .chip-category-health     { background: var(--color-category-health-bg);        color: var(--color-category-health-text); }
+body.dark .chip-category-study      { background: var(--color-category-study-bg);         color: var(--color-category-study-text); }
+body.dark .chip-category-work       { background: var(--color-category-work-bg);          color: var(--color-category-work-text); }
+body.dark .chip-category-mindfulness{ background: var(--color-category-mindfulness-bg);   color: var(--color-category-mindfulness-text); }
+body.dark .chip-category-other      { background: var(--color-category-other-bg);         color: var(--color-category-other-text); }
+body.dark .chip-freq                { background: var(--color-gray-100); color: var(--text-muted); border-color: var(--border); }
+body.dark .chip-low                 { background: rgba(116, 192, 252, 0.15); color: var(--color-low); }
+body.dark .chip-medium              { background: rgba(255, 212, 59, 0.15);  color: var(--color-medium); }
+body.dark .chip-high                { background: rgba(255, 107, 107, 0.15); color: var(--color-high); }
+body.dark .chip-active              { background: rgba(74, 222, 128, 0.15);  color: var(--color-success); }
+body.dark .chip-paused              { background: var(--color-gray-100);     color: var(--color-paused); }
+body.dark .chip-archived            { background: rgba(252, 211, 77, 0.15);  color: var(--color-warning); }
+
+body.dark .habit-progress-bar-wrap  { background: var(--color-gray-200); }
 
 /* ─── Loading spinner ─────────────────────────────────────────────────────── */
 .spinner {

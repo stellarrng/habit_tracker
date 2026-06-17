@@ -117,6 +117,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           goalTargetValue,
         };
         await addHabit(input);
+        window.dispatchEvent(new CustomEvent("habit:created"));
       }
       onClose();
     } catch {

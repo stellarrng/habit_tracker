@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
+import NotificationPanel from './NotificationPanel';
 import styles from './AppLayout.module.css';
 
 interface AppLayoutProps {
@@ -14,6 +15,7 @@ export default function AppLayout({ children, onNewHabit }: AppLayoutProps) {
       <main className={styles.appMain}>
         {children}
       </main>
+      <NotificationPanel />
     </div>
   );
 }

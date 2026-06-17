@@ -5,6 +5,8 @@ import { CheckInProvider } from './context/CheckInContext';
 import { GoalProvider } from './context/GoalContext';
 import { UserProvider } from './context/UserContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { NotificationProvider } from './context/NotificationContext';
+import BackgroundEffect from './components/shared/BackgroundEffect';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
 import LoginPage from './pages/Auth/LoginPage';
@@ -24,6 +26,8 @@ export default function App() {
           <CheckInProvider>
           <GoalProvider>
           <SettingsProvider>
+            <NotificationProvider>
+            <BackgroundEffect />
             <Routes>
               {/* Public */}
               <Route path="/login"    element={<LoginPage />} />
@@ -40,6 +44,7 @@ export default function App() {
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/habits" replace />} />
             </Routes>
+            </NotificationProvider>
           </SettingsProvider>
           </GoalProvider>
           </CheckInProvider>
