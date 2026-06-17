@@ -568,6 +568,13 @@ function HeatmapGrid({
             </article>
           ))}
         </div>
+        <div className={styles.heatmapLegend} aria-label="Heatmap intensity legend">
+          <span>Less</span>
+          {[0, 1, 2, 3, 4].map((level) => (
+            <i key={`${idPrefix}-legend-${level}`} className={`${styles.heatmapLegendCell} ${styles[`heat${level}`]}`} />
+          ))}
+          <span>More</span>
+        </div>
       </div>
     );
   }
