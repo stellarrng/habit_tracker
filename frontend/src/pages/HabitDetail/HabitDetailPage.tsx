@@ -209,14 +209,6 @@ export default function HabitDetailPage() {
     }
   }
 
-  function handleResume() {
-    if (habit) {
-      changeStatus(habit._id, 'Active');
-      setToastMessage(`"${habit.name}" resumed successfully`);
-      setMenuOpen(false);
-    }
-  }
-
   function handleOpenEdit() {
     setEditMode('info');
     setShowEdit(true);

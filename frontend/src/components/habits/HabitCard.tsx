@@ -62,11 +62,12 @@ interface HabitCardProps {
   onEdit: (habit: Habit) => void;
   onArchiveRequest?: (habit: Habit) => void;
   onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored') => void;
+  onDeleteRequest?: (habit: Habit) => void;
   onSetGoal?: (habit: Habit, currentStreak: number, totalCompletions: number) => void;
 }
 
-export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusChange, onSetGoal }: HabitCardProps) {
-  const { changeStatus, removeHabit } = useHabitContext();
+export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteRequest, onStatusChange, onSetGoal }: HabitCardProps) {
+  const { changeStatus } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
 
@@ -123,7 +124,8 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
         : null
     : null;
 
-  function handlePause() {
+  function handlePause(e: React.MouseEvent) {
+    e.stopPropagation();
     const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
     changeStatus(habit._id, nextStatus);
     setMenuOpen(false);
@@ -132,7 +134,8 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
     }
   }
 
-  function handleRestore() {
+  function handleRestore(e: React.MouseEvent) {
+    e.stopPropagation();
     changeStatus(habit._id, 'Active');
     setMenuOpen(false);
     if (onStatusChange) {
@@ -140,7 +143,8 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
     }
   }
 
-  function handleArchive() {
+  function handleArchive(e: React.MouseEvent) {
+    e.stopPropagation();
     if (onArchiveRequest) {
       onArchiveRequest(habit);
     }
@@ -149,9 +153,12 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
-    if (window.confirm(`Delete "${habit.name}"? This cannot be undone.`)) {
-      removeHabit(habit._id);
+
+    if (onDeleteRequest) {
+      onDeleteRequest(habit);
     }
+
+    setMenuOpen(false);
   }
 
   return (

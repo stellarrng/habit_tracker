@@ -24,7 +24,7 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
-  const { filteredHabits, habits, loading, error, clearError, changeStatus, filters, setFilters } = useHabitContext();
+  const { filteredHabits, habits, loading, error, removeHabit, clearError, changeStatus, filters, setFilters } = useHabitContext();
 
   // Calculate status counts
   const { activeCount, pausedCount, archivedCount } = useMemo(() => {
@@ -43,6 +43,7 @@ export default function HabitsPage() {
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // GoalHabitForm states
@@ -227,6 +228,7 @@ export default function HabitsPage() {
                         habit={habit}
                         onEdit={openEdit}
                         onArchiveRequest={requestArchive}
+                        onDeleteRequest={setHabitToDelete}
                         onStatusChange={handleStatusChangeNotification}
                         onSetGoal={openSetGoal}
                       />
@@ -292,6 +294,22 @@ export default function HabitsPage() {
         cancelLabel="Cancel"
         onConfirm={confirmArchive}
         onCancel={() => setShowArchiveDialog(false)}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!habitToDelete}
+        title="Delete Habit"
+        message={`Are you sure you want to delete "${habitToDelete?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        type="danger"
+        onConfirm={() => {
+          if (habitToDelete) {
+            removeHabit(habitToDelete._id);
+          }
+          setHabitToDelete(null);
+        }}
+        onCancel={() => setHabitToDelete(null)}
       />
 
       {/* Toast Notification */}
