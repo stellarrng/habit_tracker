@@ -5,7 +5,6 @@ import { useHabitContext } from '../../context/HabitContext';
 import { getCheckIns } from '../../api/checkins';
 import { useStreaks } from '../../hooks/useStreaks';
 import {
-  TrashIcon,
   MoreVerticalIcon
 } from '../shared/Icons';
 import styles from './HabitCard.module.css';
@@ -160,7 +159,9 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
       className={`habit-card ${habit.status.toLowerCase()}`}
       id={`habit-card-${habit._id}`}
       onClick={() => navigate(`/habits/${habit._id}`)} 
-      style={{ cursor: 'pointer' }}>
+      style={{ cursor: 'pointer' }}
+      role="button"
+      tabIndex={0}>
 
       {/* Header */}
       <div className="habit-card-header">
@@ -187,7 +188,10 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
         <div className={styles.menuContainer} ref={menuRef}>
           <button
             className={styles.menuButton}
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={(e) => {
+              e.stopPropagation(); 
+              setMenuOpen(!menuOpen);
+            }}
             title="More options"
           >
             <MoreVerticalIcon style={{ width: 18, height: 18 }} />
@@ -272,7 +276,8 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
           <span className={styles.noGoalText}>No goal target set</span>
           <button
             className={styles.noGoalLink}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (onSetGoal) {
                 onSetGoal(habit, streaks.current, streaks.totalSessions);
               } else {

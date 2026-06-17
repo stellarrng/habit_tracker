@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
-import { HabitStatus, CheckIn } from '../../types';
+import { CheckIn } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
 import InforHabitForm from '../../components/habits/InforHabitForm';
 import GoalHabitForm from '../../components/habits/GoalHabitForm';
@@ -10,11 +10,6 @@ import Toast from '../../components/shared/Toast';
 import { useStreaks } from '../../hooks/useStreaks';
 import { getCheckIns } from '../../api/checkins';
 import {
-  DropletIcon,
-  BookIcon,
-  BriefcaseIcon,
-  LotusIcon,
-  StarIcon,
   InfoIcon,
   TrophyIcon,
   CalendarIcon,
@@ -24,9 +19,6 @@ import styles from './HabitDetailPage.module.css';
 import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
 
 // ─── Color maps ──────────────────────────────────────────────────────────
-const CATEGORY_COLORS: Record<string, string> = {
-  Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
-};
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
   Low: { bg: '#DBF4FF', color: '#1864AB' },
   Medium: { bg: '#FFF3BF', color: '#855C04' },
@@ -183,7 +175,6 @@ export default function HabitDetailPage() {
   const isComplete = pct >= 100;
 
   const isActive = habit.status === 'Active';
-  const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
   const statusStyle = STATUS_COLORS[habit.status] ?? STATUS_COLORS.Active;
   const priorityStyle = PRIORITY_COLORS[habit.priority] ?? PRIORITY_COLORS.Medium;
 
@@ -195,17 +186,6 @@ export default function HabitDetailPage() {
         : `Keep going! ${target - currentValue} more to reach your goal.`
     : null;
 
-  function renderCategoryIcon() {
-    const props = { style: { color: 'rgba(0,0,0,0.6)', width: 24, height: 24 } };
-    switch (habit!.category) {
-      case 'Health': return <DropletIcon {...props} />;
-      case 'Study': return <BookIcon {...props} />;
-      case 'Work': return <BriefcaseIcon {...props} />;
-      case 'Mindfulness': return <LotusIcon {...props} />;
-      default: return <StarIcon {...props} />;
-    }
-  }
-
   function handleDelete() {
     triggerConfirm({
       title: 'Delete Habit',
@@ -216,6 +196,7 @@ export default function HabitDetailPage() {
         removeHabit(habit!._id);
         navigate('/habits');
         closeConfirm();
+        setMenuOpen(false);
       },
     });
   }
@@ -261,15 +242,15 @@ export default function HabitDetailPage() {
     setMenuOpen(false);
   }
 
-  function handleUnarchive() {
+  function handleRestore() {
     triggerConfirm({
-      title: 'Unarchive Habit',
-      message: `Are you sure you want to unarchive "${habit!.name}"?`,
-      confirmLabel: 'Unarchive',
+      title: 'Restore Habit',
+      message: `Are you sure you want to Restore "${habit!.name}"?`,
+      confirmLabel: 'Restore',
       type: 'info',
       onConfirm: () => {
         changeStatus(habit!._id, 'Active');
-        setToastMessage(`"${habit!.name}" unarchived successfully`);
+        setToastMessage(`"${habit!.name}" Restored successfully`);
         closeConfirm();
       },
     });
@@ -301,27 +282,37 @@ export default function HabitDetailPage() {
             </span>
           </div>
           {/* 3-dot menu */}
-          {habit.status !== 'Archived' && (
-            <div className={styles.menuContainer} ref={menuRef}>
-              <button
-                className={styles.menuButton}
-                onClick={() => setMenuOpen(!menuOpen)}
-                title="More options"
-              >
-                <MoreVerticalIcon style={{ width: 20, height: 20 }} />
-              </button>
-              {menuOpen && (
-                <div className={styles.menu}>
-                  <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
-                    {isActive ? 'Pause' : 'Resume'}
+          <div className={styles.menuContainer} ref={menuRef}>
+            <button
+              className={styles.menuButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+              title="More options"
+            >
+              <MoreVerticalIcon style={{ width: 20, height: 20 }} />
+            </button>
+            {menuOpen && (
+              <div className={styles.menu}>
+                <button className={styles.menuItem} onClick={handleDelete}>
+                  Delete
+                </button>
+                {habit.status === 'Archived' ? (
+                  <button className={styles.menuItem} onClick={handleRestore}>
+                    Restore
                   </button>
-                  <button className={styles.menuItem} onClick={handleArchive}>
-                    Archive
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                ) : (
+                  <>
+                    <button className={styles.menuItem} onClick={handlePause}>
+                      {isActive ? 'Pause' : 'Resume'}
+                    </button>
+                    <button className={styles.menuItem} onClick={handleArchive}>
+                      Archive
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
         </div>
 
         {/* ── Chips ───────────────────────────────────────────────── */}
@@ -462,25 +453,6 @@ export default function HabitDetailPage() {
               ))}
             </div>
           </div>
-        </div>
-
-        {/* ── Actions Row ────────────────────────────────────────── */}
-        <div className={styles.actionsRow}>
-          <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={handleOpenEdit} id={`detail-edit-${habit._id}`}>
-            Edit Habit Information
-          </button>
-          {habit.status !== 'Archived' ? (
-            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleArchive}>
-              Archive Habit
-            </button>
-          ) : (
-            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleUnarchive}>
-              Unarchive Habit
-            </button>
-          )}
-          <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={handleDelete}>
-            Delete Habit
-          </button>
         </div>
       </div>
 
