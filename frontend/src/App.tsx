@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import { HabitProvider } from './context/HabitContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { NotificationProvider } from './context/NotificationContext';
+import BackgroundEffect from './components/shared/BackgroundEffect';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
 import LoginPage from './pages/Auth/LoginPage';
@@ -20,6 +21,7 @@ export default function App() {
         <HabitProvider>
           <SettingsProvider>
             <NotificationProvider>
+            <BackgroundEffect />
             <Routes>
               {/* Public */}
               <Route path="/login"    element={<LoginPage />} />
