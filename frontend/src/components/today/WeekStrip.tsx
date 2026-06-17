@@ -1,4 +1,4 @@
-import type { WeekStripDay } from "../../types";
+import { WeekStripDay } from "@/types";
 import styles from "./WeekStrip.module.css";
 
 interface WeekStripProps {
