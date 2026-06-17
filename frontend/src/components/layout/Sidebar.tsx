@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { CalendarIcon, TargetIcon, BarChartIcon, PlusIcon } from '../shared/Icons';
 import styles from './Sidebar.module.css';
 
@@ -16,7 +17,8 @@ interface SidebarProps {
 export default function Sidebar({ onNewHabit }: SidebarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  
+  const { unreadCount, togglePanel, panelOpen } = useNotifications();
+
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     : '?';
@@ -34,20 +36,34 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
     <aside className={styles.appSidebar}>
       {/* Brand */}
       <div className={styles.sidebarBrand}>
-        <div className={styles.sidebarBrandName}>Habit Tracker Pro</div>
-        <div className={styles.sidebarBrandSub}>Built for clarity</div>
+        <div className={styles.sidebarBrandRow}>
+          <div>
+            <div className={styles.sidebarBrandName}>Habit Tracker Pro</div>
+            <div className={styles.sidebarBrandSub}>Built for clarity</div>
+          </div>
+          <button
+            className={`${styles.sidebarBellBtn} ${panelOpen ? styles.sidebarBellActive : ''}`}
+            onClick={togglePanel}
+            aria-label="Notifications"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7M13.7 21a2 2 0 0 1-3.4 0" />
+            </svg>
+            {unreadCount > 0 && (
+              <span className={styles.sidebarBellBadge}>
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Nav */}
       <nav className={styles.sidebarNav}>
         {NAV_ITEMS.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `${styles.sidebarNavItem} ${isActive ? styles.active : ''}`
-            }
-          >
+          <NavLink key={item.to} to={item.to}
+            className={({ isActive }) => `${styles.sidebarNavItem} ${isActive ? styles.active : ''}`}>
             <span className={styles.navIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
               {getNavIcon(item.icon)}
             </span>
@@ -57,7 +73,8 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
       </nav>
 
       {/* CTA */}
-      <button className={styles.sidebarNewHabit} onClick={onNewHabit} id="sidebar-new-habit-btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+      <button className={styles.sidebarNewHabit} onClick={onNewHabit} id="sidebar-new-habit-btn"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
         <PlusIcon /> New Habit
       </button>
 
@@ -67,10 +84,8 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
         <div>
           <div className={styles.sidebarUserName}>{user?.name ?? 'Guest'}</div>
           <div className={styles.sidebarUserPlan}>
-            <button
-              onClick={() => { logout(); navigate('/login'); }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0 }}
-            >
+            <button onClick={() => { logout(); navigate('/login'); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--text-muted)', padding: 0 }}>
               Sign out
             </button>
           </div>

@@ -120,6 +120,7 @@ export default function HabitForm({ editingHabit, onClose }: HabitFormProps) {
           description: form.description.trim(),
         };
         await addHabit(input);
+        window.dispatchEvent(new CustomEvent("habit:created"));
       }
       onClose();
     } catch {

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { HabitProvider } from './context/HabitContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { NotificationProvider } from './context/NotificationContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
 import LoginPage from './pages/Auth/LoginPage';
@@ -18,6 +19,7 @@ export default function App() {
       <AuthProvider>
         <HabitProvider>
           <SettingsProvider>
+            <NotificationProvider>
             <Routes>
               {/* Public */}
               <Route path="/login"    element={<LoginPage />} />
@@ -34,6 +36,7 @@ export default function App() {
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/habits" replace />} />
             </Routes>
+            </NotificationProvider>
           </SettingsProvider>
         </HabitProvider>
       </AuthProvider>

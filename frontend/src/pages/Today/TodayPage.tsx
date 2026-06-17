@@ -412,6 +412,10 @@ export default function TodayPage() {
         completedCount: count,
         note: checkIn.note,
       });
+      // notify navbar to refresh notifications
+      if (deriveStatus(count, habit.targetPerDay) === "Completed") {
+        window.dispatchEvent(new CustomEvent("checkin:completed"));
+      }
       // Sync with server response (gets real _id if it was a new check-in)
       setRows(prev => prev.map(r =>
         r.habit._id !== habit._id ? r : { ...r, checkIn: updated }
