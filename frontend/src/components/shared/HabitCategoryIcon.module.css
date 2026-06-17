@@ -33,6 +33,7 @@
 }
 
 .completed {
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
+  background-color: #FCE8EE;
+  color: #C4789A;
+  opacity: 0.8;
 }

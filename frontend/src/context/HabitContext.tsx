@@ -4,6 +4,7 @@ import {
 } from 'react';
 import { Habit, HabitCategory, HabitFrequency, HabitPriority, HabitStatus, CreateHabitInput, UpdateHabitInput } from '../types';
 import * as habitApi from '../api/habits';
+import { useAuth } from './AuthContext';
 
 // ─── Filter state ─────────────────────────────────────────────────────────
 export interface FilterState {
@@ -37,13 +38,19 @@ const HabitContext = createContext<HabitContextType | null>(null);
 
 // ─── Provider ─────────────────────────────────────────────────────────────
 export function HabitProvider({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
   const [habits, setHabits]   = useState<Habit[]>([]);
   const [filters, _setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState<string | null>(null);
 
-  // Load on mount
+  // Fetch whenever the auth token changes (covers login and logout)
   useEffect(() => {
+    if (!token) {
+      setHabits([]);
+      setLoading(false);
+      return;
+    }
     let alive = true;
     setLoading(true);
     habitApi.getHabits()
@@ -51,7 +58,7 @@ export function HabitProvider({ children }: { children: ReactNode }) {
       .catch(() => { if (alive) setError('Failed to load habits.'); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [token]);
 
   const setFilters = useCallback((partial: Partial<FilterState>) => {
     _setFilters(prev => ({ ...prev, ...partial }));

@@ -145,7 +145,7 @@ export default function HabitDetailPage() {
 
   if (!habit) {
     return (
-      <AppLayout onNewHabit={() => navigate('/habits')}>
+      <AppLayout>
         <div style={{ padding: 48, textAlign: 'center' }}>
           <InfoIcon style={{ width: 48, height: 48, color: 'var(--text-muted)', marginBottom: 16 }} />
           <h2 style={{ marginBottom: 8 }}>Habit not found</h2>
@@ -162,7 +162,7 @@ export default function HabitDetailPage() {
 
   if (loadingCheckIns) {
     return (
-      <AppLayout onNewHabit={() => navigate('/habits')}>
+      <AppLayout>
         <div className="loading-center">
           <div className="spinner" />
         </div>
@@ -276,7 +276,7 @@ export default function HabitDetailPage() {
   }
 
   return (
-    <AppLayout onNewHabit={() => navigate('/habits')}>
+    <AppLayout>
       <div className={styles.detailPageContainer}>
 
         {/* Back */}
