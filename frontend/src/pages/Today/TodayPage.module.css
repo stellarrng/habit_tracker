@@ -1,27 +1,47 @@
-/* ── Page grid (two-column layout) ────────────────────────────────────────── */
+/* ── Page shell ──────────────────────────────────────────────────────────── */
 
-.pageGrid {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 24px;
-  padding: 24px;
-  align-items: start;
-  min-height: 100%;
-}
-
-.mainCol {
+.page {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-width: 0;
 }
 
-.sideCol {
+/* ── Page header ─────────────────────────────────────────────────────────── */
+
+.pageHeader {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
-  position: sticky;
-  top: 24px;
+  padding-top: 24px;
+}
+
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.pageSub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* ── Info cards row ──────────────────────────────────────────────────────── */
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
 /* ── Date navigator ─────────────────────────────────────────────────────────── */
@@ -161,21 +181,6 @@
 
 .dayCellPast .dayNum { color: var(--text-secondary); }
 
-/* ── Header ──────────────────────────────────────────────────────────────────── */
-
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-}
-
-.greeting {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.5px;
-  margin: 0;
-}
 
 /* ── Progress row ────────────────────────────────────────────────────────────── */
 
@@ -623,12 +628,6 @@
   border-radius: var(--radius-md);
 }
 
-.skeletonHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .skeletonGreeting {
   width: 220px;
   height: 32px;
@@ -710,10 +709,16 @@
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
-  .pageGrid {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .infoGrid {
     grid-template-columns: 1fr;
   }
-  .sideCol {
-    position: static;
+  .pageHeader {
+    flex-direction: column;
   }
 }

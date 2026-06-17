@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { CheckIn, Goal, CheckInStatus, WeekStripDay, WeekDay } from "../../types";
 import { getCheckIns, upsertCheckIn } from "../../api/checkins";
-import { getGoals } from "../../api/goals";
 import styles from "./TodayPage.module.css";
 import AppLayout from "@/components/layout/AppLayout";
 import { useHabitContext } from "../../context/HabitContext";
@@ -236,24 +235,23 @@ function SkeletonRow() {
 
 function PageSkeleton() {
   return (
-    <div className={styles.pageGrid}>
-      <div className={styles.mainCol}>
-        <div className={styles.skeletonHeader}>
-          <div className={`${styles.skeletonBox} ${styles.skeletonGreeting}`} />
-        </div>
-        <div className={`${styles.skeletonBox} ${styles.skeletonProgress}`} />
-        <div className={styles.skeletonWeek}>
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className={`${styles.skeletonBox} ${styles.skeletonDay}`} />
-          ))}
-        </div>
-        <div className={styles.habitList}>
-          <SkeletonRow /><SkeletonRow /><SkeletonRow />
-        </div>
+    <div className={styles.page}>
+      <div className={styles.pageHeader}>
+        <div className={`${styles.skeletonBox} ${styles.skeletonGreeting}`} />
       </div>
-      <div className={styles.sideCol}>
+      <div className={`${styles.skeletonBox} ${styles.skeletonProgress}`} />
+      <div className={styles.skeletonWeek}>
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className={`${styles.skeletonBox} ${styles.skeletonDay}`} />
+        ))}
+      </div>
+      <div className={styles.infoGrid}>
         <div className={`${styles.skeletonBox} ${styles.skeletonTip}`} />
         <div className={`${styles.skeletonBox} ${styles.skeletonMomentum}`} />
+        <div className={`${styles.skeletonBox} ${styles.skeletonTip}`} />
+      </div>
+      <div className={styles.habitList}>
+        <SkeletonRow /><SkeletonRow /><SkeletonRow />
       </div>
     </div>
   );
@@ -373,7 +371,6 @@ export default function TodayPage() {
 
   // All check-ins for the user — single source of truth
   const [allCheckIns, setAllCheckIns] = useState<CheckIn[]>([]);
-  const [goals,        setGoals]       = useState<Goal[]>([]);
   const [dataLoading,  setDataLoading] = useState(true);
   const [error,        setError]       = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(TODAY);
@@ -389,9 +386,8 @@ export default function TodayPage() {
     try {
       setDataLoading(true);
       setError(null);
-      const [checkInsData, goalsData] = await Promise.all([getCheckIns(), getGoals()]);
+      const checkInsData = await getCheckIns();
       setAllCheckIns(checkInsData);
-      setGoals(goalsData);
     } catch {
       setError("Failed to load data. Please try again.");
     } finally {
@@ -416,7 +412,23 @@ export default function TodayPage() {
   }, [allCheckIns]);
 
   const activeHabits = useMemo(() => habits.filter(h => h.status === "Active"), [habits]);
-  const goalMap      = useMemo(() => new Map(goals.map(g => [g.habitId, g])), [goals]);
+
+  // Derive goals from habits' embedded fields — single source of truth.
+  const goalMap = useMemo(() => {
+    const map = new Map<string, Goal>();
+    for (const h of habits) {
+      if (h.goalTargetType && h.goalTargetValue) {
+        map.set(h._id, {
+          _id:         h._id,
+          userId:      h.userId,
+          habitId:     h._id,
+          targetType:  h.goalTargetType,
+          targetValue: h.goalTargetValue,
+        });
+      }
+    }
+    return map;
+  }, [habits]);
 
   // Rows for the selected date, sorted by priority
   const rows = useMemo<HabitRow[]>(() => {
@@ -566,76 +578,43 @@ export default function TodayPage() {
       {isLoading ? (
         <PageSkeleton />
       ) : (
-        <div className={styles.pageGrid}>
+        <div className={styles.page}>
 
-          {/* ── Left: main content ── */}
-          <div className={styles.mainCol}>
-
-            <h1 className={styles.greeting}>
-              {greeting(user?.name?.split(" ")[0] ?? "there")}
-            </h1>
-
-            <div className={styles.progressRow}>
-              <ProgressBar percent={progressPct} />
-              <span className={styles.progressLabel}>Daily Goal: {progressPct}%</span>
+          <div className={styles.pageHeader}>
+            <div>
+              <h1 className={styles.pageTitle}>
+                {greeting(user?.name?.split(" ")[0] ?? "there")}
+              </h1>
+              <p className={styles.pageSub}>
+                {rows.length} active habit{rows.length !== 1 ? "s" : ""} · Keep the streak going
+              </p>
             </div>
-
-            <DateNavigator
-              weekDays={weekDays}
-              selectedDate={selectedDate}
-              todayStr={TODAY}
-              weekOffset={weekOffset}
-              onPrevWeek={() => setWeekOffset(w => w - 1)}
-              onNextWeek={() => setWeekOffset(w => w + 1)}
-              onSelectDate={d => {
-                setSelectedDate(d);
-                const diffDays = Math.round(
-                  (new Date(d + "T00:00:00").getTime() - new Date(TODAY + "T00:00:00").getTime()) / 86_400_000
-                );
-                const todayDow = (new Date(TODAY + "T00:00:00").getDay() + 6) % 7;
-                setWeekOffset(Math.floor((diffDays + todayDow) / 7));
-              }}
-              onToday={() => { setWeekOffset(0); setSelectedDate(TODAY); }}
-            />
-
-            <section>
-              <div className={styles.sectionHeader}>
-                <span className={styles.sectionTitle}>Active Habits</span>
-                {lastAction && (
-                  <button className={styles.undoBtn} onClick={undoLast}>
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 8a6 6 0 1 0 1.5-4L2 2" /><polyline points="2,2 2,6 6,6" />
-                    </svg>
-                    Undo last action
-                  </button>
-                )}
-              </div>
-
-              <div className={styles.habitList}>
-                {rows.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <p>No active habits yet.</p>
-                    <p>Create one to get started!</p>
-                  </div>
-                ) : (
-                  rows.map(row => (
-                    <HabitRowCard
-                      key={row.habitId}
-                      row={row}
-                      streak={streaks.get(row.habitId) ?? 0}
-                      onIncrement={r => updateCount(r, 1)}
-                      onDecrement={r => updateCount(r, -1)}
-                      onToggleComplete={toggleComplete}
-                      isPending={pendingId === row.habitId}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
           </div>
 
-          {/* ── Right: sidebar cards ── */}
-          <div className={styles.sideCol}>
+          <div className={styles.progressRow}>
+            <ProgressBar percent={progressPct} />
+            <span className={styles.progressLabel}>Daily Goal: {progressPct}%</span>
+          </div>
+
+          <DateNavigator
+            weekDays={weekDays}
+            selectedDate={selectedDate}
+            todayStr={TODAY}
+            weekOffset={weekOffset}
+            onPrevWeek={() => setWeekOffset(w => w - 1)}
+            onNextWeek={() => setWeekOffset(w => w + 1)}
+            onSelectDate={d => {
+              setSelectedDate(d);
+              const diffDays = Math.round(
+                (new Date(d + "T00:00:00").getTime() - new Date(TODAY + "T00:00:00").getTime()) / 86_400_000
+              );
+              const todayDow = (new Date(TODAY + "T00:00:00").getDay() + 6) % 7;
+              setWeekOffset(Math.floor((diffDays + todayDow) / 7));
+            }}
+            onToday={() => { setWeekOffset(0); setSelectedDate(TODAY); }}
+          />
+
+          <div className={styles.infoGrid}>
             <ConsistencyTip />
             <WeeklyMomentum
               weekDays={weekDays}
@@ -644,6 +623,41 @@ export default function TodayPage() {
             />
             <CurrentVibe />
           </div>
+
+          <section>
+            <div className={styles.sectionHeader}>
+              <span className={styles.sectionTitle}>Active Habits</span>
+              {lastAction && (
+                <button className={styles.undoBtn} onClick={undoLast}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 8a6 6 0 1 0 1.5-4L2 2" /><polyline points="2,2 2,6 6,6" />
+                  </svg>
+                  Undo last action
+                </button>
+              )}
+            </div>
+
+            <div className={styles.habitList}>
+              {rows.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <p>No active habits yet.</p>
+                  <p>Create one to get started!</p>
+                </div>
+              ) : (
+                rows.map(row => (
+                  <HabitRowCard
+                    key={row.habitId}
+                    row={row}
+                    streak={streaks.get(row.habitId) ?? 0}
+                    onIncrement={r => updateCount(r, 1)}
+                    onDecrement={r => updateCount(r, -1)}
+                    onToggleComplete={toggleComplete}
+                    isPending={pendingId === row.habitId}
+                  />
+                ))
+              )}
+            </div>
+          </section>
 
         </div>
       )}
