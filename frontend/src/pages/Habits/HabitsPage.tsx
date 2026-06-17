@@ -5,11 +5,12 @@ import AppLayout from '../../components/layout/AppLayout';
 import HabitFilters from '../../components/habits/HabitFilters';
 import HabitCard from '../../components/habits/HabitCard';
 import HabitForm from '../../components/habits/HabitForm';
+import GoalHabitForm from '../../components/habits/GoalHabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorMessage from '../../components/shared/ErrorMessage';
-import { TargetIcon, SearchIcon, SparklesIcon, PlusIcon } from '../../components/shared/Icons';
+import { TargetIcon, SearchIcon, SparklesIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon } from '../../components/shared/Icons';
 import styles from './HabitsPage.module.css';
 
 const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
@@ -23,13 +24,32 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
-  const { filteredHabits, habits, loading, error, clearError, changeStatus } = useHabitContext();
+  const { filteredHabits, habits, loading, error, clearError, changeStatus, filters, setFilters } = useHabitContext();
+
+  // Calculate status counts
+  const { activeCount, pausedCount, archivedCount } = useMemo(() => {
+    let active = 0;
+    let paused = 0;
+    let archived = 0;
+    habits.forEach(habit => {
+      if (habit.status === 'Active') active++;
+      else if (habit.status === 'Paused') paused++;
+      else if (habit.status === 'Archived') archived++;
+    });
+    return { activeCount: active, pausedCount: paused, archivedCount: archived };
+  }, [habits]);
 
   const [showForm, setShowForm]         = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // GoalHabitForm states
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalHabit, setGoalHabit] = useState<Habit | null>(null);
+  const [goalStreak, setGoalStreak] = useState(0);
+  const [goalCompletions, setGoalCompletions] = useState(0);
 
   // Group filtered habits by category
   const habitsByCategory = useMemo(() => {
@@ -62,13 +82,27 @@ export default function HabitsPage() {
   function confirmArchive() {
     if (habitToArchive) {
       changeStatus(habitToArchive._id, 'Archived');
+      setToastMessage(`"${habitToArchive.name}" archived successfully`);
       setShowArchiveDialog(false);
       setHabitToArchive(null);
     }
   }
   
-  function handlePauseNotification(habitName: string) {
-    setToastMessage(`${habitName} paused successfully`);
+  function handleStatusChangeNotification(habitName: string, action: 'paused' | 'resumed' | 'restored') {
+    if (action === 'resumed') {
+      setToastMessage(`"${habitName}" resumed successfully`);
+    } else if (action === 'paused') {
+      setToastMessage(`"${habitName}" paused successfully`);
+    } else if (action === 'restored') {
+      setToastMessage(`"${habitName}" restored successfully`);
+    }
+  }
+
+  function openSetGoal(habit: Habit, streak: number, completions: number) {
+    setGoalHabit(habit);
+    setGoalStreak(streak);
+    setGoalCompletions(completions);
+    setShowGoalForm(true);
   }
 
   return (
@@ -91,6 +125,53 @@ export default function HabitsPage() {
 
         {/* Error banner */}
         {error && <ErrorMessage message={error} onDismiss={clearError} />}
+
+        {/* Summary stats cards */}
+        {!loading && (
+          <div className={styles.statsRow}>
+            <div
+              className={`${styles.statCard} ${filters.status === 'Active' ? styles.activeFilter : ''}`}
+              onClick={() => setFilters({ status: filters.status === 'Active' ? 'All' : 'Active' })}
+              title="Filter by Active habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconActive}`}>
+                <CheckIcon style={{ width: 20, height: 20 }} />
+              </div>
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{activeCount}</span>
+                <span className={styles.statName}>Active</span>
+              </div>
+            </div>
+
+            <div
+              className={`${styles.statCard} ${filters.status === 'Paused' ? styles.activeFilter : ''}`}
+              onClick={() => setFilters({ status: filters.status === 'Paused' ? 'All' : 'Paused' })}
+              title="Filter by Paused habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconPaused}`}>
+                <PauseIcon style={{ width: 20, height: 20 }} />
+              </div>
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{pausedCount}</span>
+                <span className={styles.statName}>Paused</span>
+              </div>
+            </div>
+
+            <div
+              className={`${styles.statCard} ${filters.status === 'Archived' ? styles.activeFilter : ''}`}
+              onClick={() => setFilters({ status: filters.status === 'Archived' ? 'All' : 'Archived' })}
+              title="Filter by Archived habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconArchived}`}>
+                <ArchiveIcon style={{ width: 20, height: 20 }} />
+              </div>
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{archivedCount}</span>
+                <span className={styles.statName}>Archived</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <HabitFilters />
@@ -142,7 +223,13 @@ export default function HabitsPage() {
                       key={habit._id}
                       style={{ animationDelay: `${idx * 50}ms` }}
                     >
-                      <HabitCard habit={habit} onEdit={openEdit} onArchiveRequest={requestArchive} onPause={handlePauseNotification} />
+                      <HabitCard
+                        habit={habit}
+                        onEdit={openEdit}
+                        onArchiveRequest={requestArchive}
+                        onStatusChange={handleStatusChangeNotification}
+                        onSetGoal={openSetGoal}
+                      />
                     </div>
                   ))}
                 </div>
@@ -179,6 +266,19 @@ export default function HabitsPage() {
         <HabitForm
           editingHabit={editingHabit}
           onClose={closeForm}
+        />
+      )}
+
+      {/* Goal Form Modal */}
+      {showGoalForm && (
+        <GoalHabitForm
+          editingHabit={goalHabit}
+          onClose={() => {
+            setShowGoalForm(false);
+            setGoalHabit(null);
+          }}
+          currentStreak={goalStreak}
+          totalCompletions={goalCompletions}
         />
       )}
 
