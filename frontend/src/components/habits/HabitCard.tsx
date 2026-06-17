@@ -1,21 +1,17 @@
 import { useNavigate } from 'react-router-dom';
-import { Habit, HabitStatus } from '../../types';
+import { useState, useRef, useEffect } from 'react';
+import { Habit, HabitStatus, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
+import { getCheckIns } from '../../api/checkins';
+import { useStreaks } from '../../hooks/useStreaks';
 import {
-  DropletIcon,
-  BookIcon,
-  BriefcaseIcon,
-  LotusIcon,
-  StarIcon,
-  TrashIcon
+  TrashIcon,
+  MoreVerticalIcon
 } from '../shared/Icons';
 import styles from './HabitCard.module.css';
 import HabitCategoryIcon from '../shared/HabitCategoryIcon';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
-const CATEGORY_COLORS: Record<string, string> = {
-  Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
-};
 
 function categoryClass(cat: string) {
   return `chip chip-category-${cat.toLowerCase().replace(/\s+/g, '')}`;
@@ -65,24 +61,57 @@ function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
 interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
+  onArchiveRequest?: (habit: Habit) => void;
+  onPause?: (habitName: string) => void;
 }
 
-export default function HabitCard({ habit, onEdit }: HabitCardProps) {
+export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: HabitCardProps) {
   const { changeStatus, removeHabit } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
+
+  // Menu state
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Check-ins and streaks
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const streaks = useStreaks(checkIns);
+
+  // Fetch check-ins for this habit
+  useEffect(() => {
+    let alive = true;
+    getCheckIns({ habitId: habit._id })
+      .then(data => {
+        if (alive) setCheckIns(data);
+      })
+      .catch(err => console.error('Failed to fetch check-ins:', err));
+    return () => { alive = false; };
+  }, [habit._id]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [menuOpen]);
 
   // Goal config
   const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
   const goalType = habit.goalTargetType || 'Streak';
   const target = habit.goalTargetValue || 30;
 
-  // Stable progress derived from habit age only
-  const age = Math.floor((Date.now() - new Date(habit.createdAt).getTime()) / 86_400_000);
-  const baseProgress = Math.max(0, Math.min(Math.floor(age * 0.75), 60));
+  // Calculate progress from real check-in data
   const currentValue = goalType === 'Streak'
-    ? Math.min(baseProgress, target)
-    : Math.min(Math.floor(baseProgress * 1.5), target);
+    ? streaks.current
+    : streaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -94,22 +123,20 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
         : null
     : null;
 
-  const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
-
-  function renderCategoryIcon() {
-    const props = { style: { color: 'rgba(0,0,0,0.6)' } };
-    switch (habit.category) {
-      case 'Health': return <DropletIcon {...props} />;
-      case 'Study': return <BookIcon {...props} />;
-      case 'Work': return <BriefcaseIcon {...props} />;
-      case 'Mindfulness': return <LotusIcon {...props} />;
-      default: return <StarIcon {...props} />;
+  function handlePause() {
+    const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
+    changeStatus(habit._id, nextStatus);
+    setMenuOpen(false);
+    if (isActive && onPause) {
+      onPause(habit.name);
     }
   }
 
-  function toggleStatus() {
-    const next: HabitStatus = isActive ? 'Paused' : 'Active';
-    changeStatus(habit._id, next);
+  function handleArchive() {
+    if (onArchiveRequest) {
+      onArchiveRequest(habit);
+    }
+    setMenuOpen(false);
   }
 
   function handleDelete(e: React.MouseEvent) {
@@ -143,18 +170,27 @@ export default function HabitCard({ habit, onEdit }: HabitCardProps) {
             <span className={statusClass(habit.status)}>{habit.status}</span>
           </div>
         </div>
-        {/* Active/Pause toggle */}
+        {/* 3-dot menu */}
         {habit.status !== 'Archived' && (
-          <label className="toggle" title={isActive ? 'Pause habit' : 'Resume habit'}>
-            <input
-              type="checkbox"
-              checked={isActive}
-              onChange={toggleStatus}
-              id={`toggle-${habit._id}`}
-            />
-            <span className="toggle-track" />
-            <span className="toggle-thumb" />
-          </label>
+          <div className={styles.menuContainer} ref={menuRef}>
+            <button
+              className={styles.menuButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+              title="More options"
+            >
+              <MoreVerticalIcon style={{ width: 18, height: 18 }} />
+            </button>
+            {menuOpen && (
+              <div className={styles.menu}>
+                <button className={styles.menuItem} onClick={handlePause}>
+                  {isActive ? 'Pause' : 'Resume'}
+                </button>
+                <button className={styles.menuItem} onClick={handleArchive}>
+                  Archive
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

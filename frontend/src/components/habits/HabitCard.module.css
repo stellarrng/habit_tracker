@@ -134,3 +134,63 @@
 .noGoalLink:hover {
   opacity: 1;
 }
+
+/* ── 3-dot Menu ──────────────────────────────────────────────── */
+.menuContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.menuButton:hover {
+  background-color: var(--bg-page);
+  color: var(--text);
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+  transition: background-color var(--transition);
+}
+
+.menuItem:hover {
+  background-color: var(--bg-page);
+}
+
+.menuItem:active {
+  background-color: var(--bg-input);
+}

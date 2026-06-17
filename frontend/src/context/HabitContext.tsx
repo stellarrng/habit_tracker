@@ -65,7 +65,12 @@ export function HabitProvider({ children }: { children: ReactNode }) {
       if (filters.category  !== 'All' && h.category  !== filters.category)  return false;
       if (filters.frequency !== 'All' && h.frequency !== filters.frequency) return false;
       if (filters.priority  !== 'All' && h.priority  !== filters.priority)  return false;
-      if (filters.status    !== 'All' && h.status    !== filters.status)    return false;
+      
+      // If status is 'All', exclude archived by default
+      if (filters.status === 'All' && h.status === 'Archived') return false;
+      // If status is specific, only match that status
+      if (filters.status !== 'All' && h.status !== filters.status) return false;
+      
       if (filters.search && filters.search.trim() !== '') {
         const query = filters.search.toLowerCase().trim();
         if (!h.name.toLowerCase().includes(query)) return false;

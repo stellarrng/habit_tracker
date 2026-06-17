@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { HabitProvider } from './context/HabitContext';
+import { CheckInProvider } from './context/CheckInContext';
+import { GoalProvider } from './context/GoalContext';
+import { UserProvider } from './context/UserContext';
 import { SettingsProvider } from './context/SettingsContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 
@@ -16,7 +19,10 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <UserProvider>
         <HabitProvider>
+          <CheckInProvider>
+          <GoalProvider>
           <SettingsProvider>
             <Routes>
               {/* Public */}
@@ -35,7 +41,10 @@ export default function App() {
               <Route path="*" element={<Navigate to="/habits" replace />} />
             </Routes>
           </SettingsProvider>
+          </GoalProvider>
+          </CheckInProvider>
         </HabitProvider>
+        </UserProvider>
       </AuthProvider>
     </BrowserRouter>
   );
