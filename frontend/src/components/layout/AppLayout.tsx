@@ -12,18 +12,17 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 interface AppLayoutProps {
-  children:    ReactNode;
-  onNewHabit?: () => void;
+  children: ReactNode;
 }
 
-export default function AppLayout({ children, onNewHabit }: AppLayoutProps) {
+export default function AppLayout({ children }: AppLayoutProps) {
   const { pathname } = useLocation();
   const base  = '/' + pathname.split('/')[1];
   const title = PAGE_TITLES[base] ?? 'HabitMind';
 
   return (
     <div className={styles.appShell}>
-      <Sidebar onNewHabit={onNewHabit} />
+      <Sidebar />
 
       <div className={styles.appRight}>
         <Topbar title={title} />

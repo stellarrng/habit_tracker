@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { CalendarIcon, TargetIcon, BarChartIcon, PlusIcon } from '../shared/Icons';
+import { CalendarIcon, TargetIcon, BarChartIcon } from '../shared/Icons';
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
@@ -9,11 +9,7 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Stats',  Icon: BarChartIcon },
 ];
 
-interface SidebarProps {
-  onNewHabit?: () => void;
-}
-
-export default function Sidebar({ onNewHabit }: SidebarProps) {
+export default function Sidebar() {
   const { logout } = useAuth();
   const navigate   = useNavigate();
 
@@ -43,13 +39,6 @@ export default function Sidebar({ onNewHabit }: SidebarProps) {
 
       {/* Footer actions */}
       <div className={styles.footer}>
-        {onNewHabit && (
-          <button className={styles.addBtn} onClick={onNewHabit}>
-            <PlusIcon />
-            Add Habit
-          </button>
-        )}
-
         <button className={styles.footerLink} onClick={() => {}}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="10" />

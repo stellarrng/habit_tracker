@@ -233,7 +233,7 @@ export default function HabitsPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <AppLayout onNewHabit={() => { setEditingHabit(null); setShowForm(true); }}>
+    <AppLayout>
       <div className={styles.page}>
 
         {/* Page Header */}

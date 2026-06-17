@@ -559,7 +559,7 @@ export default function TodayPage() {
   // ── Error state ────────────────────────────────────────────────────────────
 
   if (pageError) return (
-    <AppLayout onNewHabit={() => navigate("/habits")}>
+    <AppLayout>
       <div className={styles.errorWrap}>
         <div className={styles.errorBox}>
           <p className={styles.errorText}>{pageError}</p>
@@ -574,7 +574,7 @@ export default function TodayPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <AppLayout onNewHabit={() => navigate("/habits")}>
+    <AppLayout>
       {isLoading ? (
         <PageSkeleton />
       ) : (

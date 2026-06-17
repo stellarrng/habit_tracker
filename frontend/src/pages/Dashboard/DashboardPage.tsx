@@ -464,14 +464,14 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <AppLayout onNewHabit={() => navigate("/habits")}>
+      <AppLayout>
         <DashboardSkeleton />
       </AppLayout>
     );
   }
 
   return (
-    <AppLayout onNewHabit={() => navigate("/habits")}>
+    <AppLayout>
       <div className={styles.content}>
 
         {/* Page header */}

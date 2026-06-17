@@ -193,7 +193,7 @@
 .progressTrack {
   flex: 1;
   height: 8px;
-  background-color: #e8e8e8;
+  background-color: var(--progress-track);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -271,19 +271,19 @@
   justify-content: space-between;
   padding: 14px 16px;
   gap: 12px;
-  background-color: #fff;
+  background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   transition: border-color 0.15s ease, background-color 0.2s ease;
 }
 
 .habitRow:hover {
-  border-color: #d0d0d0;
+  border-color: var(--color-primary);
 }
 
 .habitRowCompleted {
-  background-color: #FEF1F5;
-  border-color: #F4ACBA;
+  background-color: var(--color-primary-light);
+  border-color: var(--color-accent);
 }
 
 .habitRowPending {
@@ -354,7 +354,7 @@
 .counterPill {
   display: flex;
   align-items: center;
-  border: 1.5px solid #ddd;
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -375,7 +375,7 @@
 }
 
 .counterBtn:hover:not(:disabled) {
-  background-color: #f5f5f5;
+  background-color: var(--bg-elevated);
   color: var(--text-primary);
 }
 
@@ -390,7 +390,7 @@
   width: 34px;
   height: 34px;
   border-radius: var(--radius-full);
-  border: 2px solid #ddd;
+  border: 2px solid var(--border);
   background: none;
   color: transparent;
   cursor: pointer;
@@ -476,7 +476,7 @@
 /* ── Right panel: Weekly Momentum ────────────────────────────────────────────── */
 
 .momentumCard {
-  background-color: #fff;
+  background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
@@ -502,10 +502,10 @@
   border-radius: var(--radius-sm);
 }
 
-.dotHigh   { background-color: #896474; }
-.dotMid    { background-color: #F4ACBA; }
-.dotLow    { background-color: #FCE8EE; }
-.dotEmpty  { background-color: #EDEDED; }
+.dotHigh   { background-color: var(--heat-high); }
+.dotMid    { background-color: var(--heat-mid); }
+.dotLow    { background-color: var(--heat-low); }
+.dotEmpty  { background-color: var(--heat-empty); }
 
 .momentumDays {
   display: flex;
@@ -571,8 +571,8 @@
   align-items: center;
   gap: 12px;
   padding: 40px 24px;
-  background: #fff;
-  border: 1px solid #F7DDE4;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-danger-light);
   border-radius: var(--radius-lg);
   text-align: center;
   max-width: 400px;
@@ -606,8 +606,8 @@
   text-align: center;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
-  background: #fff;
-  border: 1px dashed #ddd;
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
@@ -622,7 +622,7 @@
 }
 
 .skeletonBox {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
   background-size: 400px 100%;
   animation: shimmer 1.4s infinite;
   border-radius: var(--radius-md);
@@ -657,8 +657,8 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: var(--radius-lg);
-  border: 1px solid #eee;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
 }
 
 .skeletonLeft {
