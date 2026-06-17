@@ -156,7 +156,11 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
   }
 
   return (
-    <div className={`habit-card ${habit.status.toLowerCase()}`} id={`habit-card-${habit._id}`}>
+    <div
+      className={`habit-card ${habit.status.toLowerCase()}`}
+      id={`habit-card-${habit._id}`}
+      onClick={() => navigate(`/habits/${habit._id}`)} 
+      style={{ cursor: 'pointer' }}>
 
       {/* Header */}
       <div className="habit-card-header">
@@ -190,6 +194,9 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
           </button>
           {menuOpen && (
             <div className={styles.menu}>
+              <button className={styles.menuItem} onClick={handleDelete}>
+                Delete
+              </button>
               {habit.status === 'Archived' ? (
                 <button className={styles.menuItem} onClick={handleRestore}>
                   Restore
@@ -278,37 +285,6 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
           </button>
         </div>
       )}
-
-      {/* Footer */}
-      <div className="habit-card-footer">
-        {habit.status === 'Paused' ? (
-          <button
-            className="habit-view-link"
-            onClick={() => {
-              changeStatus(habit._id, 'Active');
-              if (onStatusChange) {
-                onStatusChange(habit.name, 'resumed');
-              }
-            }}
-            id={`resume-${habit._id}`}
-          >
-            Resume
-          </button>
-        ) : (
-          <button className="habit-view-link" onClick={() => navigate(`/habits/${habit._id}`)} id={`view-${habit._id}`}>
-            View Details →
-          </button>
-        )}
-        <button
-          className="habit-delete-btn"
-          onClick={handleDelete}
-          title="Delete habit"
-          id={`delete-${habit._id}`}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <TrashIcon style={{ width: 14, height: 14 }} />
-        </button>
-      </div>
     </div>
   );
 }
