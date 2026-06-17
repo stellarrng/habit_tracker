@@ -8,11 +8,52 @@
 }
 
 .container {
-  max-width: 672px;
+  max-width: 1040px;   /* was 672px — wide enough for main + sidebar at 768px+ */
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  width: 100%;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+ 
+@media (min-width: 768px) {
+  .layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+}
+ 
+@media (min-width: 768px) {
+  .mainColumn {
+    flex: 1;
+    min-width: 0; /* prevents flex overflow with long habit names */
+  }
+}
+
+.sidebarColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+}
+ 
+@media (min-width: 768px) {
+  .sidebarColumn {
+    flex: 0 0 320px;   /* fixed-ish width, ~1/3 of 1040px container */
+  }
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */
@@ -119,347 +160,7 @@
   gap: var(--space-2);
 }
 
-/* ── Habit row ─────────────────────────────────────────────────────────────── */
-
-.habitRow {
-  position: relative;
-  overflow: hidden;
- 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
- 
-  padding: 14px var(--space-5);   /* slightly more horizontal padding */
-  gap: var(--space-4);            /* gap keeps left and right from touching */
- 
-  background-color: #fff;
-  border: 1px solid var(--color-gray-100);
-  border-radius: var(--radius-lg);
- 
-  transition: border-color var(--transition-fast);
-}
-
-.habitRowCompleted {
-  border-color: var(--color-success-light);
-}
-
-.habitRowAtRisk {
-  border-color: var(--color-danger-light);
-}
-
-/* ── Priority indicators ───────────────────────────────────────────────────── */
-
-.priorityLow {
-  border-left: 5px solid var(--color-secondary);
-}
-
-.priorityMedium {
-  border-left: 5px solid var(--color-tertiary);
-}
-
-.priorityHigh {
-  border-left: 5px solid var(--color-danger);
-}
-
-/* ── Progress fill ─────────────────────────────────────────────────────────── */
-
-.habitProgressFill {
-  position: absolute;
-  inset: 0 auto 0 0;
-
-  z-index: 0;
-
-  background: var(--color-success-light);
-
-  transition:
-    width 350ms ease,
-    background-color 350ms ease;
-}
-
-.habitRowCompleted .habitProgressFill {
-  width: 100% !important;
-  background: var(--color-success);
-}
-
-/* ── Completed state overrides ───────────────────────────────────────────────
- *
- * When the green fill covers the full row, flip all child elements to
- * white/light so they stay readable against the green background.
- *
- * Add these right after your .habitRowCompleted .habitProgressFill rule.
- * ─────────────────────────────────────────────────────────────────────────── */
-
-/* Row border matches the fill */
-.habitRowCompleted {
-  border-color: var(--color-success);
-}
-
-/* Habit name → white */
-.habitRowCompleted .habitName {
-  color: #fff;
-}
-
-/* Icon background → slightly lighter green, icon color → white */
-.habitRowCompleted .habitIcon {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-/* Counter value → white, the /total part → semi-transparent white */
-.habitRowCompleted .counterValue {
-  color: #fff;
-}
-
-.habitRowCompleted .counterTotal {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Counter buttons → white ghost circles */
-.habitRowCompleted .counterBtn {
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
-  background: transparent;
-}
-
-.habitRowCompleted .counterBtn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* Check button (binary) → white ring with white check */
-.habitRowCompleted .checkBtnDone {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #fff;
-}
-
-.habitRowCompleted .checkBtnDone:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.35);
-}
-
-.habitRowCompleted .priorityBadge {
-  color: #fff;
-}
-
-/* ── Habit content ─────────────────────────────────────────────────────────── */
-
-.habitLeft,
-.counter {
-  position: relative;
-  z-index: 1;
-}
-
-.habitLeft {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.habitInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.habitNameRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.habitName {
-  font-size: var(--text-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-800);
-}
-
-/* ── Priority badge ────────────────────────────────────────────────────────────── */
-
-.priorityBadge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.priorityBadgeHigh {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-}
-
-.priorityBadgeMedium {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-}
-
-.priorityBadgeLow {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
-}
-
-/* ── Status line ─────────────────────────────────────────────────────────────── */
-
-.statusLine {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-xs);
-  margin-top: 3px;
-  line-height: 1.4;
-}
-
-.statusCompleted {
-  color: var(--color-success);
-  font-weight: var(--font-medium);
-}
-
-.statusAtRisk {
-  color: var(--color-danger);
-  font-weight: var(--font-medium);
-}
-
-.statusNotStarted {
-  color: var(--color-gray-400);
-}
-
-.statusInProgress {
-  color: var(--color-gray-500);
-}
-
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--color-success);
-  flex-shrink: 0;
-}
-
-/* When row is completed (green background), flip status text to white */
-.habitRowCompleted .statusLine {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.habitRowCompleted .statusDot {
-  background-color: rgba(255, 255, 255, 0.7);
-}
-
-/* ── Counter ─────────────────────────────────────────────────────────────────── */
-
-.counter {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-/* Pill wrapper for multi-step counter */
-.counterPill {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background-color: transparent;
-  border: transparent;
-}
-
-.counterBtn {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-gray-300);
-  background: #fff;
-  color: var(--color-gray-600);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-  flex-shrink: 0;
-}
-
-.counterBtn:hover:not(:disabled) {
-  background-color: var(--color-gray-100);
-  border-color: var(--color-gray-400);
-  color: var(--color-gray-900);
-}
-
-.counterBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.counterValue {
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-  color: var(--color-gray-800);
-  min-width: 44px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.counterTotal {
-  font-weight: var(--font-normal);
-  color: var(--color-gray-400);
-  font-size: var(--text-xs);
-}
-
-/* ── Binary check button ─────────────────────────────────────────────────────── */
-/* Circle ring → fills green on completion                                        */
-
-.checkBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--color-gray-300);
-  background: none;
-  color: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    border-color var(--transition-fast),
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-.checkBtn:hover:not(:disabled) {
-  border-color: var(--color-success);
-  color: var(--color-success-light);
-  transform: scale(1.08);
-}
-
-.checkBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.checkBtnDone {
-  background-color: var(--color-success);
-  border-color: var(--color-success);
-  color: #fff;
-}
-
-.checkBtnDone:hover:not(:disabled) {
-  background-color: #047857;
-  border-color: #047857;
-  color: #fff;
-  transform: scale(1.08);
-}
-
 /* ── Bottom cards ────────────────────────────────────────────────────────────── */
-
-.bottomCards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
 
 .tipCard {
   background-color: var(--color-warning-bg);
@@ -637,13 +338,6 @@
   width: 80px;
   height: 28px;
   border-radius: var(--radius-full);
-}
-
-/* ── Pending state ───────────────────────────────────────────────────────────── */
-
-.habitRowPending {
-  opacity: 0.6;
-  pointer-events: none;
 }
 
 /* ── Error state ─────────────────────────────────────────────────────────────── */
