@@ -122,18 +122,18 @@ export default function TodayPage() {
   const navigate = useNavigate();
 
   const [pendingId, setPendingId] = useState<string | null>(null); // habitId currently saving
-  const [lastAction, setLastAction] = useState<{ habitId: string, delta: number; } | null>(null);
+  const [lastAction, setLastAction] = useState<{ habitId: string; delta: number; date: string } | null>(null);
+  const [pendingUndo, setPendingUndo] = useState<{ habitId: string; delta: number; date: string } | null>(null);
+  const [rowsDate, setRowsDate] = useState<string>(TODAY);
 
   const weekDays = buildWeekDays(TODAY);
 
   const priorityOrder = { High: 0, Medium: 1, Low: 2 };
 
-
   // Habit list — reflects whatever date is selected
   const activeHabits = rows
     .filter(r => r.habit.status === "Active")
     .sort((a, b) => priorityOrder[a.habit.priority] - priorityOrder[b.habit.priority]);
-
 
   // Progress bar + stats card — ALWAYS reflect today, never selectedDate
   const todayActiveHabits = todayRows.filter(r => r.habit.status === "Active");
@@ -177,6 +177,7 @@ export default function TodayPage() {
       setError(null);
       const combined = await buildRows(date);
       setRows(combined);
+      setRowsDate(date); // ← rows now officially represents this date
     } catch (error) {
       console.error(error);
       setError("Failed to load habits. Please try again.");
@@ -251,7 +252,7 @@ export default function TodayPage() {
       ))
     }
 
-    if (trackUndo) setLastAction({ habitId: habit._id, delta });
+    if (trackUndo) setLastAction({ habitId: habit._id, delta, date: selectedDate });
     setPendingId(habit._id);
 
     try {
@@ -282,14 +283,32 @@ export default function TodayPage() {
 
   async function undoLast() {
     if (!lastAction) return;
-
-    const row = rows.find(r => r.habit._id === lastAction.habitId);
-    if (!row) return;
-
     const action = lastAction;
     setLastAction(null);
+
+    if (action.date !== selectedDate) {
+      setPendingUndo({ habitId: action.habitId, delta: action.delta, date: action.date });
+      setSelectedDate(action.date);
+      return;
+    }
+
+    const row = rows.find(r => r.habit._id === action.habitId);
+    if (!row) return;
     await updateCount(row, -action.delta, false);
   }
+
+  // Performs the pending undo once rows for the target date have finished loading
+  useEffect(() => {
+    if (!pendingUndo) return;
+    if (loading) return;                      // still fetching
+    if (rowsDate !== pendingUndo.date) return; // rows don't match the target date yet
+
+    const row = rows.find(r => r.habit._id === pendingUndo.habitId);
+    if (row) {
+      updateCount(row, -pendingUndo.delta, false);
+    }
+    setPendingUndo(null);
+  }, [pendingUndo, loading, rowsDate, rows]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
