@@ -133,7 +133,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--color-accent);
   flex-shrink: 0;
 }
 
@@ -163,7 +163,7 @@
 .barFill {
   width: 100%;
   border-radius: 4px 4px 0 0;
-  background: var(--color-primary);
+  background: var(--color-accent);
   min-height: 4px;
   transition: height 0.4s ease;
 }
@@ -220,8 +220,8 @@
 }
 
 .catPillActive {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   color: #fff;
   font-weight: 600;
 }
@@ -312,6 +312,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.habitName:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
 }
 
 .habitDesc {
@@ -338,7 +349,7 @@
 }
 
 .priorityMedium {
-  background: var(--color-primary);
+  background: #C4789A;
   color: #fff;
 }
 
@@ -441,16 +452,16 @@
   padding: 7px 14px;
   border-radius: var(--radius-full);
   border: none;
-  background: var(--color-primary);
+  background: var(--color-accent);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: background 0.15s ease;
   white-space: nowrap;
 }
 
-.logBtn:hover { opacity: 0.85; }
+.logBtn:hover { background: var(--color-accent-hover); }
 
 .loggedBtn {
   width: 100%;
@@ -523,19 +534,20 @@
 
 .heatmapGrid {
   display: grid;
-  grid-template-columns: repeat(30, 1fr);
-  gap: 4px;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
 }
 
 .heatCell {
-  height: 18px;
-  border-radius: 3px;
-  transition: transform 0.1s ease;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
   cursor: default;
 }
 
 .heatCell:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* ── Empty / skeleton states ─────────────────────────────────────────────── */
@@ -580,7 +592,7 @@
 
 @media (max-width: 640px) {
   .pageHeader { flex-direction: column; align-items: flex-start; }
-  .heatmapGrid { grid-template-columns: repeat(15, 1fr); }
+  .heatmapGrid { grid-template-columns: repeat(10, 1fr); }
   .habitRow { flex-wrap: wrap; }
   .statusCol { display: none; }
   .actionBtnWrap { min-width: 90px; }

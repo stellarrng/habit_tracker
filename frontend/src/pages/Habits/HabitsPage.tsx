@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Habit, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import { getCheckIns, upsertCheckIn } from '../../api/checkins';
@@ -39,11 +40,11 @@ function buildCurrentWeek(todayStr: string) {
   });
 }
 
-function buildLast30Days(todayStr: string): string[] {
+function buildLast60Days(todayStr: string): string[] {
   const today = new Date(todayStr + 'T00:00:00');
-  return Array.from({ length: 30 }, (_, i) => {
+  return Array.from({ length: 60 }, (_, i) => {
     const d = new Date(today);
-    d.setDate(today.getDate() - 29 + i);
+    d.setDate(today.getDate() - 59 + i);
     return fmt(d);
   });
 }
@@ -65,6 +66,7 @@ const STATUSES       = ['Any Status', 'Active', 'Paused'] as const;
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function HabitsPage() {
+  const navigate = useNavigate();
   const { habits, loading, removeHabit, changeStatus } = useHabitContext();
 
   const [allCheckIns, setAllCheckIns] = useState<CheckIn[]>([]);
@@ -156,18 +158,18 @@ export default function HabitsPage() {
   }, [weeklyBars, weekDays, todayStr]);
 
   // 30-day heatmap
-  const last30Days = useMemo(() => buildLast30Days(todayStr), [todayStr]);
+  const last60Days = useMemo(() => buildLast60Days(todayStr), [todayStr]);
 
   const heatmapData = useMemo(() => {
     const activeHabits = nonArchivedHabits.filter(h => h.status === 'Active');
     const total = activeHabits.length || 1;
-    return last30Days.map(date => {
+    return last60Days.map(date => {
       const completed = activeHabits.filter(
         h => checkInMap.get(h._id)?.get(date)?.status === 'Completed'
       ).length;
       return { date, pct: Math.round((completed / total) * 100) };
     });
-  }, [nonArchivedHabits, checkInMap, last30Days]);
+  }, [nonArchivedHabits, checkInMap, last60Days]);
 
   const activeCount = nonArchivedHabits.filter(h => h.status === 'Active').length;
 
@@ -363,7 +365,13 @@ export default function HabitsPage() {
 
                 <div className={styles.habitInfo}>
                   <div className={styles.habitNameRow}>
-                    <span className={styles.habitName}>{habit.name}</span>
+                    <button
+                      className={styles.habitName}
+                      onClick={() => navigate(`/habits/${habit._id}`)}
+                      title="View details"
+                    >
+                      {habit.name}
+                    </button>
                     <span className={`${styles.priorityBadge} ${styles[`priority${habit.priority}`]}`}>
                       {habit.priority.toUpperCase()}
                     </span>
@@ -415,7 +423,7 @@ export default function HabitsPage() {
             <div className={styles.heatmapHeader}>
               <div>
                 <h2 className={styles.cardTitle}>Consistency Landscape</h2>
-                <p className={styles.cardSub}>Daily activity heatmap (last 30 days)</p>
+                <p className={styles.cardSub}>Daily activity heatmap (last 60 days)</p>
               </div>
               <div className={styles.heatLegend}>
                 <span className={styles.legendLabel}>Less</span>
