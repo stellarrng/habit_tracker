@@ -565,7 +565,6 @@ function HeatmapGrid({
               >
                 {cell.pct}%
               </div>
-              <span className={styles.weekDayMeta}>{cell.pct === 0 ? "No Progress" : "Completion"}</span>
             </article>
           ))}
         </div>
@@ -632,6 +631,13 @@ function HeatmapGrid({
             ))}
           </div>
         </div>
+      </div>
+      <div className={styles.heatmapLegend} aria-label="Heatmap intensity legend">
+        <span>Less</span>
+        {[0, 1, 2, 3, 4].map((level) => (
+          <i key={`${idPrefix}-legend-${level}`} className={`${styles.heatmapLegendCell} ${styles[`heat${level}`]}`} />
+        ))}
+        <span>More</span>
       </div>
     </div>
   );
@@ -798,457 +804,472 @@ export default function DashboardPage() {
             {habitStats.length === 0 ? (
               <p className={styles.emptyFilter}>No habits found for "{category}".</p>
             ) : (
-            <>
-            {chartView !== "heatmap" && (
-            <>
-            {chartView === "line" && chartDataMode === "category" && (
-              <div className={styles.analyticsPanel}>
-                <div className={styles.categoryLineHeader}>
-                  <div>
-                    <h3 className={styles.panelTitle}>Category Line Chart</h3>
-                    <p className={styles.panelDescription}>Percent habit completion by month.</p>
-                  </div>
-                  <div className={styles.panelHeaderActions}>
-                    <div className={styles.filterWrapper}>
-                      <button
-                        className={`${styles.filterSelectBtn} ${lineCategoryOpen ? styles.filterActive : ""}`}
-                        onClick={() => setLineCategoryOpen((v) => !v)}
-                      >
-                        {selectedLineCategory === "all" ? "All categories" : CATEGORY_LABEL[selectedLineCategory]}
-                      </button>
-                      {lineCategoryOpen && (
-                        <CategorySelectDropdown
-                          selected={selectedLineCategory}
-                          onSelect={(value) => {
-                            setLineCategoryFilter(value === "all" ? CATEGORY_ORDER : [value]);
-                            setLineCategoryOpen(false);
-                          }}
-                          onClose={() => setLineCategoryOpen(false)}
-                        />
-                      )}
-                    </div>
-                    <div className={styles.chartTabs} aria-label="Chart data mode switcher">
-                      {([
-                        { id: "task", label: "Task View" },
-                        { id: "category", label: "Category View" },
-                      ] as const).map((mode) => (
-                        <button
-                          key={mode.id}
-                          className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
-                          onClick={() => setChartDataMode(mode.id)}
-                        >
-                          {mode.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.categoryLineLegend}>
-                  {filteredCategoryLineData.map((item) => (
-                    <span key={`legend-${item.categoryKey}`}>
-                      <i style={{ backgroundColor: CATEGORY_LINE_COLOR[item.categoryKey] }} />
-                      {item.label}
-                    </span>
-                  ))}
-                </div>
-                <div className={styles.categoryLineChartWrap}>
-                  <div className={styles.categoryLineYAxis}>
-                    {[100, 75, 50, 25, 0].map((tick) => (
-                      <span key={`tick-${tick}`}>{tick}%</span>
-                    ))}
-                  </div>
-                  <svg viewBox="0 0 100 56" preserveAspectRatio="none" role="img" aria-label="Category line chart">
-                    {[100, 75, 50, 25, 0].map((tick) => (
-                      <line
-                        key={`grid-${tick}`}
-                        x1="0"
-                        x2="100"
-                        y1={56 - (tick / 100) * 56}
-                        y2={56 - (tick / 100) * 56}
-                        className={styles.categoryLineGrid}
-                      />
-                    ))}
-                    {categoryLineSeries.map((item) => (
-                      <g key={`line-group-${item.key}`}>
-                        <polyline
-                          className={styles.lineChartStroke}
-                          style={{ stroke: CATEGORY_LINE_COLOR[item.key] }}
-                          points={item.points.map((value, i, arr) => {
-                            const x = (i / Math.max(arr.length - 1, 1)) * 100;
-                            const y = 56 - (value / 100) * 56;
-                            return `${x},${y}`;
-                          }).join(" ")}
-                        />
-                        {lineMarkerIndices(item.points.length, range).map((idx) => {
-                          const x = (idx / Math.max(item.points.length - 1, 1)) * 100;
-                          const y = 56 - (item.points[idx] / 100) * 56;
-                          return (
-                            <circle
-                              key={`dot-${item.key}-${idx}`}
-                              cx={x}
-                              cy={y}
-                              r="1.4"
-                              style={{ fill: CATEGORY_LINE_COLOR[item.key] }}
-                            />
-                          );
-                        })}
-                      </g>
-                    ))}
-                  </svg>
-                  <div className={styles.lineAxis}>
-                    {categoryLineAxisMarks(range).map((mark) => (
-                      <span key={`category-axis-${mark.label}-${mark.pos}`} style={{ left: `${mark.pos}%` }}>
-                        {mark.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {chartDataMode === "task" && (
-            <div className={styles.analyticsPanel}>
-              <div className={styles.analyticsPanelHeader}>
-                <div>
-                  <h3 className={styles.panelTitle}>{taskPanelTitle}</h3>
-                  <p className={styles.panelDescription}>{taskPanelDesc}</p>
-                </div>
-                <div className={styles.chartTabs} aria-label="Chart data mode switcher">
-                  {([
-                    { id: "task", label: "Task View" },
-                    { id: "category", label: "Category View" },
-                  ] as const).map((mode) => (
-                    <button
-                      key={mode.id}
-                      className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
-                      onClick={() => setChartDataMode(mode.id)}
-                    >
-                      {mode.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.categorySections}>
-              {CATEGORY_ORDER.map((categoryKey) => {
-                const sectionHabits = groupedHabitStats[categoryKey];
-                if (!sectionHabits.length) return null;
-
-                return (
-                  <section key={categoryKey} className={styles.categorySection}>
-                    <h3 className={styles.categoryLabel}>
-                      <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
-                      {CATEGORY_LABEL[categoryKey]}
-                    </h3>
-                    <div className={styles.habitGrid}>
-                      {sectionHabits.map((habit) => {
-                        const { computed } = habit;
-                        const habitLineSeries = buildLineSeries(habit.dailyRates, range);
-                        const statItems = [
-                          { label: t("longest"), value: computed.longest },
-                          { label: t("total"), value: computed.total },
-                          { label: t("rate"), value: computed.rate },
-                        ];
-
-                        return (
-                          <article className={styles.habitCard} key={habit.id}>
-                            <div className={styles.habitHeader}>
-                              <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
-                                <HabitIcon type={habit.icon} />
-                              </span>
-                              <div>
-                                <h4>{isVi ? habit.nameVi : habit.name}</h4>
-                                <p>{isVi ? habit.timeVi : habit.time}</p>
-                              </div>
-                              <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
-                                {computed.badge}
-                                {computed.badgeIcon === "fire" ? (
-                                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 22c4 0 7-2.8 7-6.8 0-2.7-1.4-5.2-4.2-7.5.1 2.1-.7 3.4-2.1 4.1.2-3.3-1.4-6-4.4-8.1.2 3.3-1 5.4-2.3 7.1A7 7 0 0 0 5 15.2C5 19.2 8 22 12 22Z" />
-                                  </svg>
-                                ) : (
-                                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="m7 7 10 10M17 17H9M17 17V9" />
-                                  </svg>
-                                )}
-                              </span>
+              <>
+                {chartView !== "heatmap" && (
+                  <>
+                    {chartView === "line" && chartDataMode === "category" && (
+                      <div className={styles.analyticsPanel}>
+                        <div className={styles.categoryLineHeader}>
+                          <div>
+                            <h3 className={styles.panelTitle}>Category Line Chart</h3>
+                            <p className={styles.panelDescription}>Percent habit completion by month.</p>
+                          </div>
+                          <div className={styles.panelHeaderActions}>
+                            <div className={styles.filterWrapper}>
+                              <button
+                                className={`${styles.filterSelectBtn} ${lineCategoryOpen ? styles.filterActive : ""}`}
+                                onClick={() => setLineCategoryOpen((v) => !v)}
+                              >
+                                {selectedLineCategory === "all" ? "All categories" : CATEGORY_LABEL[selectedLineCategory]}
+                              </button>
+                              {lineCategoryOpen && (
+                                <CategorySelectDropdown
+                                  selected={selectedLineCategory}
+                                  onSelect={(value) => {
+                                    setLineCategoryFilter(value === "all" ? CATEGORY_ORDER : [value]);
+                                    setLineCategoryOpen(false);
+                                  }}
+                                  onClose={() => setLineCategoryOpen(false)}
+                                />
+                              )}
                             </div>
-
-                            <div className={styles.statGrid}>
-                              {statItems.map(({ label, value }) => (
-                                <div key={label}>
-                                  <span>{label}</span>
-                                  <strong>{value}</strong>
-                                </div>
+                            <div className={styles.chartTabs} aria-label="Chart data mode switcher">
+                              {([
+                                { id: "task", label: "Task View" },
+                                { id: "category", label: "Category View" },
+                              ] as const).map((mode) => (
+                                <button
+                                  key={mode.id}
+                                  className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
+                                  onClick={() => setChartDataMode(mode.id)}
+                                >
+                                  {mode.label}
+                                </button>
                               ))}
                             </div>
-
-                            <p className={styles.chartLabel}>{chartLabel}</p>
-                            {chartView === "bar" && (
-                              <div className={`${styles.bars} ${styles[`${habit.tone}Bars`]}`}
-                                style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
-                              >
-                                {computed.bars.map((height, i) => (
-                                  <span key={i} style={{ height: `${Math.max(4, height)}%` }} />
-                                ))}
-                              </div>
-                            )}
-
-                            {chartView === "line" && (
-                              <div className={styles.lineChartWrap}>
-                                <svg viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label={`${habit.name} line chart`}>
-                                  <polyline
-                                    className={styles.lineChartStroke}
-                                    points={habitLineSeries.map((value, i, arr) => {
-                                      const x = (i / Math.max(arr.length - 1, 1)) * 100;
-                                      const y = 44 - (value / 100) * 44;
-                                      return `${x},${y}`;
-                                    }).join(" ")}
-                                  />
-                                  {lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
-                                    const x = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
-                                    const y = 44 - (habitLineSeries[idx] / 100) * 44;
-                                    return <circle key={`${habit.id}-line-dot-${idx}`} cx={x} cy={y} r="1.4" className={styles.lineChartDot} />;
-                                  })}
-                                </svg>
-                                <div className={styles.lineAxis}>
-                                  {lineAxisMarks(range).map((mark) => (
-                                    <span key={`${habit.id}-${mark.label}`} style={{ left: `${mark.pos}%` }}>
-                                      {mark.label}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </section>
-                );
-              })}
-              </div>
-            </div>
-            )}
-
-            {chartDataMode === "category" && chartView !== "line" && (
-              <div className={styles.analyticsPanel}>
-                <div className={styles.analyticsPanelHeader}>
-                  <div>
-                    <h3 className={styles.panelTitle}>Category Bar Chart</h3>
-                    <p className={styles.panelDescription}>Compare completion volume across categories.</p>
-                  </div>
-                  <div className={styles.chartTabs} aria-label="Chart data mode switcher">
-                    {([
-                      { id: "task", label: "Task View" },
-                      { id: "category", label: "Category View" },
-                    ] as const).map((mode) => (
-                      <button
-                        key={mode.id}
-                        className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
-                        onClick={() => setChartDataMode(mode.id)}
-                      >
-                        {mode.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className={styles.categorySections}>
-                {categoryCardData.map((item) => {
-                  const computed = {
-                    bars: item.bars,
-                    longest: item.longest,
-                    total: item.total,
-                    rate: item.rate,
-                    badge: `${item.streak} day${item.streak > 1 ? "s" : ""}`,
-                    badgeIcon: item.streak >= 3 ? "fire" : "down",
-                    badgeTone: item.streak >= 3 ? "blue" : "red",
-                  };
-                  return (
-                    <section key={`category-card-${item.categoryKey}`} className={styles.categorySection}>
-                      <h3 className={styles.categoryLabel}>
-                        <span className={styles[`${CATEGORY_TONE[item.categoryKey]}Dot`]} />
-                        {item.label}
-                      </h3>
-                      <div className={styles.habitGrid}>
-                        <article className={styles.habitCard}>
-                          <div className={styles.habitHeader}>
-                            <span className={`${styles.habitIcon} ${styles[item.tone]}`}>
-                              <HabitIcon type={item.categoryKey === "Health" ? "run" : item.categoryKey === "Mindfulness" || item.categoryKey === "Study" ? "mind" : "drop"} />
-                            </span>
-                            <div>
-                              <h4>{item.label}</h4>
-                              <p>Category aggregate</p>
-                            </div>
-                            <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
-                              {computed.badge}
-                            </span>
                           </div>
-                          <div className={styles.statGrid}>
-                            {[
-                              { label: t("longest"), value: computed.longest },
-                              { label: t("total"), value: computed.total },
-                              { label: t("rate"), value: computed.rate },
-                            ].map(({ label, value }) => (
-                              <div key={`${item.categoryKey}-${label}`}>
-                                <span>{label}</span>
-                                <strong>{value}</strong>
-                              </div>
+                        </div>
+                        <div className={styles.categoryLineLegend}>
+                          {filteredCategoryLineData.map((item) => (
+                            <span key={`legend-${item.categoryKey}`}>
+                              <i style={{ backgroundColor: CATEGORY_LINE_COLOR[item.categoryKey] }} />
+                              {item.label}
+                            </span>
+                          ))}
+                        </div>
+                        <div className={styles.categoryLineChartWrap}>
+                          <div className={styles.categoryLineYAxis}>
+                            {[100, 75, 50, 25, 0].map((tick) => (
+                              <span key={`tick-${tick}`}>{tick}%</span>
                             ))}
                           </div>
-                          <p className={styles.chartLabel}>{chartLabel}</p>
-                          {chartView === "bar" && (
-                            <div className={`${styles.bars} ${styles[`${item.tone}Bars`]}`}
-                              style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
-                            >
-                              {computed.bars.map((height, i) => (
-                                <span key={`category-bar-${item.categoryKey}-${i}`} style={{ height: `${Math.max(4, height)}%` }} />
-                              ))}
-                            </div>
-                          )}
-                        </article>
-                      </div>
-                    </section>
-                  );
-                })}
-                </div>
-              </div>
-            )}
-            </>
-            )}
-
-            {chartView === "heatmap" && (
-              <div className={styles.heatmapPanel}>
-                <div className={styles.heatmapPanelHeader}>
-                  <div>
-                    <h3 className={styles.panelTitle}>
-                      {heatmapMode === "category" ? "Category Heatmaps" : "Task Heatmaps"}
-                    </h3>
-                    <p className={styles.panelDescription}>
-                      {heatmapMode === "category"
-                        ? "Visualize your consistency across life pillars."
-                        : "Visualize each habit timeline across the selected range."}
-                    </p>
-                  </div>
-                  <div className={styles.chartTabs} aria-label="Heatmap mode switcher">
-                    {([
-                      { id: "task", label: "Task View" },
-                      { id: "category", label: "Category View" },
-                    ] as const).map((mode) => (
-                      <button
-                        key={mode.id}
-                        className={`${styles.chartTabBtn} ${heatmapMode === mode.id ? styles.chartTabActive : ""}`}
-                        onClick={() => setHeatmapMode(mode.id)}
-                      >
-                        {mode.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className={styles.heatmapPanelBody}>
-                  {heatmapMode === "category" &&
-                    <div className={styles.taskHeatmapList}>
-                      {categoryHeatmaps.map((categoryMap) => {
-                        const categoryKey = CATEGORY_ORDER.find((key) => CATEGORY_LABEL[key] === categoryMap.categoryName);
-                        const aggregate = categoryCardData.find((item) => item.label === categoryMap.categoryName);
-                        const categoryTone = categoryKey ? CATEGORY_TONE[categoryKey] : "brown";
-                        const toneClass = categoryTone === "blue" ? "blue" : "amber";
-
-                        return (
-                          <article className={styles.habitCard} key={`heatmap-category-${categoryMap.categoryName}`}>
-                            <div className={styles.habitHeader}>
-                              <span className={`${styles.habitIcon} ${styles[toneClass]}`}>
-                                <HabitIcon type={categoryKey === "Health" ? "run" : categoryKey === "Mindfulness" || categoryKey === "Study" ? "mind" : "drop"} />
-                              </span>
-                              <div>
-                                <h4>{categoryMap.categoryName}</h4>
-                                <p>Category consistency overview</p>
-                              </div>
-                              <span className={styles.badge}>
-                                {categoryMap.totalCheckIns} check-ins
-                              </span>
-                            </div>
-
-                            <div className={styles.statGrid}>
-                              {[
-                                { label: t("longest"), value: aggregate?.longest ?? "0d" },
-                                { label: t("total"), value: aggregate?.total ?? "0" },
-                                { label: t("rate"), value: aggregate?.rate ?? "0%" },
-                              ].map(({ label, value }) => (
-                                <div key={`${categoryMap.categoryName}-${label}`}>
-                                  <span>{label}</span>
-                                  <strong>{value}</strong>
-                                </div>
-                              ))}
-                            </div>
-
-                            <p className={styles.chartLabel}>Consistency Heatmap</p>
-                            <HeatmapGrid heatmap={categoryMap.heatmap} idPrefix={`category-${categoryMap.categoryName}`} />
-                          </article>
-                        );
-                      })}
-                    </div>}
-
-                  {heatmapMode === "task" && (
-                    <div className={styles.categorySections}>
-                      {CATEGORY_ORDER.map((categoryKey) => {
-                        const sectionHabits = groupedHabitStats[categoryKey];
-                        if (!sectionHabits.length) return null;
-
-                        return (
-                          <section key={`heatmap-task-${categoryKey}`} className={styles.categorySection}>
-                            <h3 className={styles.categoryLabel}>
-                              <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
-                              {CATEGORY_LABEL[categoryKey]}
-                            </h3>
-                            <div className={styles.habitGrid}>
-                              {sectionHabits.map((habit) => {
-                                const { computed } = habit;
-                                const heatmap = buildHeatmapFromRates(habit.dailyRates, days);
+                          <svg viewBox="0 0 100 56" preserveAspectRatio="none" role="img" aria-label="Category line chart">
+                            {[100, 75, 50, 25, 0].map((tick) => (
+                              <line
+                                key={`grid-${tick}`}
+                                x1="0"
+                                x2="100"
+                                y1={56 - (tick / 100) * 56}
+                                y2={56 - (tick / 100) * 56}
+                                className={styles.categoryLineGrid}
+                              />
+                            ))}
+                            {categoryLineSeries.map((item) => (
+                              <polyline
+                                key={`line-${item.key}`}
+                                className={styles.lineChartStroke}
+                                style={{ stroke: CATEGORY_LINE_COLOR[item.key] }}
+                                vectorEffect="non-scaling-stroke"
+                                points={lineMarkerIndices(item.points.length, range).map((idx) => {
+                                  const x = (idx / Math.max(item.points.length - 1, 1)) * 100;
+                                  const y = 56 - (item.points[idx] / 100) * 56;
+                                  return `${x},${y}`;
+                                }).join(" ")}
+                              />
+                            ))}
+                          </svg>
+                          {/* HTML overlay dots — perfectly round, unaffected by SVG aspect ratio */}
+                          <div className={styles.categoryLineDotsOverlay} aria-hidden="true">
+                            {categoryLineSeries.map((item) =>
+                              lineMarkerIndices(item.points.length, range).map((idx) => {
+                                const xPct = (idx / Math.max(item.points.length - 1, 1)) * 100;
+                                const yPct = (1 - item.points[idx] / 100) * 100;
                                 return (
-                                  <article className={styles.habitCard} key={`heatmap-task-card-${habit.id}`}>
+                                  <span
+                                    key={`cat-dot-html-${item.key}-${idx}`}
+                                    className={styles.categoryLineDotHtml}
+                                    style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: CATEGORY_LINE_COLOR[item.key] }}
+                                  />
+                                );
+                              })
+                            )}
+                          </div>
+                          <div className={styles.lineAxis}>
+                            {categoryLineAxisMarks(range).map((mark) => (
+                              <span key={`category-axis-${mark.label}-${mark.pos}`} style={{ left: `${mark.pos}%` }}>
+                                {mark.label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {chartDataMode === "task" && (
+                      <div className={styles.analyticsPanel}>
+                        <div className={styles.analyticsPanelHeader}>
+                          <div>
+                            <h3 className={styles.panelTitle}>{taskPanelTitle}</h3>
+                            <p className={styles.panelDescription}>{taskPanelDesc}</p>
+                          </div>
+                          <div className={styles.chartTabs} aria-label="Chart data mode switcher">
+                            {([
+                              { id: "task", label: "Task View" },
+                              { id: "category", label: "Category View" },
+                            ] as const).map((mode) => (
+                              <button
+                                key={mode.id}
+                                className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
+                                onClick={() => setChartDataMode(mode.id)}
+                              >
+                                {mode.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={styles.categorySections}>
+                          {CATEGORY_ORDER.map((categoryKey) => {
+                            const sectionHabits = groupedHabitStats[categoryKey];
+                            if (!sectionHabits.length) return null;
+
+                            return (
+                              <section key={categoryKey} className={styles.categorySection}>
+                                <h3 className={styles.categoryLabel}>
+                                  <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
+                                  {CATEGORY_LABEL[categoryKey]}
+                                </h3>
+                                <div className={styles.habitGrid}>
+                                  {sectionHabits.map((habit) => {
+                                    const { computed } = habit;
+                                    const habitLineSeries = buildLineSeries(habit.dailyRates, range);
+                                    const statItems = [
+                                      { label: t("longest"), value: computed.longest },
+                                      { label: t("total"), value: computed.total },
+                                      { label: t("rate"), value: computed.rate },
+                                    ];
+
+                                    return (
+                                      <article className={styles.habitCard} key={habit.id}>
+                                        <div className={styles.habitHeader}>
+                                          <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
+                                            <HabitIcon type={habit.icon} />
+                                          </span>
+                                          <div>
+                                            <h4>{isVi ? habit.nameVi : habit.name}</h4>
+                                            <p>{isVi ? habit.timeVi : habit.time}</p>
+                                          </div>
+                                          <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
+                                            {computed.badge}
+                                            {computed.badgeIcon === "fire" ? (
+                                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M12 22c4 0 7-2.8 7-6.8 0-2.7-1.4-5.2-4.2-7.5.1 2.1-.7 3.4-2.1 4.1.2-3.3-1.4-6-4.4-8.1.2 3.3-1 5.4-2.3 7.1A7 7 0 0 0 5 15.2C5 19.2 8 22 12 22Z" />
+                                              </svg>
+                                            ) : (
+                                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="m7 7 10 10M17 17H9M17 17V9" />
+                                              </svg>
+                                            )}
+                                          </span>
+                                        </div>
+
+                                        <div className={styles.statGrid}>
+                                          {statItems.map(({ label, value }) => (
+                                            <div key={label}>
+                                              <span>{label}</span>
+                                              <strong>{value}</strong>
+                                            </div>
+                                          ))}
+                                        </div>
+
+                                        <p className={styles.chartLabel}>{chartLabel}</p>
+                                        {chartView === "bar" && (
+                                          <div className={`${styles.bars} ${styles[`${habit.tone}Bars`]}`}
+                                            style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
+                                          >
+                                            {computed.bars.map((height, i) => (
+                                              <span key={i} style={{ height: `${Math.max(4, height)}%` }} />
+                                            ))}
+                                          </div>
+                                        )}
+
+                                        {chartView === "line" && (
+                                          <div className={styles.lineChartWrap}>
+                                            <svg viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label={`${habit.name} line chart`}>
+                                              <polyline
+                                                className={styles.lineChartStroke}
+                                                vectorEffect="non-scaling-stroke"
+                                                points={lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
+                                                  const x = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
+                                                  const y = 44 - (habitLineSeries[idx] / 100) * 44;
+                                                  return `${x},${y}`;
+                                                }).join(" ")}
+                                              />
+                                            </svg>
+                                            {/* HTML overlay dots — always perfectly round, unaffected by SVG aspect ratio distortion */}
+                                            <div className={styles.lineDotsOverlay} aria-hidden="true">
+                                              {lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
+                                                const xPct = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
+                                                const yPct = (1 - habitLineSeries[idx] / 100) * 100;
+                                                const dotColor = habit.tone === "blue" ? "#1f53c9" : habit.tone === "mint" ? "#2e7d6a" : "#b56600";
+                                                return (
+                                                  <span
+                                                    key={`${habit.id}-dot-html-${idx}`}
+                                                    className={styles.lineDotHtml}
+                                                    style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: dotColor }}
+                                                  />
+                                                );
+                                              })}
+                                            </div>
+
+                                            <div className={styles.lineAxis}>
+                                              {lineAxisMarks(range).map((mark) => (
+                                                <span key={`${habit.id}-${mark.label}`} style={{ left: `${mark.pos}%` }}>
+                                                  {mark.label}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                      </article>
+                                    );
+                                  })}
+                                </div>
+                              </section>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {chartDataMode === "category" && chartView !== "line" && (
+                      <div className={styles.analyticsPanel}>
+                        <div className={styles.analyticsPanelHeader}>
+                          <div>
+                            <h3 className={styles.panelTitle}>Category Bar Chart</h3>
+                            <p className={styles.panelDescription}>Compare completion volume across categories.</p>
+                          </div>
+                          <div className={styles.chartTabs} aria-label="Chart data mode switcher">
+                            {([
+                              { id: "task", label: "Task View" },
+                              { id: "category", label: "Category View" },
+                            ] as const).map((mode) => (
+                              <button
+                                key={mode.id}
+                                className={`${styles.chartTabBtn} ${chartDataMode === mode.id ? styles.chartTabActive : ""}`}
+                                onClick={() => setChartDataMode(mode.id)}
+                              >
+                                {mode.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={styles.categorySections}>
+                          {categoryCardData.map((item) => {
+                            const computed = {
+                              bars: item.bars,
+                              longest: item.longest,
+                              total: item.total,
+                              rate: item.rate,
+                              badge: `${item.streak} day${item.streak > 1 ? "s" : ""}`,
+                              badgeIcon: item.streak >= 3 ? "fire" : "down",
+                              badgeTone: item.streak >= 3 ? "blue" : "red",
+                            };
+                            return (
+                              <section key={`category-card-${item.categoryKey}`} className={styles.categorySection}>
+                                <h3 className={styles.categoryLabel}>
+                                  <span className={styles[`${CATEGORY_TONE[item.categoryKey]}Dot`]} />
+                                  {item.label}
+                                </h3>
+                                <div className={styles.habitGrid}>
+                                  <article className={styles.habitCard}>
                                     <div className={styles.habitHeader}>
-                                      <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
-                                        <HabitIcon type={habit.icon} />
+                                      <span className={`${styles.habitIcon} ${styles[item.tone]}`}>
+                                        <HabitIcon type={item.categoryKey === "Health" ? "run" : item.categoryKey === "Mindfulness" || item.categoryKey === "Study" ? "mind" : "drop"} />
                                       </span>
                                       <div>
-                                        <h4>{isVi ? habit.nameVi : habit.name}</h4>
-                                        <p>{isVi ? habit.timeVi : habit.time}</p>
+                                        <h4>{item.label}</h4>
+                                        <p>Category aggregate</p>
                                       </div>
                                       <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
                                         {computed.badge}
                                       </span>
                                     </div>
-
                                     <div className={styles.statGrid}>
                                       {[
                                         { label: t("longest"), value: computed.longest },
                                         { label: t("total"), value: computed.total },
                                         { label: t("rate"), value: computed.rate },
                                       ].map(({ label, value }) => (
-                                        <div key={`${habit.id}-${label}`}>
+                                        <div key={`${item.categoryKey}-${label}`}>
                                           <span>{label}</span>
                                           <strong>{value}</strong>
                                         </div>
                                       ))}
                                     </div>
-
-                                    <p className={styles.chartLabel}>Consistency Heatmap</p>
-                                    <HeatmapGrid heatmap={heatmap} idPrefix={`task-${habit.id}`} compact />
+                                    <p className={styles.chartLabel}>{chartLabel}</p>
+                                    {chartView === "bar" && (
+                                      <div className={`${styles.bars} ${styles[`${item.tone}Bars`]}`}
+                                        style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
+                                      >
+                                        {computed.bars.map((height, i) => (
+                                          <span key={`category-bar-${item.categoryKey}-${i}`} style={{ height: `${Math.max(4, height)}%` }} />
+                                        ))}
+                                      </div>
+                                    )}
                                   </article>
-                                );
-                              })}
-                            </div>
-                          </section>
-                        );
-                      })}
+                                </div>
+                              </section>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {chartView === "heatmap" && (
+                  <div className={styles.heatmapPanel}>
+                    <div className={styles.heatmapPanelHeader}>
+                      <div>
+                        <h3 className={styles.panelTitle}>
+                          {heatmapMode === "category" ? "Category Heatmaps" : "Task Heatmaps"}
+                        </h3>
+                        <p className={styles.panelDescription}>
+                          {heatmapMode === "category"
+                            ? "Visualize your consistency across life pillars."
+                            : "Visualize each habit timeline across the selected range."}
+                        </p>
+                      </div>
+                      <div className={styles.chartTabs} aria-label="Heatmap mode switcher">
+                        {([
+                          { id: "task", label: "Task View" },
+                          { id: "category", label: "Category View" },
+                        ] as const).map((mode) => (
+                          <button
+                            key={mode.id}
+                            className={`${styles.chartTabBtn} ${heatmapMode === mode.id ? styles.chartTabActive : ""}`}
+                            onClick={() => setHeatmapMode(mode.id)}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-            </>
+
+                    <div className={styles.heatmapPanelBody}>
+                      {heatmapMode === "category" &&
+                        <div className={styles.taskHeatmapList}>
+                          {categoryHeatmaps.map((categoryMap) => {
+                            const categoryKey = CATEGORY_ORDER.find((key) => CATEGORY_LABEL[key] === categoryMap.categoryName);
+                            const aggregate = categoryCardData.find((item) => item.label === categoryMap.categoryName);
+                            const categoryTone = categoryKey ? CATEGORY_TONE[categoryKey] : "brown";
+                            const toneClass = categoryTone === "blue" ? "blue" : "amber";
+
+                            return (
+                              <article className={styles.habitCard} key={`heatmap-category-${categoryMap.categoryName}`}>
+                                <div className={styles.habitHeader}>
+                                  <span className={`${styles.habitIcon} ${styles[toneClass]}`}>
+                                    <HabitIcon type={categoryKey === "Health" ? "run" : categoryKey === "Mindfulness" || categoryKey === "Study" ? "mind" : "drop"} />
+                                  </span>
+                                  <div>
+                                    <h4>{categoryMap.categoryName}</h4>
+                                    <p>Category consistency overview</p>
+                                  </div>
+                                  <span className={styles.badge}>
+                                    {categoryMap.totalCheckIns} check-ins
+                                  </span>
+                                </div>
+
+                                <div className={styles.statGrid}>
+                                  {[
+                                    { label: t("longest"), value: aggregate?.longest ?? "0d" },
+                                    { label: t("total"), value: aggregate?.total ?? "0" },
+                                    { label: t("rate"), value: aggregate?.rate ?? "0%" },
+                                  ].map(({ label, value }) => (
+                                    <div key={`${categoryMap.categoryName}-${label}`}>
+                                      <span>{label}</span>
+                                      <strong>{value}</strong>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <p className={styles.chartLabel}>Consistency Heatmap</p>
+                                <HeatmapGrid heatmap={categoryMap.heatmap} idPrefix={`category-${categoryMap.categoryName}`} />
+                              </article>
+                            );
+                          })}
+                        </div>}
+
+                      {heatmapMode === "task" && (
+                        <div className={styles.categorySections}>
+                          {CATEGORY_ORDER.map((categoryKey) => {
+                            const sectionHabits = groupedHabitStats[categoryKey];
+                            if (!sectionHabits.length) return null;
+
+                            return (
+                              <section key={`heatmap-task-${categoryKey}`} className={styles.categorySection}>
+                                <h3 className={styles.categoryLabel}>
+                                  <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
+                                  {CATEGORY_LABEL[categoryKey]}
+                                </h3>
+                                <div className={styles.habitGrid}>
+                                  {sectionHabits.map((habit) => {
+                                    const { computed } = habit;
+                                    const heatmap = buildHeatmapFromRates(habit.dailyRates, days);
+                                    return (
+                                      <article className={styles.habitCard} key={`heatmap-task-card-${habit.id}`}>
+                                        <div className={styles.habitHeader}>
+                                          <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
+                                            <HabitIcon type={habit.icon} />
+                                          </span>
+                                          <div>
+                                            <h4>{isVi ? habit.nameVi : habit.name}</h4>
+                                            <p>{isVi ? habit.timeVi : habit.time}</p>
+                                          </div>
+                                          <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
+                                            {computed.badge}
+                                          </span>
+                                        </div>
+
+                                        <div className={styles.statGrid}>
+                                          {[
+                                            { label: t("longest"), value: computed.longest },
+                                            { label: t("total"), value: computed.total },
+                                            { label: t("rate"), value: computed.rate },
+                                          ].map(({ label, value }) => (
+                                            <div key={`${habit.id}-${label}`}>
+                                              <span>{label}</span>
+                                              <strong>{value}</strong>
+                                            </div>
+                                          ))}
+                                        </div>
+
+                                        <p className={styles.chartLabel}>Consistency Heatmap</p>
+                                        <HeatmapGrid heatmap={heatmap} idPrefix={`task-${habit.id}`} compact />
+                                      </article>
+                                    );
+                                  })}
+                                </div>
+                              </section>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
           </section>
