@@ -209,6 +209,14 @@ export default function HabitDetailPage() {
     }
   }
 
+  function handleResume() {
+    if (habit) {
+      changeStatus(habit._id, 'Active');
+      setToastMessage(`"${habit.name}" resumed successfully`);
+      setMenuOpen(false);
+    }
+  }
+
   function handleOpenEdit() {
     setEditMode('info');
     setShowEdit(true);
@@ -293,7 +301,7 @@ export default function HabitDetailPage() {
                   </button>
                 ) : (
                   <>
-                    <button className={styles.menuItem} onClick={handlePause}>
+                    <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
                       {isActive ? 'Pause' : 'Resume'}
                     </button>
                     <button className={styles.menuItem} onClick={handleArchive}>
