@@ -10,7 +10,7 @@ import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorMessage from '../../components/shared/ErrorMessage';
-import { TargetIcon, SearchIcon, SparklesIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon } from '../../components/shared/Icons';
+import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon } from '../../components/shared/Icons';
 import styles from './HabitsPage.module.css';
 
 const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
@@ -240,26 +240,7 @@ export default function HabitsPage() {
           </div>
         )}
 
-        {/* "Build Your Routine" banner — shown when fewer than 3 habits */}
-        {!loading && habits.length > 0 && habits.length < 3 && (
-          <div className={styles.routineBanner}>
-            <div className={styles.routineBannerIcon}>
-              <SparklesIcon style={{ width: 24, height: 24, color: '#FFD700' }} />
-            </div>
-            <div>
-              <h3>Build Your Routine</h3>
-              <p>
-                You have {habits.filter(h => h.status === 'Active').length} active habit
-                {habits.filter(h => h.status === 'Active').length !== 1 ? 's' : ''}.
-                Studies show that maintaining at least 3 habits simultaneously increases
-                long-term adherence by 40%.
-              </p>
-              <button className="btn btn-primary btn-sm" onClick={openCreate} id="browse-suggestions-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <PlusIcon /> Add Another Habit
-              </button>
-            </div>
-          </div>
-        )}
+
 
       </div>
 

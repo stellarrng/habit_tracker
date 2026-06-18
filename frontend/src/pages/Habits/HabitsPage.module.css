@@ -47,43 +47,7 @@
   margin-left: 2px;
 }
 
-.routineBanner {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px 32px;
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  margin-top: 28px;
-  box-shadow: var(--shadow-sm);
-}
 
-.routineBannerIcon {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--radius-full);
-  background: var(--color-primary-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36px;
-  flex-shrink: 0;
-}
-
-.routineBanner h3 {
-  font-size: var(--font-size-xl);
-  font-weight: 800;
-  margin-bottom: 8px;
-  color: var(--text-primary);
-}
-
-.routineBanner p {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  line-height: 1.65;
-  margin-bottom: 16px;
-}
 
 /* Summary stats grid */
 .statsRow {
