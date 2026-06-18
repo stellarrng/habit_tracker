@@ -39,6 +39,7 @@ export default function HabitDetailPage() {
   const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showCongrats, setShowCongrats] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +136,61 @@ export default function HabitDetailPage() {
 
   const completionRate = streaks.completionRate;
 
+  const currentStreak = streaks.current;
+  const longestStreak = streaks.longest;
+  const totalCompletions = streaks.totalSessions;
+
+  // Calculate goal-specific check-ins since current goal started
+  const goalCheckIns = useMemo(() => {
+    if (!habit) return [];
+    const startStr = habit.goalStartedAt || habit.createdAt;
+    const startDate = new Date(startStr);
+    startDate.setHours(0, 0, 0, 0);
+
+    return checkIns.filter(c => {
+      const checkInDate = new Date(c.date);
+      checkInDate.setHours(0, 0, 0, 0);
+      return checkInDate >= startDate;
+    });
+  }, [habit, checkIns]);
+
+  const goalStreaks = useStreaks(goalCheckIns);
+
+  const nextGoalStartDate = useMemo(() => {
+    if (!habit || checkIns.length === 0) return new Date().toISOString();
+    const completedCheckIns = checkIns.filter(c => c.completedCount >= habit.targetPerDay);
+    if (completedCheckIns.length === 0) return new Date().toISOString();
+    const sorted = [...completedCheckIns].sort((a, b) => b.date.localeCompare(a.date));
+    const latestDateStr = sorted[0].date;
+    const parts = latestDateStr.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString();
+  }, [habit, checkIns]);
+
+  // Goal details
+  const hasGoal = habit ? (!!habit.goalTargetType && !!habit.goalTargetValue) : false;
+  const goalType = habit?.goalTargetType || 'Streak';
+  const target = habit?.goalTargetValue || 30;
+  const currentValue = goalType === 'Streak' ? goalStreaks.current : goalStreaks.totalSessions;
+  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
+  const isComplete = pct >= 100;
+
+  // Trigger congrats popup if goal completed (100%) and not yet shown for this goal config
+  useEffect(() => {
+    if (loadingCheckIns || !habit || !hasGoal || pct < 100) return;
+
+    const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+    const isShown = localStorage.getItem(storageKey);
+
+    if (!isShown) {
+      setShowCongrats(true);
+    }
+  }, [loadingCheckIns, habit, hasGoal, pct, goalType, target]);
+
   if (!habit) {
     return (
       <AppLayout onNewHabit={() => navigate('/habits')}>
@@ -161,18 +217,6 @@ export default function HabitDetailPage() {
       </AppLayout>
     );
   }
-
-  const currentStreak = streaks.current;
-  const longestStreak = streaks.longest;
-  const totalCompletions = streaks.totalSessions;
-
-  // Goal details
-  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
-  const goalType = habit.goalTargetType || 'Streak';
-  const target = habit.goalTargetValue || 30;
-  const currentValue = goalType === 'Streak' ? currentStreak : totalCompletions;
-  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
-  const isComplete = pct >= 100;
 
   const isActive = habit.status === 'Active';
   const statusStyle = STATUS_COLORS[habit.status] ?? STATUS_COLORS.Active;
@@ -254,6 +298,23 @@ export default function HabitDetailPage() {
         closeConfirm();
       },
     });
+  }
+
+  function handleCloseCongrats() {
+    if (habit) {
+      const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+      localStorage.setItem(storageKey, 'true');
+    }
+    setShowCongrats(false);
+  }
+
+  function handleSetNewGoalFromCongrats() {
+    if (habit) {
+      const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+      localStorage.setItem(storageKey, 'true');
+    }
+    setShowCongrats(false);
+    handleOpenGoalEdit();
   }
 
   return (
@@ -393,6 +454,13 @@ export default function HabitDetailPage() {
                 <span className={styles.goalBarPct}>{pct}%</span>
                 {goalMsg && <span className={styles.goalBarMsg}>{goalMsg}</span>}
               </div>
+              {isComplete && (
+                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenGoalEdit} id="set-new-goal-completed">
+                    Set New Goal
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* No-goal empty state */
@@ -463,8 +531,9 @@ export default function HabitDetailPage() {
         <GoalHabitForm
           editingHabit={habit}
           onClose={() => setShowEdit(false)}
-          currentStreak={currentStreak}
-          totalCompletions={totalCompletions}
+          currentStreak={goalStreaks.current}
+          totalCompletions={goalStreaks.totalSessions}
+          nextGoalStartDate={nextGoalStartDate}
         />
       )}
       <ConfirmDialog
@@ -476,6 +545,34 @@ export default function HabitDetailPage() {
         onConfirm={confirmState.onConfirm}
         onCancel={closeConfirm}
       />
+
+      {showCongrats && (
+        <div className={styles.confirmBackdrop} onClick={e => { if (e.target === e.currentTarget) handleCloseCongrats(); }}>
+          <div className={styles.confirmDialog} role="dialog" aria-modal="true" aria-labelledby="congrats-title">
+            <div className={styles.confirmBody}>
+              <div className={`${styles.confirmIconWrapper} ${styles.confirmIcon_success}`}>
+                <TrophyIcon style={{ width: 22, height: 22 }} />
+              </div>
+              <div className={styles.confirmContent}>
+                <h3 className={styles.confirmTitle} id="congrats-title">Goal Reached!</h3>
+                <p className={styles.confirmMessage}>
+                  Incredible job! You've successfully completed 100% of your goal target for <strong>{habit.name}</strong> ({target} {goalType === 'Streak' ? 'days streak' : 'sessions total'}).
+                  <br /><br />
+                  Would you like to keep the momentum going and set a new goal target now?
+                </p>
+              </div>
+            </div>
+            <div className={styles.confirmFooter}>
+              <button type="button" className="btn btn-secondary" onClick={handleCloseCongrats}>
+                Maybe Later
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleSetNewGoalFromCongrats}>
+                Set New Goal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (
