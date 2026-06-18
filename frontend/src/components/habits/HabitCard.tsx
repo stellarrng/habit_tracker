@@ -62,10 +62,11 @@ interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
   onArchiveRequest?: (habit: Habit) => void;
-  onPause?: (habitName: string) => void;
+  onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored') => void;
+  onSetGoal?: (habit: Habit, currentStreak: number, totalCompletions: number) => void;
 }
 
-export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: HabitCardProps) {
+export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusChange, onSetGoal }: HabitCardProps) {
   const { changeStatus, removeHabit } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
@@ -127,8 +128,16 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
     const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
     changeStatus(habit._id, nextStatus);
     setMenuOpen(false);
-    if (isActive && onPause) {
-      onPause(habit.name);
+    if (onStatusChange) {
+      onStatusChange(habit.name, isActive ? 'paused' : 'resumed');
+    }
+  }
+
+  function handleRestore() {
+    changeStatus(habit._id, 'Active');
+    setMenuOpen(false);
+    if (onStatusChange) {
+      onStatusChange(habit.name, 'restored');
     }
   }
 
@@ -171,27 +180,33 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
           </div>
         </div>
         {/* 3-dot menu */}
-        {habit.status !== 'Archived' && (
-          <div className={styles.menuContainer} ref={menuRef}>
-            <button
-              className={styles.menuButton}
-              onClick={() => setMenuOpen(!menuOpen)}
-              title="More options"
-            >
-              <MoreVerticalIcon style={{ width: 18, height: 18 }} />
-            </button>
-            {menuOpen && (
-              <div className={styles.menu}>
-                <button className={styles.menuItem} onClick={handlePause}>
-                  {isActive ? 'Pause' : 'Resume'}
+        <div className={styles.menuContainer} ref={menuRef}>
+          <button
+            className={styles.menuButton}
+            onClick={() => setMenuOpen(!menuOpen)}
+            title="More options"
+          >
+            <MoreVerticalIcon style={{ width: 18, height: 18 }} />
+          </button>
+          {menuOpen && (
+            <div className={styles.menu}>
+              {habit.status === 'Archived' ? (
+                <button className={styles.menuItem} onClick={handleRestore}>
+                  Restore
                 </button>
-                <button className={styles.menuItem} onClick={handleArchive}>
-                  Archive
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+              ) : (
+                <>
+                  <button className={styles.menuItem} onClick={handlePause}>
+                    {isActive ? 'Pause' : 'Resume'}
+                  </button>
+                  <button className={styles.menuItem} onClick={handleArchive}>
+                    Archive
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Meta chips */}
@@ -250,7 +265,13 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
           <span className={styles.noGoalText}>No goal target set</span>
           <button
             className={styles.noGoalLink}
-            onClick={() => onEdit(habit)}
+            onClick={() => {
+              if (onSetGoal) {
+                onSetGoal(habit, streaks.current, streaks.totalSessions);
+              } else {
+                onEdit(habit);
+              }
+            }}
             id={`set-goal-${habit._id}`}
           >
             Set a goal →
@@ -261,7 +282,16 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onPause }: 
       {/* Footer */}
       <div className="habit-card-footer">
         {habit.status === 'Paused' ? (
-          <button className="habit-view-link" onClick={() => changeStatus(habit._id, 'Active')} id={`resume-${habit._id}`}>
+          <button
+            className="habit-view-link"
+            onClick={() => {
+              changeStatus(habit._id, 'Active');
+              if (onStatusChange) {
+                onStatusChange(habit.name, 'resumed');
+              }
+            }}
+            id={`resume-${habit._id}`}
+          >
             Resume
           </button>
         ) : (

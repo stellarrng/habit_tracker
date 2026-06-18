@@ -1,65 +1,24 @@
-/* ── Layout ──────────────────────────────────────────────────────────────────── */
+/* ── Page shell ──────────────────────────────────────────────────────────── */
 
 .page {
-  min-height: 100vh;
-  background-color: var(--color-gray-50);
-  padding: var(--space-6);
-  font-family: var(--font-sans);
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .container {
-  max-width: 1040px;
-  /* was 672px — wide enough for main + sidebar at 768px+ */
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
   width: 100%;
-}
-
-.layout {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
 }
 
-@media (min-width: 768px) {
-  .layout {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-.mainColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .mainColumn {
-    flex: 1;
-    min-width: 0;
-    /* prevents flex overflow with long habit names */
-  }
-}
-
-.sidebarColumn {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .sidebarColumn {
-    flex: 0 0 320px;
-    /* fixed-ish width, ~1/3 of 1040px container */
-  }
-}
-
-/* ── Header ──────────────────────────────────────────────────────────────────── */
+/* ── Header / hero ───────────────────────────────────────────────────────── */
 
 .heroCard {
   display: flex;
@@ -79,11 +38,12 @@
   letter-spacing: -0.01em;
 }
 
+/* ── Progress message + bar ──────────────────────────────────────────────── */
+
 .progressGroup {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  align-items: center;
 }
 
 .progressMessage {
@@ -101,8 +61,6 @@
   color: var(--color-primary);
 }
 
-/* ── Progress bar ────────────────────────────────────────────────────────────── */
-
 .progressTrack {
   width: 100%;
   height: 10px;
@@ -115,9 +73,7 @@
   position: relative;
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg,
-      var(--color-primary) 0%,
-      #a5f3fc 100%);
+  background: linear-gradient(90deg, var(--color-primary) 0%, #a5f3fc 100%);
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
@@ -125,14 +81,88 @@
 .progressGlow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
   border-radius: var(--radius-full);
 }
 
-/* ── Read-only notice ──────────────────────────────────────────────────────────── */
+/* ── Date navigator (teammate's, wraps our WeekStrip) ───────────────────── */
+
+.dateNav {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.dateNavHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dateNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navArrowBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.navArrowBtn:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.navArrowBtn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.navArrowBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dateNavMonth {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: 4px;
+}
+
+.todayNavBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.todayNavBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Read-only notice ─────────────────────────────────────────────────────── */
 
 .readOnlyNoticeSlot {
   min-height: 38px;
@@ -148,7 +178,9 @@
   padding: var(--space-2) var(--space-3);
 }
 
-/* ── Habit list ────────────────────────────────────────────────────────────── */
+/* ── Habit list ──────────────────────────────────────────────────────────── */
+/* Row styling itself lives in HabitRow.module.css (separate component) —
+   this file only needs the list container spacing. */
 
 .habitList {
   display: flex;
@@ -156,21 +188,34 @@
   gap: var(--space-2);
 }
 
-/* ── Bottom cards ────────────────────────────────────────────────────────────── */
+/* ── 3-card info row ─────────────────────────────────────────────────────── */
+/* Left: our tip card · Middle: teammate's WeeklyMomentum · Right: our stats card */
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Tip card (ours) ─────────────────────────────────────────────────────── */
 
 .tipCard {
   background-color: var(--color-warning-bg);
   border: 1px solid var(--color-warning-light);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-}
-
-.statsCard {
-  background-color: #fff;
-  border: 1px solid var(--color-gray-100);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
 }
 
 .tipHeader {
@@ -182,6 +227,87 @@
   color: var(--color-warning);
 }
 
+.tipTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-warning);
+}
+
+.tipBody {
+  font-size: var(--text-xs);
+  color: var(--color-warning);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Weekly Momentum card (teammate's) ───────────────────────────────────── */
+
+.momentumCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.momentumLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.momentumDots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dot {
+  flex: 1;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.dotHigh {
+  background-color: var(--heat-high);
+}
+
+.dotMid {
+  background-color: var(--heat-mid);
+}
+
+.dotLow {
+  background-color: var(--heat-low);
+}
+
+.dotEmpty {
+  background-color: var(--heat-empty);
+}
+
+.momentumDays {
+  display: flex;
+  gap: 6px;
+}
+
+.momentumDay {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Stats card (ours) ───────────────────────────────────────────────────── */
+
+.statsCard {
+  background-color: #fff;
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
 .statsHeader {
   display: flex;
   align-items: center;
@@ -190,23 +316,10 @@
   font-size: var(--text-base);
 }
 
-.tipTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-warning);
-}
-
 .statsTitle {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--color-gray-700);
-}
-
-.tipBody {
-  font-size: var(--text-xs);
-  color: var(--color-warning);
-  line-height: 1.5;
-  margin: 0;
 }
 
 .statsGrid {
@@ -238,15 +351,57 @@
   line-height: 1.4;
 }
 
-@media (max-width: 640px) {
+/* ── Error state ─────────────────────────────────────────────────────────── */
 
-  .bottomCards,
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  background: #fff;
+  border: 1px solid var(--color-danger-light);
+  border-radius: var(--radius-lg);
+  text-align: center;
 }
 
-/* ── Skeleton ────────────────────────────────────────────────────────────────── */
+.errorText {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.retryBtn {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: #fff;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.retryBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+  background: #fff;
+  border: 1px dashed var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
   0% {
@@ -338,52 +493,20 @@
   border-radius: var(--radius-full);
 }
 
-/* ── Error state ─────────────────────────────────────────────────────────────── */
-
-.errorBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-10) var(--space-6);
-  background: #fff;
-  border: 1px solid var(--color-danger-light);
+.skeletonTip {
+  height: 160px;
   border-radius: var(--radius-lg);
-  text-align: center;
 }
 
-.errorText {
-  font-size: var(--text-sm);
-  color: var(--color-danger);
-}
-
-.retryBtn {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: #fff;
-  background-color: var(--color-primary);
-  border: none;
+.skeletonMomentum {
+  height: 90px;
   border-radius: var(--radius-lg);
-  padding: var(--space-2) var(--space-5);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
 }
 
-.retryBtn:hover {
-  background-color: var(--color-primary-hover);
-}
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 
-/* ── Empty state ─────────────────────────────────────────────────────────────── */
-
-.emptyState {
-  padding: var(--space-8);
-  text-align: center;
-  color: var(--color-gray-400);
-  font-size: var(--text-sm);
-  background: #fff;
-  border: 1px dashed var(--color-gray-200);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+@media (max-width: 640px) {
+  .pageHeader {
+    flex-direction: column;
+  }
 }
