@@ -15,6 +15,7 @@ interface HabitRowProps {
     onIncrement: (row: HabitWithCheckIn) => void;
     onDecrement: (row: HabitWithCheckIn) => void;
     isPending: boolean;
+    isReadOnly: boolean; // ← NEW: true when viewing a non-today date
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -116,7 +117,7 @@ function StatusLine({ status, completedCount, targetPerDay, goal }: {
 
 // ── HabitRow ──────────────────────────────────────────────────────────────────
 
-export default function HabitRow({ row, onIncrement, onDecrement, isPending }: HabitRowProps) {
+export default function HabitRow({ row, onIncrement, onDecrement, isPending, isReadOnly }: HabitRowProps) {
     const { habit, checkIn, goal } = row;
     const status = deriveStatus(checkIn.completedCount, habit.targetPerDay);
     const isCompleted = status === "Completed";
@@ -166,7 +167,7 @@ export default function HabitRow({ row, onIncrement, onDecrement, isPending }: H
                     <button
                         className={`${styles.checkBtn} ${checkIn.completedCount > 0 ? styles.checkBtnDone : ""}`}
                         onClick={() => checkIn.completedCount > 0 ? onDecrement(row) : onIncrement(row)}
-                        disabled={isPending}
+                        disabled={isPending || isReadOnly}
                         aria-label={checkIn.completedCount > 0 ? `Undo ${habit.name}` : `Complete ${habit.name}`}
                     >
                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -178,7 +179,7 @@ export default function HabitRow({ row, onIncrement, onDecrement, isPending }: H
                         <button
                             className={styles.counterBtn}
                             onClick={() => onDecrement(row)}
-                            disabled={isPending || checkIn.completedCount <= 0}
+                            disabled={isPending || isReadOnly || checkIn.completedCount <= 0}
                             aria-label={`Decrease ${habit.name}`}
                         >−</button>
                         <span className={styles.counterValue}>
@@ -188,7 +189,7 @@ export default function HabitRow({ row, onIncrement, onDecrement, isPending }: H
                         <button
                             className={styles.counterBtn}
                             onClick={() => onIncrement(row)}
-                            disabled={isPending || isCompleted}
+                            disabled={isPending || isReadOnly || isCompleted}
                             aria-label={`Increase ${habit.name}`}
                         >+</button>
                     </div>
