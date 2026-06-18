@@ -13,6 +13,27 @@
   flex-shrink: 0;
 }
 
+/* ── Mobile: hamburger menu ────────────────────────────────────────────────── */
+.menuBtn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .menuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    cursor: pointer;
+  }
+}
+
 /* ── Breadcrumb ───────────────────────────────────────────────────────────── */
 .breadcrumb {
   display: flex;
@@ -39,41 +60,13 @@
   color: var(--text-secondary);
 }
 
-/* ── Search ───────────────────────────────────────────────────────────────── */
-.searchWrap {
-  flex: 1;
-  max-width: 380px;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 12px;
-  color: var(--text-muted);
-  pointer-events: none;
-  flex-shrink: 0;
-}
-
-.searchInput {
-  width: 100%;
-  height: 36px;
-  padding: 0 12px 0 36px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--divider);
-  background: var(--bg-page);
-  font-size: 13px;
-  color: var(--text-primary);
-  outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.searchInput::placeholder { color: var(--text-muted); }
-
-.searchInput:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+/* When it's the only thing in the breadcrumb (desktop), give it more presence */
+@media (min-width: 769px) {
+  .breadcrumbPage {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
 }
 
 /* ── Actions cluster ──────────────────────────────────────────────────────── */
@@ -99,7 +92,10 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.iconBtn:hover { background: var(--bg-page); color: var(--text-primary); }
+.iconBtn:hover {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
 
 .iconBtnActive {
   background: var(--color-primary-light);
@@ -147,10 +143,21 @@
   place-items: center;
   flex-shrink: 0;
   cursor: pointer;
+  border: none;
+}
+
+.avatar:hover {
+  opacity: 0.9;
+}
+
+.avatarActive {
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 /* ── Popover anchor (wraps icon + panel) ──────────────────────────────────── */
-.popoverAnchor { position: relative; }
+.popoverAnchor {
+  position: relative;
+}
 
 /* ── Shared panel ─────────────────────────────────────────────────────────── */
 .panel {
@@ -185,7 +192,10 @@
   color: var(--text-primary);
 }
 
-.panelDivider { height: 1px; background: var(--divider); }
+.panelDivider {
+  height: 1px;
+  background: var(--divider);
+}
 
 .markAllBtn {
   border: none;
@@ -195,7 +205,10 @@
   font-weight: 600;
   cursor: pointer;
 }
-.markAllBtn:hover { text-decoration: underline; }
+
+.markAllBtn:hover {
+  text-decoration: underline;
+}
 
 .panelEmpty {
   display: flex;
@@ -218,10 +231,15 @@
   padding: 4px 8px;
   border-radius: 6px;
 }
-.resetBtn:hover { background: var(--color-primary-light); }
+
+.resetBtn:hover {
+  background: var(--color-primary-light);
+}
 
 /* ── Notification items ───────────────────────────────────────────────────── */
-.notifGroup { padding: 8px 8px 4px; }
+.notifGroup {
+  padding: 8px 8px 4px;
+}
 
 .notifGroupLabel {
   padding: 4px 8px 6px;
@@ -244,8 +262,14 @@
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.notifItem:hover { background: var(--bg-page); }
-.notifRead { opacity: 0.5; }
+
+.notifItem:hover {
+  background: var(--bg-page);
+}
+
+.notifRead {
+  opacity: 0.5;
+}
 
 .notifDot {
   flex: 0 0 auto;
@@ -255,10 +279,24 @@
   border-radius: 50%;
 }
 
-.notifText { display: flex; flex-direction: column; gap: 2px; }
+.notifText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
-.notifItemTitle { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
-.notifItemBody  { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.notifItemTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.notifItemBody {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
 
 /* ── Settings panel ───────────────────────────────────────────────────────── */
 .settingsProfile {
@@ -281,10 +319,20 @@
   flex-shrink: 0;
 }
 
-.settingsName  { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-.settingsEmail { font-size: 12px; color: var(--text-muted); }
+.settingsName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
-.settingsSection { padding: 8px; }
+.settingsEmail {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.settingsSection {
+  padding: 8px;
+}
 
 .settingsSectionLabel {
   padding: 6px 8px 4px;
@@ -315,7 +363,10 @@
   cursor: pointer;
   outline: none;
 }
-.settingsSelect:focus { border-color: var(--color-primary); }
+
+.settingsSelect:focus {
+  border-color: var(--color-primary);
+}
 
 /* Toggle */
 .toggle {
@@ -329,7 +380,11 @@
   transition: background 0.2s ease;
   flex-shrink: 0;
 }
-.toggleOn { background: var(--color-primary); }
+
+.toggleOn {
+  background: var(--color-primary);
+}
+
 .toggleThumb {
   position: absolute;
   top: 2px;
@@ -338,10 +393,13 @@
   height: 15px;
   border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
   transition: transform 0.2s ease;
 }
-.toggleOn .toggleThumb { transform: translateX(15px); }
+
+.toggleOn .toggleThumb {
+  transform: translateX(15px);
+}
 
 /* Sign out */
 .signOutBtn {
@@ -359,7 +417,11 @@
   cursor: pointer;
   transition: background 0.15s ease;
 }
-.signOutBtn:hover { background: var(--color-danger-light); }
+
+.signOutBtn:hover {
+  background: var(--color-danger-light);
+}
+
 .signOutBtn svg {
   width: 15px;
   height: 15px;
@@ -368,4 +430,79 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* ── Mobile drawer ────────────────────────────────────────────────────────── */
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.drawerOverlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: min(90vw, 360px);
+  height: 100%;
+
+  background: var(--bg-card);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, .15);
+
+  overflow-y: auto;
+
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+
+.drawerOpen {
+  transform: translateX(0);
+}
+
+.drawerClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  border: none;
+  background: none;
+
+  font-size: 20px;
+  cursor: pointer;
+
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .drawer .panel {
+    position: static;
+    width: 100%;
+    max-height: none;
+
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.drawerPanel {
+  position: static;
+  width: 100%;
+  max-height: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
 }

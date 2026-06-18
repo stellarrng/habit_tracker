@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings, type Settings, type NotifPrefs } from '../../context/SettingsContext';
-import { SearchIcon } from '../shared/Icons';
 import styles from './Topbar.module.css';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type NotifType = 'warning' | 'reminder' | 'achievement';
@@ -17,29 +17,31 @@ interface Notification {
 }
 
 const INITIAL_NOTIFS: Notification[] = [
-  { id: 'w1', type: 'warning',     title: 'Drink Water at risk',          body: "You haven't logged water today. Streak may break!",    read: false },
-  { id: 'w2', type: 'warning',     title: 'Morning Meds streak breaking', body: 'Only 1 day left before your 14-day streak is lost.',   read: false },
-  { id: 'r1', type: 'reminder',    title: 'Morning Run not checked in',   body: 'You scheduled this for 6:30 AM — still time to log.', read: false },
-  { id: 'r2', type: 'reminder',    title: 'Meditation reminder',          body: '10 minutes before bed keeps the streak alive.',       read: true  },
-  { id: 'a1', type: 'achievement', title: '32-day Meditation streak!',    body: "You've hit a new personal best. Keep it up!",         read: true  },
-  { id: 'a2', type: 'achievement', title: 'Morning Run: 92% this month',  body: 'Top completion rate across all your habits.',         read: true  },
+  { id: 'w1', type: 'warning', title: 'Drink Water at risk', body: "You haven't logged water today. Streak may break!", read: false },
+  { id: 'w2', type: 'warning', title: 'Morning Meds streak breaking', body: 'Only 1 day left before your 14-day streak is lost.', read: false },
+  { id: 'r1', type: 'reminder', title: 'Morning Run not checked in', body: 'You scheduled this for 6:30 AM — still time to log.', read: false },
+  { id: 'r2', type: 'reminder', title: 'Meditation reminder', body: '10 minutes before bed keeps the streak alive.', read: true },
+  { id: 'a1', type: 'achievement', title: '32-day Meditation streak!', body: "You've hit a new personal best. Keep it up!", read: true },
+  { id: 'a2', type: 'achievement', title: 'Morning Run: 92% this month', body: 'Top completion rate across all your habits.', read: true },
 ];
 
 const GROUP_CONFIG: Record<NotifType, { label: string; color: string }> = {
-  warning:     { label: 'Warnings',     color: '#B85C6E' },
-  reminder:    { label: 'Reminders',    color: '#C4956A' },
+  warning: { label: 'Warnings', color: '#B85C6E' },
+  reminder: { label: 'Reminders', color: '#C4956A' },
   achievement: { label: 'Achievements', color: '#84A59D' },
 };
 
 // ── NotificationPanel ─────────────────────────────────────────────────────────
 function NotificationPanel({
-  notifs, onRead, onReadAll, onReset, onClose,
+  notifs, onRead, onReadAll, onReset, onClose, drawerMode
 }: {
   notifs: Notification[];
   onRead: (id: string) => void;
   onReadAll: () => void;
   onReset: () => void;
   onClose: () => void;
+  enableOutsideClick?: boolean,
+  drawerMode?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -54,7 +56,10 @@ function NotificationPanel({
   const unread = notifs.filter(n => !n.read).length;
 
   return (
-    <div ref={ref} className={styles.panel}>
+    <div
+      ref={ref}
+      className={drawerMode ? styles.drawerPanel : styles.panel}
+    >
       <div className={styles.panelHeader}>
         <span className={styles.panelTitle}>Notifications</span>
         {unread > 0 && (
@@ -104,8 +109,12 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
     </button>
   );
 }
-
-function SettingsPanel({ onClose }: { onClose: () => void }) {
+function SettingsPanel({
+  onClose, drawerMode
+}: {
+  onClose: () => void;
+  drawerMode?: boolean;
+}) {
   const { user, logout } = useAuth();
   const { settings, setSettings } = useSettings();
   const navigate = useNavigate();
@@ -113,10 +122,16 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+
+    document.addEventListener("mousedown", handleClick);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
   }, [onClose]);
 
   const initials = user?.name
@@ -131,8 +146,11 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div ref={ref} className={styles.panel} style={{ width: 280 }}>
-      <div className={styles.settingsProfile}>
+    <div
+      ref={ref}
+      className={drawerMode ? styles.drawerPanel : styles.panel}
+      style={!drawerMode ? { width: 280 } : undefined}
+    >      <div className={styles.settingsProfile}>
         <div className={styles.settingsAvatar}>{initials}</div>
         <div>
           <p className={styles.settingsName}>{user?.name ?? 'Guest'}</p>
@@ -148,14 +166,14 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           <span>Dark mode</span>
           <Toggle on={settings.darkMode} onToggle={() => set('darkMode', !settings.darkMode)} />
         </div>
-        <div className={styles.settingsRow}>
+        {/* <div className={styles.settingsRow}>
           <span>Language</span>
           <select className={styles.settingsSelect} value={settings.language}
             onChange={e => set('language', e.target.value as Settings['language'])}>
             <option value="English">English</option>
             <option value="Vietnamese">Tiếng Việt</option>
           </select>
-        </div>
+        </div> */}
       </div>
 
       <div className={styles.panelDivider} />
@@ -189,18 +207,31 @@ const APP_NAME = 'HabitFlow';
 
 interface TopbarProps {
   title: string;
+  onMenuClick: () => void;
 }
 
-export default function Topbar({ title }: TopbarProps) {
+export default function Topbar({ title, onMenuClick }: TopbarProps) {
   const { user } = useAuth();
   const { settings } = useSettings();
-  const [search, setSearch]             = useState('');
-  const [notifOpen, setNotifOpen]       = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [notifs, setNotifs]             = useState<Notification[]>(INITIAL_NOTIFS);
+
+  const [notifs, setNotifs] = useState<Notification[]>(INITIAL_NOTIFS);
+
+  const [activePanel, setActivePanel] = useState<
+    "none" | "notifications" | "settings"
+  >("none");
+  const [mobileDrawer, setMobileDrawer] = useState<
+    "none" | "notifications" | "settings"
+  >("none");
+
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setActivePanel("none");
+    setMobileDrawer("none");
+  }, [isMobile]);
 
   const visibleNotifs = notifs.filter(n => settings.notifPrefs[n.type as keyof typeof settings.notifPrefs]);
-  const unreadCount   = visibleNotifs.filter(n => !n.read).length;
+  const unreadCount = visibleNotifs.filter(n => !n.read).length;
 
   const initials = user?.name
     ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
@@ -208,23 +239,22 @@ export default function Topbar({ title }: TopbarProps) {
 
   return (
     <header className={styles.topbar}>
+      {/* Mobile: Hamburger Menu */}
+      <button
+        className={styles.menuBtn}
+        onClick={onMenuClick}
+      >
+        ☰
+      </button>
       {/* Breadcrumb */}
       <div className={styles.breadcrumb}>
-        <span className={styles.breadcrumbApp}>{APP_NAME}</span>
-        <span className={styles.breadcrumbSep}>/</span>
+        {isMobile && (
+          <>
+            <span className={styles.breadcrumbApp}>{APP_NAME}</span>
+            <span className={styles.breadcrumbSep}>/</span>
+          </>
+        )}
         <span className={styles.breadcrumbPage}>{title}</span>
-      </div>
-
-      {/* Search */}
-      <div className={styles.searchWrap}>
-        <SearchIcon className={styles.searchIcon} width={16} height={16} />
-        <input
-          className={styles.searchInput}
-          type="search"
-          placeholder="Search habits, goals…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
       </div>
 
       {/* Actions */}
@@ -232,9 +262,19 @@ export default function Topbar({ title }: TopbarProps) {
         {/* Notifications */}
         <div className={styles.popoverAnchor}>
           <button
-            className={`${styles.iconBtn} ${notifOpen ? styles.iconBtnActive : ''}`}
+            className={`${styles.iconBtn} ${activePanel === "notifications" ? styles.iconBtnActive : ""
+              }`}
             aria-label="Notifications"
-            onClick={() => { setNotifOpen(v => !v); setSettingsOpen(false); }}
+            onClick={() => {
+              if (isMobile) {
+                setMobileDrawer("notifications");
+                return;
+              }
+
+              setActivePanel(prev =>
+                prev === "notifications" ? "none" : "notifications"
+              );
+            }}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7M13.7 21a2 2 0 0 1-3.4 0" />
@@ -243,34 +283,78 @@ export default function Topbar({ title }: TopbarProps) {
               <span className={styles.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>
             )}
           </button>
-          {notifOpen && (
+          {!isMobile && activePanel === "notifications" && (
             <NotificationPanel
               notifs={visibleNotifs}
               onRead={id => setNotifs(p => p.map(n => n.id === id ? { ...n, read: true } : n))}
               onReadAll={() => setNotifs(p => p.map(n => ({ ...n, read: true })))}
               onReset={() => setNotifs(INITIAL_NOTIFS)}
-              onClose={() => setNotifOpen(false)}
+              onClose={() => setActivePanel("none")}
+              enableOutsideClick
             />
           )}
         </div>
 
-        {/* Settings */}
+        {/* Avatar */}
         <div className={styles.popoverAnchor}>
           <button
-            className={`${styles.iconBtn} ${settingsOpen ? styles.iconBtnActive : ''}`}
-            aria-label="Settings"
-            onClick={() => { setSettingsOpen(v => !v); setNotifOpen(false); }}
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.3 7A2 2 0 1 1 7.1 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6h.1a1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 20.1 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
-            </svg>
-          </button>
-          {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
-        </div>
+            className={`${styles.avatar} ${activePanel === "settings" ? styles.avatarActive : ""
+              }`} onClick={() => {
+                if (isMobile) {
+                  setMobileDrawer("settings");
+                  return;
+                }
 
-        {/* Avatar */}
-        <div className={styles.avatar}>{initials}</div>
+                setActivePanel(prev =>
+                  prev === "settings" ? "none" : "settings"
+                );
+              }}
+          >
+            {initials}
+          </button>
+
+          {!isMobile && activePanel === "settings" && (
+            <SettingsPanel
+              onClose={() => setActivePanel("none")}
+            />
+          )}
+        </div>
+      </div>
+      <div
+        className={`${styles.drawerOverlay} ${mobileDrawer !== "none" ? styles.drawerOverlayOpen : ""}`}
+        onClick={() => setMobileDrawer("none")}
+      >
+        <div
+          className={`${styles.drawer} ${mobileDrawer !== "none" ? styles.drawerOpen : ""}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* <button
+            className={styles.drawerClose}
+            onClick={() => setMobileDrawer("none")}
+          >
+            ✕
+          </button> */}
+
+          {mobileDrawer === "notifications" && (
+            <NotificationPanel
+              notifs={visibleNotifs}
+              onRead={id =>
+                setNotifs(p => p.map(n => n.id === id ? { ...n, read: true } : n))
+              }
+              onReadAll={() => setNotifs(p => p.map(n => ({ ...n, read: true })))}
+              onReset={() => setNotifs(INITIAL_NOTIFS)}
+              onClose={() => setMobileDrawer("none")}
+              drawerMode
+            />
+          )}
+
+          {mobileDrawer === "settings" && (
+            <SettingsPanel
+              onClose={() => setMobileDrawer("none")}
+              drawerMode
+            />
+          )}
+        </div>
       </div>
     </header>
   );
