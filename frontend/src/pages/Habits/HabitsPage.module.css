@@ -1,599 +1,285 @@
-/* ── Page shell ──────────────────────────────────────────────────────────── */
-
-.page {
-  width: 100%;
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 24px 64px;
-  color: var(--text-primary);
-}
-
-/* ── Header ──────────────────────────────────────────────────────────────── */
-
-.pageHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 24px 0 20px;
-}
-
-.pageTitle {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.25;
-}
-
-.pageSub {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  max-width: 480px;
-}
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.exportBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.exportBtn:hover {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.addBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  border-radius: var(--radius-full);
-  border: none;
-  background: #3D3835;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-}
-
-.addBtn:hover { opacity: 0.88; transform: translateY(-1px); }
-
-/* ── Top two-column grid ─────────────────────────────────────────────────── */
-
-.topGrid {
-  display: grid;
-  grid-template-columns: 1fr 260px;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-/* ── Shared card ─────────────────────────────────────────────────────────── */
-
-.card {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--bg-surface);
-  padding: 24px;
-  box-shadow: var(--shadow-card);
-}
-
-.cardTitle {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.3;
-}
-
-.cardSub {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 2px;
-  line-height: 1.4;
-}
-
-/* ── Weekly Snapshot ─────────────────────────────────────────────────────── */
-
-.snapshotHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.avgBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.avgDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  flex-shrink: 0;
-}
-
-.barChart {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  height: 140px;
-  align-items: end;
-}
-
-.barCol {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  height: 100%;
-}
-
-.barTrack {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-}
-
-.barFill {
-  width: 100%;
-  border-radius: 4px 4px 0 0;
-  background: var(--color-accent);
-  min-height: 4px;
-  transition: height 0.4s ease;
-}
-
-.barFuture {
-  background: var(--bg-elevated);
-}
-
-.barLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.03em;
-}
-
-/* ── Filters card ────────────────────────────────────────────────────────── */
-
-.filterSection {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.filterLabel {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.catPills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.catPill {
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.catPill:hover {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.catPillActive {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: #fff;
-  font-weight: 600;
-}
-
-.filterSelect {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  appearance: auto;
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-/* ── Habits section ──────────────────────────────────────────────────────── */
-
-.habitsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 32px;
-}
-
-.habitsSectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 12px;
-}
-
-.sectionTitle {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.activeCount {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-/* ── Habit row card ──────────────────────────────────────────────────────── */
+/* ── Today Page HabitRow additions ───────────────────────────────────── */
 
 .habitRow {
+  position: relative;
+  overflow: hidden;
+}
+
+.habitProgressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  background: rgba(244, 172, 186, 0.12);
+  pointer-events: none;
+  transition: width 0.25s ease;
+}
+
+.habitLeft {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-surface);
-  box-shadow: var(--shadow-card);
-  transition: box-shadow 0.2s ease;
-}
-
-.habitRow:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-.habitInfo {
+  gap: 12px;
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  z-index: 1;
 }
 
-.habitNameRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.habitName {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.15s ease;
-}
-
-.habitName:hover {
-  color: var(--color-accent);
-  text-decoration: underline;
-}
-
-.habitDesc {
-  font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
-/* Priority badges */
-.priorityBadge {
-  flex-shrink: 0;
+.statusLine {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.priorityHigh {
-  background: #3D3835;
-  color: #fff;
-}
-
-.priorityMedium {
-  background: #C4789A;
-  color: #fff;
-}
-
-.priorityLow {
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-}
-
-/* Status column */
-.statusCol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  min-width: 72px;
-  flex-shrink: 0;
-}
-
-.statusColLabel {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.statusValue {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-secondary);
+}
+
+.statusCompleted {
+  color: var(--color-success);
+}
+
+.statusInProgress {
+  color: var(--color-warning);
+}
+
+.statusNotStarted,
+.statusAtRisk {
+  color: var(--color-danger);
 }
 
 .statusDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
-.dotActive   { background: #2F9E44; }
-.dotPaused   { background: #868E96; }
-.dotArchived { background: #E67700; }
+.habitRowCompleted {
+  border-color: var(--color-success-light);
+}
 
-/* Actions column */
-.habitActions {
+.habitRowAtRisk {
+  border-color: var(--color-danger-light);
+}
+
+/* Counter */
+
+.counter {
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.counterPill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.iconBtn {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.iconBtn:hover {
+  gap: 10px;
+  padding: 4px;
+  border-radius: 999px;
   background: var(--bg-elevated);
-  color: var(--text-primary);
+  border: 1px solid var(--border);
 }
 
-.deleteBtnIcon:hover {
-  background: rgba(186, 26, 26, 0.08);
-  color: #ba1a1a;
-}
-
-.actionBtnWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  min-width: 110px;
-}
-
-.goalBadge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: #D3F9D8;
-  color: #2F9E44;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  white-space: nowrap;
-}
-
-.logBtn {
-  width: 100%;
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
+.counterBtn {
+  width: 30px;
+  height: 30px;
   border: none;
-  background: var(--color-accent);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  white-space: nowrap;
-}
-
-.logBtn:hover { background: var(--color-accent-hover); }
-
-.loggedBtn {
-  width: 100%;
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: not-allowed;
-  white-space: nowrap;
-}
-
-.resumeBtn {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 7px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border);
+  border-radius: 999px;
   background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 12px;
+  color: var(--text-primary);
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-  white-space: nowrap;
+  transition: var(--transition-fast);
 }
 
-.resumeBtn:hover {
-  background: var(--bg-elevated);
+.counterBtn:hover:not(:disabled) {
+  background: var(--color-accent-light);
+}
+
+.counterBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.counterValue {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
   color: var(--text-primary);
 }
 
-/* ── Heatmap card ────────────────────────────────────────────────────────── */
-
-.heatmapCard {
-  margin-top: 0;
-}
-
-.heatmapHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.heatLegend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.legendLabel {
-  font-size: 11px;
+.counterTotal {
   color: var(--text-muted);
   font-weight: 500;
 }
 
-.legendCell {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  display: inline-block;
-}
+/* Binary check button */
 
-.heatmapGrid {
+.checkBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--bg-surface);
+  color: transparent;
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 8px;
+  place-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
 }
 
-.heatCell {
-  aspect-ratio: 1;
-  border-radius: 6px;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-  cursor: default;
+.checkBtn:hover:not(:disabled) {
+  border-color: var(--color-success);
 }
 
-.heatCell:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+.checkBtnDone {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
 }
 
-/* ── Empty / skeleton states ─────────────────────────────────────────────── */
+.checkBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
-.emptyState {
+/* ── Missing Priority Badge Classes ───────────────────────────── */
+
+.priorityBadgeHigh {
+  background: var(--color-priority-high-light);
+  color: var(--color-priority-high);
+}
+
+.priorityBadgeMedium {
+  background: var(--color-priority-medium-light);
+  color: var(--color-priority-medium);
+}
+
+.priorityBadgeLow {
+  background: var(--color-priority-low-light);
+  color: var(--color-priority-low);
+}
+
+/* ── Row Layout ───────────────────────────────────────────────── */
+
+.habitLeft {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 14px;
-  border: 1px dashed var(--border);
-  border-radius: 12px;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
 }
 
-.skeletonList {
+.habitProgressFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  background: rgba(244, 172, 186, 0.12);
+  pointer-events: none;
+  transition: width 0.25s ease;
+}
+
+.habitRow {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Status Line ──────────────────────────────────────────────── */
+
+.statusLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.statusNotStarted {
+  color: var(--color-danger);
+}
+
+.habitRowAtRisk {
+  border-color: var(--color-danger-light);
+}
+
+/* ── Counter ─────────────────────────────────────────────────── */
+
+.counter {
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.counterPill {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 10px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
 }
 
-.skeletonRow {
-  height: 72px;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #f5f5f5 25%, #ebebeb 50%, #f5f5f5 75%);
-  background-size: 600px 100%;
-  animation: shimmer 1.4s infinite;
+.counterBtn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-@keyframes shimmer {
-  0%   { background-position: -600px 0; }
-  100% { background-position:  600px 0; }
+.counterBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
-
-@media (max-width: 900px) {
-  .topGrid { grid-template-columns: 1fr; }
+.counterValue {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
 }
 
-@media (max-width: 640px) {
-  .pageHeader { flex-direction: column; align-items: flex-start; }
-  .heatmapGrid { grid-template-columns: repeat(10, 1fr); }
-  .habitRow { flex-wrap: wrap; }
-  .statusCol { display: none; }
-  .actionBtnWrap { min-width: 90px; }
+.counterTotal {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Binary Habit Button ─────────────────────────────────────── */
+
+.checkBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--bg-surface);
+  color: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.checkBtnDone {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.checkBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.habitRow.priorityHigh {
+  border-left: 4px solid var(--color-priority-high);
+}
+
+.habitRow.priorityMedium {
+  border-left: 4px solid var(--color-priority-medium);
+}
+
+.habitRow.priorityLow {
+  border-left: 4px solid var(--color-priority-low);
 }

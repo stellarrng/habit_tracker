@@ -29,15 +29,15 @@
 /* ── Priority indicators (left border stripe) ────────────────────────────────── */
 
 .priorityLow {
-  border-left: 5px solid var(--color-secondary);
+  border-left: 5px solid var(--color-priority-low);
 }
 
 .priorityMedium {
-  border-left: 5px solid var(--color-tertiary);
+  border-left: 5px solid var(--color-priority-medium);
 }
 
 .priorityHigh {
-  border-left: 5px solid var(--color-danger);
+  border-left: 5px solid var(--color-priority-high);
 }
 
 /* ── Progress fill ─────────────────────────────────────────────────────────── */
@@ -91,7 +91,7 @@
 .habitName {
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-800);
+  color: var(--text-primary);
 }
 
 .habitRowCompleted .habitName {
@@ -111,18 +111,18 @@
 }
 
 .priorityBadgeLow {
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-500);
+  background-color: var(--color-priority-low-light);
+  color: var(--color-priority-low);
 }
 
 .priorityBadgeMedium {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-priority-medium-light);
+  color: var(--color-priority-medium);
 }
 
 .priorityBadgeHigh {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: var(--color-priority-high-light);
+  color: var(--color-priority-high);
 }
 
 .habitRowCompleted .priorityBadge {
@@ -175,67 +175,64 @@
   background-color: rgba(255, 255, 255, 0.7);
 }
 
-/* ── Habit icon (completed override only — base styles live in HabitCategoryIcon) ── */
-
-.habitRowCompleted .habitIcon {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-.habitRowCompleted .habitIcon svg {
-  color: #fff;
-}
-
-/* ── Counter ───────────────────────────────────────────────────────────────── */
+/* ── Counter ────────────────────────────────────────────────────────────── */
 
 .counter {
   display: flex;
   align-items: center;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .counterPill {
   display: flex;
   align-items: center;
-  background-color: transparent;
-  border: transparent;
+  gap: 8px;
+
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .counterBtn {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-gray-300);
-  background: #fff;
-  color: var(--color-gray-600);
+  border: 2px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
   font-size: 1rem;
+  font-weight: var(--font-semibold);
+  padding: 0;
   line-height: 1;
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   transition:
-    background-color var(--transition-fast),
     border-color var(--transition-fast),
-    color var(--transition-fast);
-  flex-shrink: 0;
+    background-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .counterBtn:hover:not(:disabled) {
-  background-color: var(--color-gray-100);
-  border-color: var(--color-gray-400);
-  color: var(--color-gray-900);
+  border-color: var(--color-success);
+  color: var(--color-success);
+  transform: scale(1.08);
 }
 
 .counterBtn:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .counterValue {
   font-size: var(--text-sm);
   font-weight: var(--font-bold);
-  color: var(--color-gray-800);
+  color: var(--text-primary);
   min-width: 44px;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -243,27 +240,26 @@
 
 .counterTotal {
   font-weight: var(--font-normal);
-  color: var(--color-gray-400);
+  color: var(--text-muted);
   font-size: var(--text-xs);
 }
 
-.habitRowCompleted .counterValue {
-  color: #fff;
-}
-
+.habitRowCompleted .counterValue,
 .habitRowCompleted .counterTotal {
-  color: rgba(255, 255, 255, 0.6);
+  color: #fff;
 }
 
 .habitRowCompleted .counterBtn {
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
-  background: transparent;
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .habitRowCompleted .counterBtn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.7);
+  background-color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+  transform: scale(1.08);
 }
 
 /* ── Binary check button ──────────────────────────────────────────────────── */
@@ -272,13 +268,15 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-gray-300);
-  background: none;
+  border: 2px solid var(--border);
+  background: var(--bg-surface);
   color: transparent;
   cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   transition:
     border-color var(--transition-fast),
     background-color var(--transition-fast),
@@ -288,34 +286,25 @@
 
 .checkBtn:hover:not(:disabled) {
   border-color: var(--color-success);
-  color: var(--color-success-light);
+  background: var(--color-success-light);
+  color: var(--color-success);
+  transform: scale(1.08);
+}
+
+.checkBtnDone {
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.checkBtnDone:hover:not(:disabled) {
+  background: var(--color-success-hover);
+  border-color: var(--color-success-hover);
+  color: white;
   transform: scale(1.08);
 }
 
 .checkBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.checkBtnDone {
-  background-color: var(--color-success);
-  border-color: var(--color-success);
-  color: #fff;
-}
-
-.checkBtnDone:hover:not(:disabled) {
-  background-color: #047857;
-  border-color: #047857;
-  color: #fff;
-  transform: scale(1.08);
-}
-
-.habitRowCompleted .checkBtnDone {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #fff;
-}
-
-.habitRowCompleted .checkBtnDone:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.35);
 }

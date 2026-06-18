@@ -18,19 +18,19 @@ const mockPerfectDayStreak = 8; // TODO: derive from real check-in history (defe
 const ISO_WEEKDAY_TO_LABEL: WeekDay[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const MOTIVATION_TIPS: string[] = [
-  "Drinking water right after you wake up helps anchor your morning routine.",
-  "Habits stick best when stacked onto something you already do daily — try pairing a new habit with your morning coffee.",
-  "Missing one day won't break a streak. Missing two in a row is what starts a new habit of skipping.",
-  "Small and consistent beats big and occasional. A 2-minute version of a habit still counts.",
-  "Tracking progress — even imperfectly — makes you twice as likely to stick with a habit long-term.",
-  "The hardest part is usually just starting. Once you begin, momentum tends to carry you through.",
-  "Habits are built in the moments you don't feel like doing them, not the moments you do.",
-  "If a habit feels too hard today, shrink it. A smaller win is better than a skipped day.",
-  "Visible progress fuels motivation — that's exactly what this streak counter is for.",
-  "Your environment shapes your habits more than willpower does. Make the good choice the easy choice.",
-  "It's not about perfect days. It's about not letting one missed day turn into a pattern.",
-  "Celebrating small wins, like today's check-in, reinforces the identity of someone who follows through.",
+const TIPS = [
+  { title: "Drink Water After Waking Up", body: "Drinking water right after you wake up helps anchor your morning routine." },
+  { title: "Stack New Habits", body: "Habits stick best when attached to something you already do daily, like your morning coffee." },
+  { title: "Never Miss Twice", body: "Missing one day won't break a streak. Missing two in a row is what starts a pattern of skipping." },
+  { title: "Small Beats Perfect", body: "Small and consistent beats big and occasional. A 2-minute version of a habit still counts." },
+  { title: "Track Your Progress", body: "Tracking progress, even imperfectly, makes you more likely to stick with a habit long-term." },
+  { title: "Just Get Started", body: "The hardest part is usually beginning. Once you start, momentum often carries you forward." },
+  { title: "Build Discipline", body: "Habits are built in the moments you don't feel like doing them, not the moments you do." },
+  { title: "Shrink the Habit", body: "If a habit feels too hard today, make it smaller. A tiny win is better than a skipped day." },
+  { title: "Use Visible Progress", body: "Seeing your streak grow fuels motivation and reminds you of the progress you've already made." },
+  { title: "Design Your Environment", body: "Your environment shapes your habits more than willpower does. Make the good choice the easy choice." },
+  { title: "Avoid the Downward Spiral", body: "It's not about perfect days. Don't let one missed day become a long streak of missed days." },
+  { title: "Celebrate Small Wins", body: "Celebrating small victories reinforces the identity of someone who follows through on commitments." },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -253,6 +253,26 @@ function ProgressBar({ percent }: { percent: number }) {
   );
 }
 
+
+// ── Right-panel components ────────────────────────────────────────────────────
+
+function ConsistencyTip({ title, body }: { title: string; body: string }) {
+  return (
+    <div className={styles.tipCard}>
+      <div className={styles.tipHeader}>
+        <div className={styles.tipIconWrap}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+        <span className={styles.tipLabel}>CONSISTENCY TIP</span>
+      </div>
+      <h3 className={styles.tipTitle}>{title}</h3>
+      <p className={styles.tipBody}>{body}</p>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function TodayPage() {
@@ -274,9 +294,7 @@ export default function TodayPage() {
   const [lastAction, setLastAction] = useState<{ habitId: string; delta: number } | null>(null);
   const [toastKey, setToastKey] = useState(0);
 
-  const [dailyTip] = useState<string>(
-    () => MOTIVATION_TIPS[Math.floor(Math.random() * MOTIVATION_TIPS.length)]
-  );
+  const dailyTip = useMemo(() => TIPS[Math.floor(Math.random() * TIPS.length)], []);
 
   const weekDays = useMemo(() => buildWeekDays(TODAY, weekOffset), [weekOffset]);
 
@@ -524,96 +542,99 @@ export default function TodayPage() {
                 <h1 className={styles.greeting}>{greeting(user?.name?.split(" ")[0] ?? "there")}</h1>
               </div>
 
-              <div className={styles.progressGroup}>
-                <p className={styles.progressMessage}>
-                  {progressMessage.icon}
-                  <span>{progressMessage.text}</span>
-                </p>
-                <ProgressBar percent={progressPct} />
+              <div className={styles.pageGrid}>
+                <div className={styles.mainColumn}>
+                  <div className={styles.progressGroup}>
+                    <p className={styles.progressMessage}>
+                      {progressMessage.icon}
+                      <span>{progressMessage.text}</span>
+                    </p>
+                    <ProgressBar percent={progressPct} />
+                  </div>
+
+                  <DateNavigator
+                    weekDays={weekDays}
+                    selectedDate={selectedDate}
+                    todayStr={TODAY}
+                    weekOffset={weekOffset}
+                    onPrevWeek={goToPrevWeek}
+                    onNextWeek={goToNextWeek}
+                    onSelectDate={handleSelectDate}
+                    onToday={goToToday}
+                  />
+
+                  <section>
+                    <div className={styles.readOnlyNoticeSlot}>
+                      {isReadOnly && (
+                        <div className={styles.readOnlyNotice}>
+                          Check-ins can only be edited on the current day.
+                        </div>
+                      )}
+                    </div>
+
+                    {rows.length === 0 ? (
+                      <div className={styles.emptyState}>
+                        <p>No active habits yet.</p>
+                        <p>Create one to get started!</p>
+                      </div>
+                    ) : (
+                      <div className={styles.habitList}>
+                        {rows.map(row => (
+                          <HabitRow
+                            key={row.habit._id}
+                            row={row}
+                            onIncrement={r => updateCount(r, 1)}
+                            onDecrement={r => updateCount(r, -1)}
+                            isPending={pendingId === row.habit._id}
+                            isReadOnly={isReadOnly}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </div>
+
+                <aside className={styles.sideColumn}>
+
+                  <div className={styles.statsCard}>
+                    <div className={styles.statsHeader}>
+                      <span>📊</span>
+                      <span className={styles.statsTitle}>Today at a Glance</span>
+                    </div>
+                    <div className={styles.statsGrid}>
+                      <div className={styles.statsItem}>
+                        <span className={styles.statsValue}>🔥 {mockPerfectDayStreak}</span>
+                        <span className={styles.statsLabel}>day streak</span>
+                      </div>
+                      <div className={styles.statsItem}>
+                        <span className={styles.statsValue}>{todayRows.length}</span>
+                        <span className={styles.statsLabel}>active habits</span>
+                      </div>
+                      <div className={styles.statsItem}>
+                        <span className={styles.statsValue}>{completedTodayCount}</span>
+                        <span className={styles.statsLabel}>completed</span>
+                      </div>
+                      <div className={styles.statsItem}>
+                        <span className={styles.statsValue}>{inProgressTodayCount}</span>
+                        <span className={styles.statsLabel}>in progress</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <WeeklyMomentum
+                    weekDays={weekDays}
+                    weekCompletion={weekCompletion}
+                    today={TODAY}
+                  />
+
+                  
+<ConsistencyTip
+                    title={dailyTip.title}
+                    body={dailyTip.body}
+                  />
+                </aside>
               </div>
 
-              <DateNavigator
-                weekDays={weekDays}
-                selectedDate={selectedDate}
-                todayStr={TODAY}
-                weekOffset={weekOffset}
-                onPrevWeek={goToPrevWeek}
-                onNextWeek={goToNextWeek}
-                onSelectDate={handleSelectDate}
-                onToday={goToToday}
-              />
-
-              {/* 3-card info row: our tip card, teammate's WeeklyMomentum, our stats card */}
-              <div className={styles.infoGrid}>
-                <div className={styles.tipCard}>
-                  <div className={styles.tipHeader}>
-                    <Lightbulb size={16} />
-                    <span className={styles.tipTitle}>Consistency Tip</span>
-                  </div>
-                  <p className={styles.tipBody}>{dailyTip}</p>
-                </div>
-
-                <WeeklyMomentum
-                  weekDays={weekDays}
-                  weekCompletion={weekCompletion}
-                  today={TODAY}
-                />
-
-                <div className={styles.statsCard}>
-                  <div className={styles.statsHeader}>
-                    <span>📊</span>
-                    <span className={styles.statsTitle}>Today at a Glance</span>
-                  </div>
-                  <div className={styles.statsGrid}>
-                    <div className={styles.statsItem}>
-                      <span className={styles.statsValue}>🔥 {mockPerfectDayStreak}</span>
-                      <span className={styles.statsLabel}>day streak</span>
-                    </div>
-                    <div className={styles.statsItem}>
-                      <span className={styles.statsValue}>{todayRows.length}</span>
-                      <span className={styles.statsLabel}>active habits</span>
-                    </div>
-                    <div className={styles.statsItem}>
-                      <span className={styles.statsValue}>{completedTodayCount}</span>
-                      <span className={styles.statsLabel}>completed</span>
-                    </div>
-                    <div className={styles.statsItem}>
-                      <span className={styles.statsValue}>{inProgressTodayCount}</span>
-                      <span className={styles.statsLabel}>in progress</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <section>
-                <div className={styles.readOnlyNoticeSlot}>
-                  {isReadOnly && (
-                    <div className={styles.readOnlyNotice}>
-                      Check-ins can only be edited on the current day.
-                    </div>
-                  )}
-                </div>
-
-                {rows.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <p>No active habits yet.</p>
-                    <p>Create one to get started!</p>
-                  </div>
-                ) : (
-                  <div className={styles.habitList}>
-                    {rows.map(row => (
-                      <HabitRow
-                        key={row.habit._id}
-                        row={row}
-                        onIncrement={r => updateCount(r, 1)}
-                        onDecrement={r => updateCount(r, -1)}
-                        isPending={pendingId === row.habit._id}
-                        isReadOnly={isReadOnly}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
             </div>
           </div>
         )}

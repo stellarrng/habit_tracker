@@ -181,7 +181,7 @@ export default function HabitRow({ row, onIncrement, onDecrement, isPending, isR
                             onClick={() => onDecrement(row)}
                             disabled={isPending || isReadOnly || checkIn.completedCount <= 0}
                             aria-label={`Decrease ${habit.name}`}
-                        >−</button>
+                        >-</button>
                         <span className={styles.counterValue}>
                             {checkIn.completedCount}
                             <span className={styles.counterTotal}> / {habit.targetPerDay}</span>
