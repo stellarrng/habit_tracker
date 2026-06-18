@@ -101,3 +101,9 @@
 .error {
   border-color: var(--color-danger) !important;
 }
+
+/* Goal input row */
+.goalRow { display: flex; align-items: center; gap: 10px; }
+.goalRow .formInput { flex: 1; }
+.goalSuffix { font-size: var(--font-size-sm); color: var(--text-muted); white-space: nowrap; }
+

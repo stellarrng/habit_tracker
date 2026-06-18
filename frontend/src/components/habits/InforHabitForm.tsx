@@ -221,6 +221,28 @@ export default function InforHabitForm({ editingHabit, onClose }: InforHabitForm
             </div>
           )}
 
+          {/* Goal / Target */}
+          <div className={styles.formGroup} style={{ marginBottom: 18 }}>
+            <label className={styles.formLabel} htmlFor="habit-target">Goal / Target per day <span>*</span></label>
+            <div className={styles.goalRow}>
+              <input
+                id="habit-target"
+                type="number"
+                className={`${styles.formInput} ${errors.targetPerDay ? styles.error : ''}`}
+                min={1}
+                value={form.targetPerDay}
+                onChange={e => {
+                  const v = parseInt(e.target.value, 10);
+                  setForm(p => ({ ...p, targetPerDay: isNaN(v) ? 1 : Math.max(1, v) }));
+                }}
+              />
+              <span className={styles.goalSuffix}>
+                {form.targetPerDay === 1 ? 'session / day' : 'times / day'}
+              </span>
+            </div>
+            {errors.targetPerDay && <span className={styles.formError}>{errors.targetPerDay}</span>}
+          </div>
+
           {/* Footer */}
           <div className={styles.modalFooter}>
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
