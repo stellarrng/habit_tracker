@@ -1,92 +1,225 @@
-/* ── Layout ──────────────────────────────────────────────────────────────────── */
+/* ── Page shell ──────────────────────────────────────────────────────────── */
 
 .page {
-  min-height: 100vh;
-  background-color: var(--bg-page);
-  padding: var(--space-6);
-  font-family: var(--font-sans);
-}
-
-.container {
-  max-width: 672px;
+  width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
+  padding: 0 24px 64px;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: 20px;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────────── */
+/* ── Page header ─────────────────────────────────────────────────────────── */
 
-.header {
+.pageHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
+  padding-top: 24px;
 }
 
-.greeting {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-gray-900);
+.pageTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
   margin: 0;
 }
 
-.subheading {
-  font-size: var(--text-sm);
-  color: var(--color-gray-500);
-  margin: 2px 0 0;
+.pageSub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.55;
 }
 
-.undoBtn {
+/* ── Info cards row ──────────────────────────────────────────────────────── */
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* ── Date navigator ─────────────────────────────────────────────────────────── */
+
+.dateNav {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.dateNavHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-primary);
-  background: none;
-  border: none;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dateNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navArrowBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   cursor: pointer;
-  padding: 0;
-  transition: color var(--transition-fast);
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.undoBtn:hover {
-  color: var(--color-primary-hover);
+.navArrowBtn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
-/* ── Progress bar ────────────────────────────────────────────────────────────── */
+.navArrowBtn:active { transform: scale(0.94); }
+
+.dateNavMonth {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: 4px;
+}
+
+.todayNavBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.todayNavBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.dateNavStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.dayCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dayCell:hover:not(.dayCellSelected) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.dayLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dayNum {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.todayDot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.dayCellToday {
+  border-color: var(--color-primary);
+}
+.dayCellToday .dayLabel { color: var(--color-primary); }
+.dayCellToday .dayNum   { color: var(--color-primary); }
+
+.dayCellSelected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.dayCellSelected .dayLabel,
+.dayCellSelected .dayNum  { color: #fff; }
+.dayCellSelected .todayDot { background: rgba(255,255,255,0.7); }
+
+.dayCellFuture { opacity: 0.45; }
+
+.dayCellPast .dayNum { color: var(--text-secondary); }
+
+
+/* ── Progress row ────────────────────────────────────────────────────────────── */
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
 .progressTrack {
-  width: 100%;
-  height: 10px;
-  background-color: var(--color-gray-100);
+  flex: 1;
+  height: 8px;
+  background-color: var(--progress-track);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
- 
+
 .progressFill {
   position: relative;
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(
-    90deg,
-    var(--color-primary) 0%,
-    #a5f3fc 100%
-  );
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
- 
+
 .progressGlow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
   border-radius: var(--radius-full);
+}
+
+.progressLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Section header ──────────────────────────────────────────────────────────── */
@@ -95,20 +228,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
+  margin-bottom: 10px;
 }
 
 .sectionTitle {
-  font-size: var(--text-xs);
-  font-weight: var(--font-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-gray-400);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.sectionCount {
-  font-size: var(--text-xs);
-  color: var(--color-gray-400);
+.undoBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+}
+
+.undoBtn:hover {
+  color: var(--color-primary-dark);
 }
 
 /* ── Habit list ────────────────────────────────────────────────────────────── */
@@ -116,232 +260,86 @@
 .habitList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 10px;
 }
 
 /* ── Habit row ─────────────────────────────────────────────────────────────── */
 
 .habitRow {
-  position: relative;
-  overflow: hidden;
- 
   display: flex;
   align-items: center;
   justify-content: space-between;
- 
-  padding: 14px var(--space-5);   /* slightly more horizontal padding */
-  gap: var(--space-4);            /* gap keeps left and right from touching */
- 
-  background-color: var(--bg-card);
+  padding: 14px 16px;
+  gap: 12px;
+  background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease, background-color 0.2s ease;
+}
 
-  transition: border-color var(--transition-fast);
+.habitRow:hover {
+  border-color: var(--color-primary);
 }
 
 .habitRowCompleted {
-  border-color: var(--color-success-light);
+  background-color: var(--color-primary-light);
+  border-color: var(--color-accent);
 }
 
-.habitRowAtRisk {
-  border-color: var(--color-danger-light);
-}
-
-/* ── Priority indicators ───────────────────────────────────────────────────── */
-
-.priorityLow {
-  border-left: 5px solid var(--color-secondary);
-}
-
-.priorityMedium {
-  border-left: 5px solid var(--color-tertiary);
-}
-
-.priorityHigh {
-  border-left: 5px solid var(--color-danger);
-}
-
-/* ── Progress fill ─────────────────────────────────────────────────────────── */
-
-.habitProgressFill {
-  position: absolute;
-  inset: 0 auto 0 0;
-
-  z-index: 0;
-
-  background: var(--color-success-light);
-
-  transition:
-    width 350ms ease,
-    background-color 350ms ease;
-}
-
-.habitRowCompleted .habitProgressFill {
-  width: 100% !important;
-  background: var(--color-success);
-}
-
-/* ── Completed state overrides ───────────────────────────────────────────────
- *
- * When the green fill covers the full row, flip all child elements to
- * white/light so they stay readable against the green background.
- *
- * Add these right after your .habitRowCompleted .habitProgressFill rule.
- * ─────────────────────────────────────────────────────────────────────────── */
-
-/* Row border matches the fill */
-.habitRowCompleted {
-  border-color: var(--color-success);
-}
-
-/* Habit name → white */
-.habitRowCompleted .habitName {
-  color: #fff;
-}
-
-/* Icon background → slightly lighter green, icon color → white */
-.habitRowCompleted .habitIcon {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-/* Counter value → white, the /total part → semi-transparent white */
-.habitRowCompleted .counterValue {
-  color: #fff;
-}
-
-.habitRowCompleted .counterTotal {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Counter buttons → white ghost circles */
-.habitRowCompleted .counterBtn {
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #fff;
-  background: transparent;
-}
-
-.habitRowCompleted .counterBtn:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* Check button (binary) → white ring with white check */
-.habitRowCompleted .checkBtnDone {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #fff;
-}
-
-.habitRowCompleted .checkBtnDone:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.35);
-}
-
-.habitRowCompleted .priorityBadge {
-  color: #fff;
+.habitRowPending {
+  opacity: 0.65;
+  pointer-events: none;
 }
 
 /* ── Habit content ─────────────────────────────────────────────────────────── */
 
-.habitLeft,
-.counter {
-  position: relative;
-  z-index: 1;
-}
-
 .habitLeft {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 .habitInfo {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.habitNameRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+.categoryChip {
+  align-self: flex-start;
+  margin-bottom: 1px;
 }
 
 .habitName {
-  font-size: var(--text-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-800);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Priority badge ────────────────────────────────────────────────────────────── */
-
-.priorityBadge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.priorityBadgeHigh {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-}
-
-.priorityBadgeMedium {
-  background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-}
-
-.priorityBadgeLow {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
+.habitNameDone {
+  color: var(--text-muted);
 }
 
 /* ── Status line ─────────────────────────────────────────────────────────────── */
 
 .statusLine {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--text-xs);
-  margin-top: 3px;
+  font-size: var(--font-size-sm);
   line-height: 1.4;
 }
 
 .statusCompleted {
-  color: var(--color-success);
-  font-weight: var(--font-medium);
-}
-
-.statusAtRisk {
-  color: var(--color-danger);
-  font-weight: var(--font-medium);
-}
-
-.statusNotStarted {
-  color: var(--color-gray-400);
+  color: var(--color-primary);
+  font-weight: 500;
 }
 
 .statusInProgress {
-  color: var(--color-gray-500);
-}
-
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--color-success);
-  flex-shrink: 0;
-}
-
-/* When row is completed (green background), flip status text to white */
-.habitRowCompleted .statusLine {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.habitRowCompleted .statusDot {
-  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
 }
 
 /* ── Counter ─────────────────────────────────────────────────────────────────── */
@@ -349,43 +347,36 @@
 .counter {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: 8px;
   flex-shrink: 0;
 }
 
-/* Pill wrapper for multi-step counter */
 .counterPill {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background-color: transparent;
-  border: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
 }
 
 .counterBtn {
   width: 30px;
   height: 30px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--color-gray-300);
-  background: var(--bg-card);
-  color: var(--color-gray-600);
-  font-size: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 15px;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    background-color var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-  flex-shrink: 0;
+  transition: background-color 0.15s ease;
 }
 
 .counterBtn:hover:not(:disabled) {
-  background-color: var(--color-gray-100);
-  border-color: var(--color-gray-400);
-  color: var(--color-gray-900);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .counterBtn:disabled {
@@ -393,45 +384,25 @@
   cursor: not-allowed;
 }
 
-.counterValue {
-  font-size: var(--text-sm);
-  font-weight: var(--font-bold);
-  color: var(--color-gray-800);
-  min-width: 44px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.counterTotal {
-  font-weight: var(--font-normal);
-  color: var(--color-gray-400);
-  font-size: var(--text-xs);
-}
-
-/* ── Binary check button ─────────────────────────────────────────────────────── */
-/* Circle ring → fills green on completion                                        */
+/* ── Check button ─────────────────────────────────────────────────────────────── */
 
 .checkBtn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-gray-300);
+  border: 2px solid var(--border);
   background: none;
   color: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    border-color var(--transition-fast),
-    background-color var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
 .checkBtn:hover:not(:disabled) {
-  border-color: var(--color-success);
-  color: var(--color-success-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
   transform: scale(1.08);
 }
 
@@ -441,140 +412,226 @@
 }
 
 .checkBtnDone {
-  background-color: var(--color-success);
-  border-color: var(--color-success);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
   color: #fff;
 }
 
 .checkBtnDone:hover:not(:disabled) {
-  background-color: #047857;
-  border-color: #047857;
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
   color: #fff;
-  transform: scale(1.08);
+  transform: scale(1.06);
 }
 
-/* ── Bottom cards ────────────────────────────────────────────────────────────── */
-
-.bottomCards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
+/* ── Right panel: Consistency Tip ────────────────────────────────────────────── */
 
 .tipCard {
-  background-color: var(--color-warning-bg);
-  border: 1px solid var(--color-warning-light);
+  background-color: #7A6474;
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
-}
-
-.statsCard {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .tipHeader {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: 6px;
-  font-size: var(--text-base);
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.statsHeader {
+.tipIconWrap {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
-  font-size: var(--text-base);
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tipLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .tipTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-warning);
-}
-
-.statsTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  line-height: 1.3;
 }
 
 .tipBody {
-  font-size: var(--text-xs);
-  color: var(--color-warning);
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
   margin: 0;
 }
 
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+/* ── Right panel: Weekly Momentum ────────────────────────────────────────────── */
+
+.momentumCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
 }
 
-.statsItem {
-  padding: var(--space-3);
+.momentumLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.momentumDots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dot {
+  flex: 1;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.dotHigh   { background-color: var(--heat-high); }
+.dotMid    { background-color: var(--heat-mid); }
+.dotLow    { background-color: var(--heat-low); }
+.dotEmpty  { background-color: var(--heat-empty); }
+
+.momentumDays {
+  display: flex;
+  gap: 6px;
+}
+
+.momentumDay {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Right panel: Current Vibe ───────────────────────────────────────────────── */
+
+.vibeCard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+  height: 160px;
+  background: linear-gradient(160deg, #9B8070 0%, #5C3E2E 50%, #3E2820 100%);
+}
+
+.vibeOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 40%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  gap: 4px;
+}
+
+.vibeLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.vibeName {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── Error state ─────────────────────────────────────────────────────────────── */
+
+.errorWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 24px;
+}
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-danger-light);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 400px;
+}
+
+.errorText {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.retryBtn {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--color-primary);
+  border: none;
   border-radius: var(--radius-md);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-100);
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 }
 
-.statsValue {
-  display: block;
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-gray-900);
-  line-height: 1;
+.retryBtn:hover {
+  background-color: var(--color-primary-dark);
 }
 
-.statsLabel {
-  display: block;
-  margin-top: 4px;
-  font-size: var(--text-xs);
-  color: var(--color-gray-500);
-  line-height: 1.4;
-}
+/* ── Empty state ─────────────────────────────────────────────────────────────── */
 
-@media (max-width: 640px) {
-  .bottomCards,
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* ── Skeleton ────────────────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-
-  100% {
-    background-position: 400px 0;
-  }
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
 }
 
 .skeletonBox {
-  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-200) 50%, var(--color-gray-100) 75%);
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
   background-size: 400px 100%;
   animation: shimmer 1.4s infinite;
   border-radius: var(--radius-md);
 }
 
-.skeletonHeader {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 .skeletonGreeting {
   width: 220px;
-  height: 28px;
+  height: 32px;
+  border-radius: var(--radius-md);
 }
 
 .skeletonProgress {
@@ -585,7 +642,7 @@
 
 .skeletonWeek {
   display: flex;
-  gap: var(--space-1);
+  gap: 4px;
 }
 
 .skeletonDay {
@@ -598,16 +655,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px var(--space-4);
+  padding: 14px 16px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background: var(--bg-surface);
 }
 
 .skeletonLeft {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
 }
 
 .skeletonLines {
@@ -617,9 +674,9 @@
 }
 
 .skeletonIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -635,63 +692,33 @@
 
 .skeletonCounter {
   width: 80px;
-  height: 28px;
+  height: 30px;
   border-radius: var(--radius-full);
 }
 
-/* ── Pending state ───────────────────────────────────────────────────────────── */
-
-.habitRowPending {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-/* ── Error state ─────────────────────────────────────────────────────────────── */
-
-.errorBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-10) var(--space-6);
-  background: var(--bg-card);
-  border: 1px solid var(--color-danger-light);
+.skeletonTip {
+  height: 160px;
   border-radius: var(--radius-lg);
-  text-align: center;
 }
 
-.errorText {
-  font-size: var(--text-sm);
-  color: var(--color-danger);
-}
-
-.retryBtn {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: #fff;
-  background-color: var(--color-primary);
-  border: none;
+.skeletonMomentum {
+  height: 90px;
   border-radius: var(--radius-lg);
-  padding: var(--space-2) var(--space-5);
-  cursor: pointer;
-  transition: background-color var(--transition-fast);
 }
 
-.retryBtn:hover {
-  background-color: var(--color-primary-hover);
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-/* ── Empty state ─────────────────────────────────────────────────────────────── */
-
-.emptyState {
-  padding: var(--space-8);
-  text-align: center;
-  color: var(--color-gray-400);
-  font-size: var(--text-sm);
-  background: var(--bg-card);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+@media (max-width: 640px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+  .pageHeader {
+    flex-direction: column;
+  }
 }

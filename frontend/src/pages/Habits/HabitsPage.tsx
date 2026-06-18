@@ -16,11 +16,11 @@ import styles from './HabitsPage.module.css';
 const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
 
 const CATEGORY_DOT_COLORS: Record<string, string> = {
-  Health: 'var(--color-health)',
-  Study: 'var(--color-study)',
-  Work: 'var(--color-work)',
-  Mindfulness: 'var(--color-mindful)',
-  Other: 'var(--color-other)',
+  Health: 'var(--color-category-health-text)',
+  Study: 'var(--color-category-study-text)',
+  Work: 'var(--color-category-work-text)',
+  Mindfulness: 'var(--color-category-mindfulness-text)',
+  Other: 'var(--color-category-other-text)',
 };
 
 export default function HabitsPage() {
@@ -107,7 +107,7 @@ export default function HabitsPage() {
   }
 
   return (
-    <AppLayout onNewHabit={openCreate}>
+    <AppLayout>
       <div className="page-container">
 
         {/* Page Header */}
@@ -211,7 +211,7 @@ export default function HabitsPage() {
                 <h2 className={styles.categoryHeading}>
                   <span
                     className={styles.categoryHeadingDot}
-                    style={{ backgroundColor: CATEGORY_DOT_COLORS[category] || '#ccc' }}
+                    style={{ backgroundColor: CATEGORY_DOT_COLORS[category] || 'var(--text-muted)' }}
                   />
                   {category}
                   <span className={styles.categoryCount}>

@@ -132,7 +132,7 @@
 
 .goalBarTrack {
   height: 8px;
-  background: #EEF0F7;
+  background: var(--progress-track);
   border-radius: 99px;
   overflow: hidden;
 }
@@ -140,12 +140,12 @@
 .goalBarFill {
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--color-primary), #6EB5FF);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transition: width 0.4s ease;
 }
 
 .goalBarFillComplete {
-  background: linear-gradient(90deg, var(--color-success), #69DB7C);
+  background: var(--color-success);
 }
 
 .goalBarFooter {
@@ -303,7 +303,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #EEF0F7;
+  background: var(--progress-track);
   border: 1px solid var(--border);
   transition: background 0.3s;
 }
@@ -405,13 +405,16 @@
 }
 
 .deleteBtn {
-  border-color: #FFE3E3;
-  color: #C92A2A;
-  background: #FFF5F5;
+  border-color: var(--color-danger-light);
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  opacity: 0.85;
 }
 
 .deleteBtn:hover {
-  background: #FFE3E3;
+  opacity: 1;
+  background: var(--color-danger-light);
+  border-color: var(--color-danger);
 }
 
 .goalHeaderRight {
@@ -520,8 +523,8 @@
 }
 
 .confirmIcon_success {
-  background: #FFF3BF;
-  color: #F59F00;
+  background: var(--color-success-light);
+  color: var(--color-success);
 }
 
 .confirmContent {

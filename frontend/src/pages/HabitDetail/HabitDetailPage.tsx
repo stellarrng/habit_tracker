@@ -20,14 +20,14 @@ import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
 
 // ─── Color maps ──────────────────────────────────────────────────────────
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
-  Low: { bg: '#DBF4FF', color: '#1864AB' },
-  Medium: { bg: '#FFF3BF', color: '#855C04' },
-  High: { bg: '#FFE3E3', color: '#C92A2A' },
+  Low: { bg: 'var(--color-secondary-light)', color: 'var(--color-secondary-dark)' },
+  Medium: { bg: 'var(--color-warning-light)', color: 'var(--color-warning)' },
+  High: { bg: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' },
 };
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  Active: { bg: '#D3F9D8', color: '#2F9E44' },
-  Paused: { bg: '#F1F3F5', color: '#868E96' },
-  Archived: { bg: '#FFF3CD', color: '#E67700' },
+  Active: { bg: 'var(--color-secondary-light)', color: 'var(--color-secondary-dark)' },
+  Paused: { bg: 'var(--color-paused-light)', color: 'var(--color-paused)' },
+  Archived: { bg: 'var(--color-accent-light)', color: 'var(--color-accent-dark)' },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ export default function HabitDetailPage() {
 
   if (!habit) {
     return (
-      <AppLayout onNewHabit={() => navigate('/habits')}>
+      <AppLayout>
         <div style={{ padding: 48, textAlign: 'center' }}>
           <InfoIcon style={{ width: 48, height: 48, color: 'var(--text-muted)', marginBottom: 16 }} />
           <h2 style={{ marginBottom: 8 }}>Habit not found</h2>
@@ -210,7 +210,7 @@ export default function HabitDetailPage() {
 
   if (loadingCheckIns) {
     return (
-      <AppLayout onNewHabit={() => navigate('/habits')}>
+      <AppLayout>
         <div className="loading-center">
           <div className="spinner" />
         </div>
@@ -318,7 +318,7 @@ export default function HabitDetailPage() {
   }
 
   return (
-    <AppLayout onNewHabit={() => navigate('/habits')}>
+    <AppLayout>
       <div className={styles.detailPageContainer}>
 
         {/* Back */}

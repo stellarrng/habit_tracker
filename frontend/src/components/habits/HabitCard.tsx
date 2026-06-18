@@ -30,7 +30,7 @@ function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
   const color = complete ? 'var(--color-success)' : 'var(--color-primary)';
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" className={styles.goalRing}>
-      <circle cx="20" cy="20" r={r} fill="none" stroke="#EEF0F7" strokeWidth="4" />
+      <circle cx="20" cy="20" r={r} fill="none" stroke="var(--progress-track)" strokeWidth="4" />
       <circle
         cx="20" cy="20" r={r}
         fill="none"

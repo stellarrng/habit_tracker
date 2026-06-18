@@ -1,8 +1,8 @@
 import {
-  createContext, useContext, useState, useEffect, useCallback, ReactNode,
+  createContext, useContext, useMemo, useCallback, ReactNode,
 } from 'react';
 import { Goal, CreateGoalInput } from '../types';
-import * as goalApi from '../api/goals';
+import { useHabitContext } from './HabitContext';
 
 interface GoalContextType {
   goals:           Goal[];
@@ -18,61 +18,53 @@ interface GoalContextType {
 const GoalContext = createContext<GoalContextType | null>(null);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
+// Goals are stored as fields on the Habit document (goalTargetType / goalTargetValue).
+// This context derives Goal objects from the already-loaded habits so there is a
+// single source of truth and no separate Goal-collection API call is needed.
 export function GoalProvider({ children }: { children: ReactNode }) {
-  const [goals,   setGoals]   = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error,   setError]   = useState<string | null>(null);
+  const { habits, loading, error, editHabit, clearError } = useHabitContext();
 
-  useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    goalApi.getGoals()
-      .then(data  => { if (alive) setGoals(data); })
-      .catch(()   => { if (alive) setError('Failed to load goals.'); })
-      .finally(() => { if (alive) setLoading(false); });
-    return () => { alive = false; };
-  }, []);
-
-  const clearError = useCallback(() => setError(null), []);
+  const goals = useMemo<Goal[]>(() =>
+    habits
+      .filter(h => h.goalTargetType && h.goalTargetValue)
+      .map(h => ({
+        _id:         h._id,
+        userId:      h.userId,
+        habitId:     h._id,
+        targetType:  h.goalTargetType!,
+        targetValue: h.goalTargetValue!,
+      })),
+    [habits],
+  );
 
   const getGoalForHabit = useCallback(
     (habitId: string) => goals.find(g => g.habitId === habitId),
     [goals],
   );
 
+  // Saves goal by updating the parent habit's embedded fields.
   const addGoal = useCallback(async (input: CreateGoalInput) => {
-    setError(null);
-    try {
-      const created = await goalApi.createGoal(input);
-      setGoals(prev => [...prev, created]);
-    } catch {
-      setError('Could not save goal. Please try again.');
-      throw new Error('create failed');
-    }
-  }, []);
+    await editHabit(input.habitId, {
+      goalTargetType:  input.targetType,
+      goalTargetValue: input.targetValue,
+    });
+  }, [editHabit]);
 
+  // id === habit._id (we use habit._id as the goal's synthetic _id).
   const editGoal = useCallback(async (
     id: string,
     data: Partial<Pick<CreateGoalInput, 'targetType' | 'targetValue'>>,
   ) => {
-    setError(null);
-    try {
-      const updated = await goalApi.updateGoal(id, data);
-      setGoals(prev => prev.map(g => (g._id === id ? updated : g)));
-    } catch {
-      setError('Could not update goal. Please try again.');
-      throw new Error('update failed');
-    }
-  }, []);
+    await editHabit(id, {
+      ...(data.targetType  !== undefined ? { goalTargetType:  data.targetType  } : {}),
+      ...(data.targetValue !== undefined ? { goalTargetValue: data.targetValue } : {}),
+    });
+  }, [editHabit]);
 
+  // Clears the goal from the habit.
   const removeGoal = useCallback(async (id: string) => {
-    setGoals(prev => prev.filter(g => g._id !== id)); // optimistic
-    try {
-      await goalApi.deleteGoal(id);
-    } catch {
-      setError('Could not delete goal.');
-    }
-  }, []);
+    await editHabit(id, { goalTargetType: null, goalTargetValue: null });
+  }, [editHabit]);
 
   return (
     <GoalContext.Provider value={{
