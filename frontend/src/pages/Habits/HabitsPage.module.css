@@ -273,3 +273,28 @@ body.dark .activeFilter .statName {
   background: var(--bg-elevated);
 }
 
+.activeFiltersRow {
+  margin-bottom: 20px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+  width: fit-content;
+}
+
+.activeFiltersLabel {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.activeFiltersValue {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+

@@ -16,7 +16,7 @@ export interface FilterState {
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  category: [], frequency: [], priority: [], status: [], search: '',
+  category: [], frequency: [], priority: [], status: ['Active'], search: '',
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────

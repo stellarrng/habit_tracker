@@ -119,6 +119,31 @@ export default function HabitsPage() {
     return [...defined, ...undefinedCats];
   }, [habitsByCategory]);
 
+  // Active filters display text
+  const activeFiltersSummaryText = useMemo(() => {
+    const activeParts: string[] = [];
+    if (filters.search) {
+      activeParts.push(`Search: "${filters.search}"`);
+    }
+    if (filters.status && filters.status.length > 0) {
+      activeParts.push(`Status: ${filters.status.join(', ')}`);
+    }
+    if (filters.category && filters.category.length > 0) {
+      activeParts.push(`Category: ${filters.category.join(', ')}`);
+    }
+    if (filters.frequency && filters.frequency.length > 0) {
+      activeParts.push(`Frequency: ${filters.frequency.join(', ')}`);
+    }
+    if (filters.priority && filters.priority.length > 0) {
+      activeParts.push(`Priority: ${filters.priority.join(', ')}`);
+    }
+
+    if (activeParts.length === 0) {
+      return 'All habits';
+    }
+    return activeParts.join(' | ');
+  }, [filters]);
+
   function openCreate() { setEditingHabit(null); setShowForm(true); }
   function openEdit(habit: Habit) { setEditingHabit(habit); setShowForm(true); }
   function closeForm() { setShowForm(false); setEditingHabit(null); }
@@ -312,6 +337,12 @@ export default function HabitsPage() {
 
         {/* Filters */}
         <HabitFilters />
+
+        {/* Active Filters Row */}
+        <div className={styles.activeFiltersRow}>
+          <span className={styles.activeFiltersLabel}>Filtering by:</span>
+          <span className={styles.activeFiltersValue}>{activeFiltersSummaryText}</span>
+        </div>
 
         {/* Loading */}
         {loading && (

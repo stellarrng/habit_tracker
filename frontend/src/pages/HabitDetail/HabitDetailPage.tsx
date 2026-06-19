@@ -360,7 +360,7 @@ export default function HabitDetailPage() {
 
   return (
     <AppLayout>
-      <div className={styles.detailPageContainer}>
+      <div className={`page-container ${styles.detailPageContainer}`}>
 
         {/* Back */}
         <button onClick={() => navigate('/habits')} className={styles.backButton} id="back-to-habits">
