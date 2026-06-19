@@ -12,13 +12,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/goals': 'Goals',
 };
 
-const PAGE_TITLES: Record<string, string> = {
-  '/today':     'Today',
-  '/habits':    'Habits',
-  '/dashboard': 'Statistics',
-  '/goals':     'Goals',
-};
-
 interface AppLayoutProps {
   children: ReactNode;
 }

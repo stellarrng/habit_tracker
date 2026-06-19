@@ -15,7 +15,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .pageGrid {
@@ -92,9 +92,9 @@
 }
 
 .progressTrack {
-  flex: 1;
-  height: 8px;
-  background-color: var(--progress-track);
+  width: 100%;
+  height: 10px;
+  background-color: var(--color-gray-100);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -215,7 +215,7 @@
 .habitList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
 /* ── 3-card info row ─────────────────────────────────────────────────────── */
@@ -356,22 +356,12 @@
   box-shadow: var(--shadow-sm);
 }
 
-.tipIconWrap {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
+.statsHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.tipLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.65);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-base);
 }
 
 .statsTitle {
@@ -386,124 +376,28 @@
   gap: var(--space-3);
 }
 
-.momentumLabel {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-
-.momentumDots {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.dot {
-  flex: 1;
-  height: 16px;
-  border-radius: var(--radius-sm);
-}
-
-.dotHigh   { background-color: var(--heat-high); }
-.dotMid    { background-color: var(--heat-mid); }
-.dotLow    { background-color: var(--heat-low); }
-.dotEmpty  { background-color: var(--heat-empty); }
-
-.momentumDays {
-  display: flex;
-  gap: 6px;
-}
-
-.momentumDay {
-  flex: 1;
-  text-align: center;
-  font-size: 10px;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* ── Right panel: Current Vibe ───────────────────────────────────────────────── */
-
-.vibeCard {
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  position: relative;
-  height: 160px;
-  background: linear-gradient(160deg, #9B8070 0%, #5C3E2E 50%, #3E2820 100%);
-}
-
-.vibeOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.55) 40%, transparent 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px;
-  gap: 4px;
-}
-
-.vibeLabel {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-}
-
-.vibeName {
-  font-size: var(--font-size-md);
-  font-weight: 700;
-  color: #fff;
-}
-
-/* ── Error state ─────────────────────────────────────────────────────────────── */
-
-.errorWrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 24px;
-}
-
-.errorBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding: 40px 24px;
-  background: var(--bg-surface);
-  border: 1px solid var(--color-danger-light);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  max-width: 400px;
-}
-
-.errorText {
-  font-size: var(--font-size-sm);
-  color: var(--color-danger);
-}
-
-.retryBtn {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: #fff;
-  background-color: var(--color-primary);
-  border: none;
+.statsItem {
+  padding: var(--space-3);
   border-radius: var(--radius-md);
-  padding: 8px 20px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-100);
 }
 
-.retryBtn:hover {
-  background-color: var(--color-primary-dark);
+.statsValue {
+  display: block;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  line-height: 1;
 }
 
-/* ── Empty state ─────────────────────────────────────────────────────────────── */
+.statsLabel {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  line-height: 1.4;
+}
 
 /* ── Error state ─────────────────────────────────────────────────────────── */
 
@@ -558,8 +452,13 @@
 /* ── Skeleton ────────────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position:  400px 0; }
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
 }
 
 .skeletonBox {
@@ -569,10 +468,15 @@
   border-radius: var(--radius-md);
 }
 
+.skeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .skeletonGreeting {
   width: 220px;
-  height: 32px;
-  border-radius: var(--radius-md);
+  height: 28px;
 }
 
 .skeletonProgress {
@@ -583,7 +487,7 @@
 
 .skeletonWeek {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .skeletonDay {
@@ -596,7 +500,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 14px var(--space-4);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-gray-100);
   background: #fff;
@@ -605,7 +509,7 @@
 .skeletonLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .skeletonLines {
@@ -615,9 +519,9 @@
 }
 
 .skeletonIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
 }
 
@@ -633,7 +537,7 @@
 
 .skeletonCounter {
   width: 80px;
-  height: 30px;
+  height: 28px;
   border-radius: var(--radius-full);
 }
 

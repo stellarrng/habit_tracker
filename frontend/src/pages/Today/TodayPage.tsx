@@ -59,85 +59,8 @@ function buildWeekDays(todayStr: string, weekOffset = 0): WeekStripDay[] {
   });
 }
 
-// ── Date navigator ────────────────────────────────────────────────────────────
-
-function ChevronLeft() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
-  );
-}
-function ChevronRight() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  );
-}
-
-function DateNavigator({
-  weekDays, selectedDate, todayStr,
-  onPrevWeek, onNextWeek, onSelectDate, onToday, weekOffset,
-}: {
-  weekDays: WeekStripDay[]; selectedDate: string; todayStr: string; weekOffset: number;
-  onPrevWeek: () => void; onNextWeek: () => void;
-  onSelectDate: (d: string) => void; onToday: () => void;
-}) {
-  const start = new Date(weekDays[0].iso + "T00:00:00");
-  const end   = new Date(weekDays[6].iso + "T00:00:00");
-  const monthLabel = start.getMonth() === end.getMonth()
-    ? `${MONTH_NAMES[start.getMonth()]} ${start.getFullYear()}`
-    : `${MONTH_NAMES[start.getMonth()]} – ${MONTH_NAMES[end.getMonth()]} ${end.getFullYear()}`;
-
-  return (
-    <div className={styles.dateNav}>
-      <div className={styles.dateNavHeader}>
-        <div className={styles.dateNavLeft}>
-          <button className={styles.navArrowBtn} onClick={onPrevWeek} aria-label="Previous week">
-            <ChevronLeft />
-          </button>
-          <button className={styles.navArrowBtn} onClick={onNextWeek} aria-label="Next week">
-            <ChevronRight />
-          </button>
-          <span className={styles.dateNavMonth}>{monthLabel}</span>
-        </div>
-        {weekOffset !== 0 && (
-          <button className={styles.todayNavBtn} onClick={onToday}>↩ Today</button>
-        )}
-      </div>
-      <div className={styles.dateNavStrip}>
-        {weekDays.map(day => {
-          const isSelected = day.iso === selectedDate;
-          const isToday    = day.iso === todayStr;
-          const isFuture   = day.iso > todayStr;
-          return (
-            <button
-              key={day.iso}
-              className={[
-                styles.dayCell,
-                isSelected               ? styles.dayCellSelected : "",
-                isToday && !isSelected   ? styles.dayCellToday    : "",
-                isFuture                 ? styles.dayCellFuture   : "",
-                !isFuture && !isSelected ? styles.dayCellPast     : "",
-              ].filter(Boolean).join(" ")}
-              onClick={() => onSelectDate(day.iso)}
-            >
-              <span className={styles.dayLabel}>{day.label}</span>
-              <span className={styles.dayNum}>{day.date}</span>
-              {isToday && <span className={styles.todayDot} />}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function greeting(name: string) {
-  const h    = new Date().getHours();
+  const h = new Date().getHours();
   const time = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
   return `Good ${time}, ${name}!`;
 }
@@ -289,30 +212,28 @@ function SkeletonRow() {
 function PageSkeleton() {
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div className={`${styles.skeletonBox} ${styles.skeletonGreeting}`} />
-      </div>
-      <div className={`${styles.skeletonBox} ${styles.skeletonProgress}`} />
-      <div className={styles.skeletonWeek}>
-        {Array.from({ length: 7 }).map((_, i) => (
-          <div key={i} className={`${styles.skeletonBox} ${styles.skeletonDay}`} />
-        ))}
-      </div>
-      <div className={styles.infoGrid}>
-        <div className={`${styles.skeletonBox} ${styles.skeletonTip}`} />
-        <div className={`${styles.skeletonBox} ${styles.skeletonMomentum}`} />
-        <div className={`${styles.skeletonBox} ${styles.skeletonTip}`} />
-      </div>
-      <div className={styles.habitList}>
-        <SkeletonRow /><SkeletonRow /><SkeletonRow />
+      <div className={styles.container}>
+        <div className={styles.skeletonHeader}>
+          <div className={`${styles.skeletonBox} ${styles.skeletonGreeting}`} />
+          <div className={`${styles.skeletonBox} ${styles.skeletonSub}`} />
+        </div>
+        <div className={`${styles.skeletonBox} ${styles.skeletonProgress}`} />
+        <div className={styles.skeletonWeek}>
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className={`${styles.skeletonBox} ${styles.skeletonDay}`} />
+          ))}
+        </div>
+        <div className={styles.habitList}>
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </div>
       </div>
     </div>
   );
 }
 
 // ── ProgressBar ───────────────────────────────────────────────────────────────
-
-// ── Progress bar ──────────────────────────────────────────────────────────────
 
 function ProgressBar({ percent }: { percent: number }) {
   const clamped = Math.min(percent, 100);
@@ -517,96 +438,7 @@ export default function TodayPage() {
       setLastAction({ habitId: habit._id, delta });
       setToastKey(k => k + 1);
     }
-    return map;
-  }, [habits]);
-
-  // Rows for the selected date, sorted by priority
-  const rows = useMemo<HabitRow[]>(() => {
-    const priorityOrder = { High: 0, Medium: 1, Low: 2 };
-    return [...activeHabits]
-      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
-      .map(habit => ({
-        habitId:      habit._id,
-        name:         habit.name,
-        category:     habit.category,
-        priority:     habit.priority,
-        targetPerDay: habit.targetPerDay,
-        userId:       habit.userId,
-        checkIn:      checkInsByHabitDate.get(habit._id)?.get(selectedDate) ?? {
-          _id:            "",
-          userId:         habit.userId,
-          habitId:        habit._id,
-          date:           selectedDate,
-          completedCount: 0,
-          status:         "Not Started" as CheckInStatus,
-          note:           "",
-        },
-        goal: goalMap.get(habit._id) ?? null,
-      }));
-  }, [activeHabits, goalMap, checkInsByHabitDate, selectedDate]);
-
-  // Per-habit streak counts from full check-in history
-  const streaks = useMemo(() => {
-    const today  = new Date();
-    const result = new Map<string, number>();
-    for (const [habitId, dateMap] of checkInsByHabitDate) {
-      let streak = 0;
-      for (let i = 0; i < 365; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        if (dateMap.get(formatLocalDate(d))?.status === "Completed") streak++;
-        else break;
-      }
-      result.set(habitId, streak);
-    }
-    return result;
-  }, [checkInsByHabitDate]);
-
-  // Per-day completion % for the current week (for momentum dots)
-  const weekCompletion = useMemo(() => {
-    const result = new Map<string, number>();
-    for (const day of weekDays) {
-      const done = activeHabits.filter(h =>
-        checkInsByHabitDate.get(h._id)?.get(day.iso)?.status === "Completed"
-      ).length;
-      result.set(
-        day.iso,
-        activeHabits.length > 0 ? Math.round((done / activeHabits.length) * 100) : 0
-      );
-    }
-    return result;
-  }, [checkInsByHabitDate, activeHabits, weekDays]);
-
-  // Progress for today
-  const totalGoal = rows.reduce((s, r) => s + r.targetPerDay, 0);
-  const totalDone = rows.reduce((s, r) => s + Math.min(r.checkIn.completedCount, r.targetPerDay), 0);
-  const progressPct = totalGoal > 0 ? Math.round((totalDone / totalGoal) * 100) : 0;
-
-  const isLoading = habitsLoading || dataLoading;
-  const pageError = error ?? habitsError;
-
-  // ── Update a check-in (optimistic, allCheckIns as source of truth) ─────────
-
-  async function updateCount(row: HabitRow, delta: number, trackUndo = true) {
-    const { habitId, checkIn, targetPerDay } = row;
-    const raw      = checkIn.completedCount + delta;
-    const newCount = Math.max(0, delta > 0 ? Math.min(raw, targetPerDay) : raw);
-    const newStatus = deriveStatus(newCount, targetPerDay);
-
-    // Snapshot for rollback
-    const backup = allCheckIns.find(ci => ci.habitId === habitId && ci.date === selectedDate);
-
-    // Optimistic
-    const optimistic: CheckIn = { ...checkIn, completedCount: newCount, status: newStatus };
-    setAllCheckIns(prev => {
-      const idx = prev.findIndex(ci => ci.habitId === habitId && ci.date === selectedDate);
-      return idx >= 0
-        ? prev.map((ci, i) => i === idx ? optimistic : ci)
-        : [...prev, optimistic];
-    });
-
-    if (trackUndo) setLastAction({ habitId, delta });
-    setPendingId(habitId);
+    setPendingId(habit._id);
 
     try {
       const saved = await upsertCheckIn({
@@ -632,14 +464,6 @@ export default function TodayPage() {
     } finally {
       setPendingId(null);
     }
-  }
-
-  async function toggleComplete(row: HabitRow) {
-    const isCompleted = deriveStatus(row.checkIn.completedCount, row.targetPerDay) === "Completed";
-    const delta = isCompleted
-      ? -row.checkIn.completedCount
-      : row.targetPerDay - row.checkIn.completedCount;
-    await updateCount(row, delta);
   }
 
   async function undoLast() {
@@ -696,8 +520,7 @@ export default function TodayPage() {
                 Try again
               </button>
             </div>
-          </section>
-
+          </div>
         </div>
       </AppLayout>
     );

@@ -1,177 +1,108 @@
-/* ── Today Page HabitRow additions ───────────────────────────────────── */
-
-.habitRow {
-  position: relative;
-  overflow: hidden;
+.habitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
 }
 
-.habitProgressFill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  height: 100%;
-  background: rgba(244, 172, 186, 0.12);
-  pointer-events: none;
-  transition: width 0.25s ease;
-}
-
-.habitLeft {
+.habitsGrid > div {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
-  z-index: 1;
+  flex-direction: column;
 }
 
-.statusLine {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.statusCompleted {
-  color: var(--color-success);
-}
-
-.statusInProgress {
-  color: var(--color-warning);
-}
-
-.statusNotStarted,
-.statusAtRisk {
-  color: var(--color-danger);
-}
-
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: currentColor;
-}
-
-.habitRowCompleted {
-  border-color: var(--color-success-light);
-}
-
-.habitRowAtRisk {
-  border-color: var(--color-danger-light);
-}
-
-/* Counter */
-
-.counter {
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.counterPill {
+.categoryGroups {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  flex-direction: column;
+  gap: 32px;
 }
 
-.counterBtn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 999px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-fast);
+.categorySection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.counterBtn:hover:not(:disabled) {
-  background: var(--color-accent-light);
-}
-
-.counterBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.counterValue {
-  min-width: 50px;
-  text-align: center;
+.categoryHeading {
+  font-size: var(--font-size-md);
   font-weight: 700;
-  font-size: 14px;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-top: 8px;
 }
 
-.counterTotal {
+.categoryHeadingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+}
+
+.categoryCount {
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
   font-weight: 500;
+  margin-left: 2px;
 }
 
 
 
 /* Summary stats grid */
 .statsRow {
-   display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-/* Binary check button */
-
-.checkBtn {
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  border: 2px solid var(--border);
-  background: var(--bg-surface);
-  color: transparent;
- 
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.checkBtn:hover:not(:disabled) {
-  border-color: var(--color-success);
+@media (max-width: 768px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
-.checkBtnDone {
-  background: var(--color-success);
-  border-color: var(--color-success);
-  color: white;
-}
-
-.checkBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ── Missing Priority Badge Classes ───────────────────────────── */
-
-.priorityBadgeHigh {
-  background: var(--color-priority-high-light);
-  color: var(--color-priority-high);
-}
-
-.priorityBadgeMedium {
-  background: var(--color-priority-medium-light);
-  color: var(--color-priority-medium);
-}
-
-.priorityBadgeLow {
-  background: var(--color-priority-low-light);
-  color: var(--color-priority-low);
-}
-
-/* ── Row Layout ───────────────────────────────────────────────── */
-
-.habitLeft {
+.statCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  user-select: none;
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.activeFilter {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+body.dark .activeFilter {
+  background: var(--tone-blue-bg);
+  border-color: var(--tone-blue-fg);
+}
+
+.statIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
 }
 
 .iconActive {
@@ -200,118 +131,29 @@ body.dark .iconArchived {
   background: rgba(244, 172, 186, 0.25);
   color: var(--color-accent);
 }
-.habitProgressFill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  height: 100%;
-  background: rgba(244, 172, 186, 0.12);
-  pointer-events: none;
-  transition: width 0.25s ease;
-}
 
-.habitRow {
-  position: relative;
-  overflow: hidden;
-}
-
-/* ── Status Line ──────────────────────────────────────────────── */
-
-.statusLine {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.statusNotStarted {
-  color: var(--color-danger);
-}
-
-.habitRowAtRisk {
-  border-color: var(--color-danger-light);
-}
-
-/* ── Counter ─────────────────────────────────────────────────── */
-
-.counter {
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.counterPill {
+.statDetails {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
+  flex-direction: column;
 }
 
-.counterBtn {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 999px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.counterBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.counterValue {
-  min-width: 50px;
-  text-align: center;
+.statNumber {
+  font-size: 24px;
   font-weight: 700;
-  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.2;
 }
 
-.counterTotal {
-  color: var(--text-muted);
+.statName {
+  font-size: 13px;
   font-weight: 500;
+  color: var(--text-secondary);
 }
 
-/* ── Binary Habit Button ─────────────────────────────────────── */
-
-.checkBtn {
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  border: 2px solid var(--border);
-  background: var(--bg-surface);
-  color: transparent;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: var(--transition-fast);
+.activeFilter .statName {
+  color: var(--color-primary);
+}
+body.dark .activeFilter .statName {
+  color: var(--tone-blue-fg);
 }
 
-.checkBtnDone {
-  background: var(--color-success);
-  border-color: var(--color-success);
-  color: white;
-}
-
-.checkBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.habitRow.priorityHigh {
-  border-left: 4px solid var(--color-priority-high);
-}
-
-.habitRow.priorityMedium {
-  border-left: 4px solid var(--color-priority-medium);
-}
-
-.habitRow.priorityLow {
-  border-left: 4px solid var(--color-priority-low);
-}
