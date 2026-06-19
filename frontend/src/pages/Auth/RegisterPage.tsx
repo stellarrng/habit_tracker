@@ -35,7 +35,7 @@ export default function RegisterPage() {
       <div className={styles.card}>
         {/* Brand */}
         <div className={styles.brand}>
-          <div className={styles.brandName}>HabitFlow</div>
+          <div className={styles.brandName}>Habit Tracker Pro</div>
           <div className={styles.brandSub}>Start building better habits today</div>
         </div>
 
@@ -107,7 +107,6 @@ export default function RegisterPage() {
             id="register-submit"
             disabled={loading}
             className={styles.submitBtn}
-            style={{ opacity: loading ? 0.6 : 1 }}
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>

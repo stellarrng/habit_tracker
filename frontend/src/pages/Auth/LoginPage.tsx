@@ -33,7 +33,7 @@ export default function LoginPage() {
       <div className={styles.card}>
         {/* Brand */}
         <div className={styles.brand}>
-          <div className={styles.brandName}>HabitFlow</div>
+          <div className={styles.brandName}>Habit Tracker Pro</div>
           <div className={styles.brandSub}>Build better habits, every day</div>
         </div>
 
@@ -96,7 +96,6 @@ export default function LoginPage() {
             id="login-submit"
             disabled={loading}
             className={styles.submitBtn}
-            style={{ opacity: loading ? 0.6 : 1 }}
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
