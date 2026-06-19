@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Habit, HabitStatus, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import { getCheckIns } from '../../api/checkins';
@@ -109,10 +109,25 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
   const goalType = habit.goalTargetType || 'Streak';
   const target = habit.goalTargetValue || 30;
 
+  const goalCheckIns = useMemo(() => {
+    if (!habit) return [];
+    const startStr = habit.goalStartedAt || habit.createdAt;
+    const startDate = new Date(startStr);
+    startDate.setHours(0, 0, 0, 0);
+
+    return checkIns.filter(c => {
+      const checkInDate = new Date(c.date);
+      checkInDate.setHours(0, 0, 0, 0);
+      return checkInDate >= startDate;
+    });
+  }, [habit, checkIns]);
+
+  const goalStreaks = useStreaks(goalCheckIns);
+
   // Calculate progress from real check-in data
   const currentValue = goalType === 'Streak'
-    ? streaks.current
-    : streaks.totalSessions;
+    ? goalStreaks.current
+    : goalStreaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
