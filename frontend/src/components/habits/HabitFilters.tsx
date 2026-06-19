@@ -1,12 +1,13 @@
 import { useHabitContext, FilterState } from '../../context/HabitContext';
 import { HabitCategory, HabitFrequency, HabitPriority, HabitStatus } from '../../types';
 import { SearchIcon } from '../shared/Icons';
+import MultiSelectDropdown from '../shared/MultiSelectDropdown';
 import styles from './HabitFilters.module.css';
 
-const CATEGORIES: (HabitCategory | 'All')[] = ['All', 'Health', 'Study', 'Work', 'Mindfulness', 'Other'];
-const FREQUENCIES: (HabitFrequency | 'All')[] = ['All', 'Daily', 'Specific days'];
-const PRIORITIES:  (HabitPriority  | 'All')[] = ['All', 'Low', 'Medium', 'High'];
-const STATUSES:    (HabitStatus    | 'All')[] = ['All', 'Active', 'Paused', 'Archived'];
+const CATEGORIES: HabitCategory[] = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'];
+const FREQUENCIES: HabitFrequency[] = ['Daily', 'Specific days'];
+const PRIORITIES:  HabitPriority[] = ['Low', 'Medium', 'High'];
+const STATUSES:    HabitStatus[] = ['Active', 'Paused', 'Archived'];
 
 export default function HabitFilters() {
   const { filters, setFilters } = useHabitContext();
@@ -38,49 +39,33 @@ export default function HabitFilters() {
 
       <span className={styles.filterLabel}>Filter by:</span>
 
-      <select
-        id="filter-category"
-        className={styles.filterSelect}
-        value={filters.category}
-        onChange={e => handle('category', e.target.value as FilterState['category'])}
-      >
-        {CATEGORIES.map(c => (
-          <option key={c} value={c}>{c === 'All' ? 'All Categories' : c}</option>
-        ))}
-      </select>
+      <MultiSelectDropdown
+        options={CATEGORIES}
+        selected={filters.category}
+        onChange={(selected) => handle('category', selected as FilterState['category'])}
+        placeholder="All Categories"
+      />
 
-      <select
-        id="filter-frequency"
-        className={styles.filterSelect}
-        value={filters.frequency}
-        onChange={e => handle('frequency', e.target.value as FilterState['frequency'])}
-      >
-        {FREQUENCIES.map(f => (
-          <option key={f} value={f}>{f === 'All' ? 'All Frequencies' : f}</option>
-        ))}
-      </select>
+      <MultiSelectDropdown
+        options={FREQUENCIES}
+        selected={filters.frequency}
+        onChange={(selected) => handle('frequency', selected as FilterState['frequency'])}
+        placeholder="All Frequencies"
+      />
 
-      <select
-        id="filter-priority"
-        className={styles.filterSelect}
-        value={filters.priority}
-        onChange={e => handle('priority', e.target.value as FilterState['priority'])}
-      >
-        {PRIORITIES.map(p => (
-          <option key={p} value={p}>{p === 'All' ? 'All Priorities' : p}</option>
-        ))}
-      </select>
+      <MultiSelectDropdown
+        options={PRIORITIES}
+        selected={filters.priority}
+        onChange={(selected) => handle('priority', selected as FilterState['priority'])}
+        placeholder="All Priorities"
+      />
 
-      <select
-        id="filter-status"
-        className={styles.filterSelect}
-        value={filters.status}
-        onChange={e => handle('status', e.target.value as FilterState['status'])}
-      >
-        {STATUSES.map(s => (
-          <option key={s} value={s}>{s === 'All' ? 'All Statuses' : s}</option>
-        ))}
-      </select>
+      <MultiSelectDropdown
+        options={STATUSES}
+        selected={filters.status}
+        onChange={(selected) => handle('status', selected as FilterState['status'])}
+        placeholder="All Statuses"
+      />
     </div>
   );
 }

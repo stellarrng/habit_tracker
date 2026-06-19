@@ -8,15 +8,15 @@ import { useAuth } from './AuthContext';
 
 // ─── Filter state ─────────────────────────────────────────────────────────
 export interface FilterState {
-  category:  HabitCategory  | 'All';
-  frequency: HabitFrequency | 'All';
-  priority:  HabitPriority  | 'All';
-  status:    HabitStatus    | 'All';
+  category:  HabitCategory[];
+  frequency: HabitFrequency[];
+  priority:  HabitPriority[];
+  status:    HabitStatus[];
   search:    string;
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  category: 'All', frequency: 'All', priority: 'All', status: 'All', search: '',
+  category: [], frequency: [], priority: [], status: [], search: '',
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────
@@ -69,14 +69,14 @@ export function HabitProvider({ children }: { children: ReactNode }) {
   // Derived: filtered habits (memo-ised to avoid re-renders)
   const filteredHabits = useMemo(() => {
     return habits.filter(h => {
-      if (filters.category  !== 'All' && h.category  !== filters.category)  return false;
-      if (filters.frequency !== 'All' && h.frequency !== filters.frequency) return false;
-      if (filters.priority  !== 'All' && h.priority  !== filters.priority)  return false;
+      if (Array.isArray(filters.category) && filters.category.length > 0 && !filters.category.includes(h.category))  return false;
+      if (Array.isArray(filters.frequency) && filters.frequency.length > 0 && !filters.frequency.includes(h.frequency)) return false;
+      if (Array.isArray(filters.priority) && filters.priority.length > 0 && !filters.priority.includes(h.priority))  return false;
       
-      // If status is 'All', exclude archived by default
-      if (filters.status === 'All' && h.status === 'Archived') return false;
+      // If status is empty, exclude archived by default
+      if ((!Array.isArray(filters.status) || filters.status.length === 0) && h.status === 'Archived') return false;
       // If status is specific, only match that status
-      if (filters.status !== 'All' && h.status !== filters.status) return false;
+      if (Array.isArray(filters.status) && filters.status.length > 0 && !filters.status.includes(h.status)) return false;
       
       if (filters.search && filters.search.trim() !== '') {
         const query = filters.search.toLowerCase().trim();

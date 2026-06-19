@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Habit } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import AppLayout from '../../components/layout/AppLayout';
@@ -44,6 +44,27 @@ export default function HabitsPage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
+
+  // Restore and save scroll position
+  useEffect(() => {
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
+
+    const savedPos = sessionStorage.getItem('habitsPageScroll');
+    if (savedPos) {
+      // Small delay to ensure render is complete before scrolling
+      setTimeout(() => {
+        mainEl.scrollTop = parseInt(savedPos, 10);
+      }, 0);
+    }
+
+    const handleScroll = () => {
+      sessionStorage.setItem('habitsPageScroll', mainEl.scrollTop.toString());
+    };
+
+    mainEl.addEventListener('scroll', handleScroll);
+    return () => mainEl.removeEventListener('scroll', handleScroll);
+  }, []);
 
   type ActionState = 
     | { type: 'status'; habitId: string; prevStatus: string; message: string }
@@ -226,8 +247,14 @@ export default function HabitsPage() {
         {!loading && (
           <div className={styles.statsRow}>
             <div
-              className={`${styles.statCard} ${filters.status === 'Active' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Active' ? 'All' : 'Active' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Active') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Active');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Active')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Active'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Active habits"
             >
               <div className={`${styles.statIcon} ${styles.iconActive}`}>
@@ -240,8 +267,14 @@ export default function HabitsPage() {
             </div>
 
             <div
-              className={`${styles.statCard} ${filters.status === 'Paused' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Paused' ? 'All' : 'Paused' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Paused') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Paused');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Paused')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Paused'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Paused habits"
             >
               <div className={`${styles.statIcon} ${styles.iconPaused}`}>
@@ -254,8 +287,14 @@ export default function HabitsPage() {
             </div>
 
             <div
-              className={`${styles.statCard} ${filters.status === 'Archived' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Archived' ? 'All' : 'Archived' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Archived') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Archived');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Archived')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Archived'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Archived habits"
             >
               <div className={`${styles.statIcon} ${styles.iconArchived}`}>
