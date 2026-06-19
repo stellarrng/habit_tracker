@@ -20,14 +20,14 @@ import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
 
 // ─── Color maps ──────────────────────────────────────────────────────────
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
-  Low: { bg: 'var(--color-secondary-light)', color: 'var(--color-secondary-dark)' },
-  Medium: { bg: 'var(--color-warning-light)', color: 'var(--color-warning)' },
-  High: { bg: 'var(--color-primary-light)', color: 'var(--color-primary-dark)' },
+  Low: { bg: 'var(--color-priority-low-bg)', color: 'var(--color-priority-low-text)' },
+  Medium: { bg: 'var(--color-priority-medium-bg)', color: 'var(--color-priority-medium-text)' },
+  High: { bg: 'var(--color-priority-high-bg)', color: 'var(--color-priority-high-text)' },
 };
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  Active: { bg: 'var(--color-secondary-light)', color: 'var(--color-secondary-dark)' },
-  Paused: { bg: 'var(--color-paused-light)', color: 'var(--color-paused)' },
-  Archived: { bg: 'var(--color-accent-light)', color: 'var(--color-accent-dark)' },
+  Active: { bg: 'var(--color-status-active-bg)', color: 'var(--color-status-active-text)' },
+  Paused: { bg: 'var(--color-status-paused-bg)', color: 'var(--color-status-paused-text)' },
+  Archived: { bg: 'var(--color-status-archived-bg)', color: 'var(--color-status-archived-text)' },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────

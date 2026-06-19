@@ -106,8 +106,8 @@ body.dark .activeFilter {
 }
 
 .iconActive {
-  background: var(--color-secondary-light);
-  color: var(--color-secondary-dark);
+  background: var(--color-status-active-bg);
+  color: var(--color-status-active-text);
 }
 body.dark .iconActive {
   background: rgba(132, 165, 157, 0.25);
@@ -115,8 +115,8 @@ body.dark .iconActive {
 }
 
 .iconPaused {
-  background: var(--color-paused-light);
-  color: var(--color-paused);
+  background: var(--color-status-paused-bg);
+  color: var(--color-status-paused-text);
 }
 body.dark .iconPaused {
   background: rgba(154, 142, 148, 0.25);
@@ -124,8 +124,8 @@ body.dark .iconPaused {
 }
 
 .iconArchived {
-  background: var(--color-accent-light);
-  color: var(--color-accent-dark);
+  background: var(--color-status-archived-bg);
+  color: var(--color-status-archived-text);
 }
 body.dark .iconArchived {
   background: rgba(244, 172, 186, 0.25);

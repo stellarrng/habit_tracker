@@ -30,9 +30,20 @@
   --color-paused-light:  #EEE8EC;
 
   /* ── Priority ───────────────────────────────────────────────────────────── */
-  --color-low:    #84A59D;
-  --color-medium: #C4956A;
-  --color-high:   #9B7B8A;
+  --color-priority-high-bg:   #FEE2E2;
+  --color-priority-high-text: #991B1B;
+  --color-priority-medium-bg: #FEF3C7;
+  --color-priority-medium-text: #92400E;
+  --color-priority-low-bg:    #DBEAFE;
+  --color-priority-low-text:  #1E40AF;
+
+  /* ── Status ─────────────────────────────────────────────────────────────── */
+  --color-status-active-bg:     #D1FAE5;
+  --color-status-active-text:   #065F46;
+  --color-status-paused-bg:     #F3F4F6;
+  --color-status-paused-text:   #374151;
+  --color-status-archived-bg:   #E5E7EB;
+  --color-status-archived-text: #4B5563;
 
   /* ── Category ───────────────────────────────────────────────────────────── */
   --color-health:  #84A59D;
@@ -309,18 +320,18 @@ input, select, textarea { font-family: inherit; }
   text-transform: uppercase;
   letter-spacing: .4px;
 }
-.chip-category-health      { background: #C8DDD7; color: #4A7A72; }
-.chip-category-study       { background: #EAE0E6; color: #7E6474; }
-.chip-category-work        { background: #D6E4EE; color: #4A6880; }
-.chip-category-mindfulness { background: #FADADF; color: #8B4A5C; }
-.chip-category-other       { background: #E8E0D8; color: #6B5A4A; }
+.chip-category-health      { background: var(--color-category-health-bg); color: var(--color-category-health-text); }
+.chip-category-study       { background: var(--color-category-study-bg); color: var(--color-category-study-text); }
+.chip-category-work        { background: var(--color-category-work-bg); color: var(--color-category-work-text); }
+.chip-category-mindfulness { background: var(--color-category-mindfulness-bg); color: var(--color-category-mindfulness-text); }
+.chip-category-other       { background: var(--color-category-other-bg); color: var(--color-category-other-text); }
 .chip-freq                 { background: var(--bg-page); color: var(--text-secondary); border: 1px solid var(--border); }
-.chip-low                  { background: var(--color-secondary-light); color: var(--color-secondary-dark); }
-.chip-medium               { background: var(--color-warning-light);   color: var(--color-warning); }
-.chip-high                 { background: var(--color-primary-light);   color: var(--color-primary-dark); }
-.chip-active               { background: var(--color-secondary-light); color: var(--color-secondary-dark); }
-.chip-paused               { background: var(--color-paused-light);    color: var(--color-paused); }
-.chip-archived             { background: var(--color-accent-light);    color: var(--color-accent-dark); }
+.chip-low                  { background: var(--color-priority-low-bg); color: var(--color-priority-low-text); }
+.chip-medium               { background: var(--color-priority-medium-bg);   color: var(--color-priority-medium-text); }
+.chip-high                 { background: var(--color-priority-high-bg);   color: var(--color-priority-high-text); }
+.chip-active               { background: var(--color-status-active-bg); color: var(--color-status-active-text); }
+.chip-paused               { background: var(--color-status-paused-bg);    color: var(--color-status-paused-text); }
+.chip-archived             { background: var(--color-status-archived-bg);    color: var(--color-status-archived-text); }
 
 /* Progress section */
 .habit-progress-label    { font-size: var(--font-size-xs); font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; }
