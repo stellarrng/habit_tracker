@@ -226,9 +226,10 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
 interface NavbarProps {
   onRangeChange?: (range: DateRange) => void;
+  hideRangeSelector?: boolean;
 }
 
-export default function Navbar({ onRangeChange }: NavbarProps) {
+export default function Navbar({ onRangeChange, hideRangeSelector = false }: NavbarProps) {
   const { settings, t } = useSettings();
   const { unreadCount, togglePanel, panelOpen } = useNotifications();
   const [activeRange, setActiveRange] = useState<DateRange>(settings.defaultRange);
@@ -236,8 +237,10 @@ export default function Navbar({ onRangeChange }: NavbarProps) {
 
   useEffect(() => {
     setActiveRange(settings.defaultRange);
-    onRangeChange?.(settings.defaultRange);
-  }, [settings.defaultRange]);
+    if (!hideRangeSelector) {
+      onRangeChange?.(settings.defaultRange);
+    }
+  }, [settings.defaultRange, hideRangeSelector, onRangeChange]);
 
   function handleRange(range: DateRange) {
     setActiveRange(range);
@@ -252,15 +255,17 @@ export default function Navbar({ onRangeChange }: NavbarProps) {
       </div>
 
       <div className={styles.actions}>
-        <div className={styles.segmented} aria-label="Date range">
-          {DATE_RANGES.map((range) => (
-            <button key={range}
-              className={activeRange === range ? styles.segmentActive : ""}
-              onClick={() => handleRange(range)}>
-              {range}
-            </button>
-          ))}
-        </div>
+        {!hideRangeSelector && (
+          <div className={styles.segmented} aria-label="Date range">
+            {DATE_RANGES.map((range) => (
+              <button key={range}
+                className={activeRange === range ? styles.segmentActive : ""}
+                onClick={() => handleRange(range)}>
+                {range}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Bell — toggles global panel */}
         <div className={styles.notifWrapper}>

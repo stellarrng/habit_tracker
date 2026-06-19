@@ -3,15 +3,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--bg-page) 60%, var(--color-accent-light) 100%);
-  padding: 20px;
-  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(
+    135deg,
+    var(--palette-mint) 0%,
+    var(--bg-page) 55%,
+    color-mix(in srgb, var(--palette-light-pink) 40%, var(--bg-page)) 100%
+  );
+  padding: var(--space-5);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
 }
 
 .card {
   background: var(--bg-card);
-  border-radius: 20px;
-  padding: 40px 36px;
+  border-radius: var(--radius-xl);
+  padding: var(--space-10) var(--space-8);
   width: 100%;
   max-width: 420px;
   box-shadow: var(--shadow-lg);
@@ -20,119 +26,131 @@
 
 .brand {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: var(--space-8);
 }
 
 .brandName {
-  font-size: 26px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-bold);
   color: var(--color-primary);
   letter-spacing: -0.5px;
 }
 
 .brandSub {
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .title {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-2);
   color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: var(--space-6);
 }
 
 .errorBox {
   background: var(--color-danger-light);
-  border: 1px solid var(--color-danger);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: var(--color-danger-dark);
-  font-weight: 500;
-  margin-bottom: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-danger) 35%, transparent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+  font-weight: var(--font-medium);
+  margin-bottom: var(--space-5);
   display: flex;
   align-items: center;
 }
 
 .errorIcon {
-  margin-right: 8px;
+  margin-right: var(--space-2);
   flex-shrink: 0;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .label {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
 .input {
-  padding: 10px 13px;
+  padding: var(--space-3) var(--space-4);
   border: 1.5px solid var(--border);
-  border-radius: 10px;
-  font-size: 14px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
-  background: var(--bg-input);
+  background: var(--bg-elevated);
   outline: none;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
 }
 
 .input:focus {
-  border-color: var(--color-primary);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .submitBtn {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
+  background: var(--color-primary);
+  color: var(--text-inverse);
   border: none;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
   cursor: pointer;
-  margin-top: 6px;
+  margin-top: var(--space-2);
   box-shadow: var(--shadow-md);
   font-family: inherit;
-  transition: all 0.15s;
+  transition: var(--transition);
 }
 
-.submitBtn:hover {
-  background: var(--color-primary-dark);
+.submitBtn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .footer {
   text-align: center;
-  margin-top: 20px;
-  font-size: 13px;
+  margin-top: var(--space-5);
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .link {
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: var(--font-semibold);
   text-decoration: none;
 }
 
 .link:hover {
+  color: var(--color-primary-hover);
   text-decoration: underline;
 }
