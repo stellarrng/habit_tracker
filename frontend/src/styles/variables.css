@@ -118,10 +118,10 @@
   --color-tertiary-light: #FCE8CC;
 
   /* Semantic */
-  --color-success:       #2F9E44;
-  --color-success-hover: #247A34;
-  --color-success-light: #D3F9D8;
-  --color-success-bg:    #F3FBF5;
+  --color-success:       #84A59D;
+  --color-success-hover: #6F9088;
+  --color-success-light: #C8DDD7;
+  --color-success-bg:    #EEF5F3;
 
   --color-warning:       #E67700;
   --color-warning-hover: #CC6A00;
@@ -272,10 +272,10 @@ body.dark {
   --color-tertiary-light: #2D1F00;
 
   /* Semantic */
-  --color-success:       #4ADE80;
-  --color-success-hover: #22C55E;
-  --color-success-light: #14532D;
-  --color-success-bg:    #052E16;
+  --color-success:       #84A59D; 
+  --color-success-hover: #A0C4BC; 
+  --color-success-light: #1A2E2B; 
+  --color-success-bg:    #0F1F1D; 
 
   --color-warning:       #FCD34D;
   --color-warning-hover: #FDE68A;
