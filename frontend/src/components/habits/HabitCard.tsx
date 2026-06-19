@@ -61,7 +61,7 @@ interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
   onArchiveRequest?: (habit: Habit) => void;
-  onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored') => void;
+  onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored', prevStatus: string) => void;
   onDeleteRequest?: (habit: Habit) => void;
   onSetGoal?: (habit: Habit, currentStreak: number, totalCompletions: number) => void;
 }
@@ -126,20 +126,22 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
 
   function handlePause(e: React.MouseEvent) {
     e.stopPropagation();
+    const prevStatus = habit.status;
     const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
     changeStatus(habit._id, nextStatus);
     setMenuOpen(false);
     if (onStatusChange) {
-      onStatusChange(habit.name, isActive ? 'paused' : 'resumed');
+      onStatusChange(habit.name, isActive ? 'paused' : 'resumed', prevStatus);
     }
   }
 
   function handleRestore(e: React.MouseEvent) {
     e.stopPropagation();
+    const prevStatus = habit.status;
     changeStatus(habit._id, 'Active');
     setMenuOpen(false);
     if (onStatusChange) {
-      onStatusChange(habit.name, 'restored');
+      onStatusChange(habit.name, 'restored', prevStatus);
     }
   }
 

@@ -38,7 +38,30 @@ export default function HabitDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  type ActionState = 
+    | { type: 'status'; habitId: string; prevStatus: string; message: string }
+    | { type: 'delete'; habitId: string; message: string; timeoutId: ReturnType<typeof setTimeout> };
+
+  const [lastAction, setLastAction] = useState<ActionState | null>(null);
+  const [toastKey, setToastKey] = useState(0);
+
+  function undoLast() {
+    if (!lastAction) return;
+    if (lastAction.type === 'status') {
+      changeStatus(lastAction.habitId, lastAction.prevStatus as any);
+    } else if (lastAction.type === 'delete') {
+      clearTimeout(lastAction.timeoutId);
+    }
+    setLastAction(null);
+  }
+
+  function triggerActionToast(action: ActionState) {
+    if (lastAction && lastAction.type === 'delete') {
+      // Allow it to timeout independently
+    }
+    setLastAction(action);
+    setToastKey(k => k + 1);
+  }
   const [showCongrats, setShowCongrats] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -237,8 +260,21 @@ export default function HabitDetailPage() {
       confirmLabel: 'Delete',
       type: 'danger',
       onConfirm: () => {
-        removeHabit(habit!._id);
-        navigate('/habits');
+        const id = habit!._id;
+        const name = habit!.name;
+        // Delay deletion by 5.5s to allow undo
+        const timeoutId = setTimeout(() => {
+          removeHabit(id);
+          navigate('/habits');
+        }, 5500);
+        
+        triggerActionToast({
+          type: 'delete',
+          habitId: id,
+          message: `"${name}" deleted`,
+          timeoutId
+        });
+        
         closeConfirm();
         setMenuOpen(false);
       },
@@ -247,16 +283,18 @@ export default function HabitDetailPage() {
 
   function handlePause() {
     if (habit) {
+      const prevStatus = habit.status;
       changeStatus(habit._id, 'Paused');
-      setToastMessage(`"${habit.name}" paused successfully`);
+      triggerActionToast({ type: 'status', habitId: habit._id, prevStatus, message: `"${habit.name}" paused` });
       setMenuOpen(false);
     }
   }
 
   function handleResume() {
     if (habit) {
+      const prevStatus = habit.status;
       changeStatus(habit._id, 'Active');
-      setToastMessage(`"${habit.name}" resumed successfully`);
+      triggerActionToast({ type: 'status', habitId: habit._id, prevStatus, message: `"${habit.name}" resumed` });
       setMenuOpen(false);
     }
   }
@@ -278,8 +316,9 @@ export default function HabitDetailPage() {
       confirmLabel: 'Archive',
       type: 'warning',
       onConfirm: () => {
+        const prevStatus = habit!.status;
         changeStatus(habit!._id, 'Archived');
-        setToastMessage(`"${habit!.name}" archived successfully`);
+        triggerActionToast({ type: 'status', habitId: habit!._id, prevStatus, message: `"${habit!.name}" archived` });
         closeConfirm();
       },
     });
@@ -293,8 +332,9 @@ export default function HabitDetailPage() {
       confirmLabel: 'Restore',
       type: 'info',
       onConfirm: () => {
+        const prevStatus = habit!.status;
         changeStatus(habit!._id, 'Active');
-        setToastMessage(`"${habit!.name}" Restored successfully`);
+        triggerActionToast({ type: 'status', habitId: habit!._id, prevStatus, message: `"${habit!.name}" restored` });
         closeConfirm();
       },
     });
@@ -575,12 +615,15 @@ export default function HabitDetailPage() {
       )}
 
       {/* Toast Notification */}
-      {toastMessage && (
+      {lastAction && (
         <Toast
-          message={toastMessage}
-          type="success"
-          duration={3000}
-          onClose={() => setToastMessage(null)}
+          key={toastKey}
+          message={lastAction.message}
+          type="info"
+          duration={5500}
+          actionLabel="Undo"
+          onAction={undoLast}
+          onClose={() => setLastAction(null)}
         />
       )}
     </AppLayout>

@@ -44,7 +44,32 @@ export default function HabitsPage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  type ActionState = 
+    | { type: 'status'; habitId: string; prevStatus: string; message: string }
+    | { type: 'delete'; habitId: string; message: string; timeoutId: ReturnType<typeof setTimeout> };
+
+  const [lastAction, setLastAction] = useState<ActionState | null>(null);
+  const [toastKey, setToastKey] = useState(0);
+
+  function undoLast() {
+    if (!lastAction) return;
+    if (lastAction.type === 'status') {
+      changeStatus(lastAction.habitId, lastAction.prevStatus as any);
+    } else if (lastAction.type === 'delete') {
+      clearTimeout(lastAction.timeoutId);
+    }
+    setLastAction(null);
+  }
+
+  function triggerActionToast(action: ActionState) {
+    if (lastAction && lastAction.type === 'delete') {
+      // If there was a previous pending delete, it stays pending until timeout. 
+      // Actually we don't need to force it here since the timeout is still running.
+    }
+    setLastAction(action);
+    setToastKey(k => k + 1);
+  }
 
   // GoalHabitForm states
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -83,20 +108,44 @@ export default function HabitsPage() {
   function confirmArchive() {
     if (habitToArchive) {
       changeStatus(habitToArchive._id, 'Archived');
-      setToastMessage(`"${habitToArchive.name}" archived successfully`);
+      triggerActionToast({
+        type: 'status',
+        habitId: habitToArchive._id,
+        prevStatus: habitToArchive.status,
+        message: `"${habitToArchive.name}" archived`
+      });
       setShowArchiveDialog(false);
       setHabitToArchive(null);
     }
   }
   
-  function handleStatusChangeNotification(habitName: string, action: 'paused' | 'resumed' | 'restored') {
+  function handleStatusChangeNotification(habitId: string, habitName: string, action: 'paused' | 'resumed' | 'restored', prevStatus: string) {
     if (action === 'resumed') {
-      setToastMessage(`"${habitName}" resumed successfully`);
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" resumed` });
     } else if (action === 'paused') {
-      setToastMessage(`"${habitName}" paused successfully`);
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" paused` });
     } else if (action === 'restored') {
-      setToastMessage(`"${habitName}" restored successfully`);
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" restored` });
     }
+  }
+
+  function handleDeleteConfirm() {
+    if (habitToDelete) {
+      const id = habitToDelete._id;
+      const name = habitToDelete.name;
+      // We don't remove immediately. We delay it to allow Undo.
+      const timeoutId = setTimeout(() => {
+        removeHabit(id);
+      }, 5500);
+
+      triggerActionToast({
+        type: 'delete',
+        habitId: id,
+        message: `"${name}" deleted`,
+        timeoutId
+      });
+    }
+    setHabitToDelete(null);
   }
 
   function openSetGoal(habit: Habit, streak: number, completions: number) {
@@ -229,7 +278,7 @@ export default function HabitsPage() {
                         onEdit={openEdit}
                         onArchiveRequest={requestArchive}
                         onDeleteRequest={setHabitToDelete}
-                        onStatusChange={handleStatusChangeNotification}
+                        onStatusChange={(name, action, prevStatus) => handleStatusChangeNotification(habit._id, name, action, prevStatus)}
                         onSetGoal={openSetGoal}
                       />
                     </div>
@@ -284,22 +333,20 @@ export default function HabitsPage() {
         message={`Are you sure you want to delete "${habitToDelete?.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
         type="danger"
-        onConfirm={() => {
-          if (habitToDelete) {
-            removeHabit(habitToDelete._id);
-          }
-          setHabitToDelete(null);
-        }}
+        onConfirm={handleDeleteConfirm}
         onCancel={() => setHabitToDelete(null)}
       />
 
       {/* Toast Notification */}
-      {toastMessage && (
+      {lastAction && (
         <Toast
-          message={toastMessage}
-          type="success"
-          duration={3000}
-          onClose={() => setToastMessage(null)}
+          key={toastKey}
+          message={lastAction.message}
+          type="info"
+          duration={5500}
+          actionLabel="Undo"
+          onAction={undoLast}
+          onClose={() => setLastAction(null)}
         />
       )}
     </AppLayout>
