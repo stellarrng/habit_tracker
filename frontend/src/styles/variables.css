@@ -1,17 +1,28 @@
+/* ============================================================
+   VARIABLES.CSS
+   Single source of truth for all design tokens.
+
+   Structure:
+     :root          — static tokens (never change) + light mode
+     body.dark      — only tokens that change in dark mode
+   ============================================================ */
 
 :root {
-  /* ── Palette (static, never change between light/dark) ───────────────────── */
+
+  /* ── Static: never change between light / dark ──────────────────────────── */
+
+  /* Palette primitives */
   --palette-mint:       #D8E2DC;
   --palette-white:      #FFFFFF;
   --palette-light-pink: #FFCAD4;
   --palette-pink:       #F4ACB7;
   --palette-dusty:      #9D8189;
 
-  /* ── Typography ──────────────────────────────────────────────────────────── */
+  /* Typography */
   --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family:  "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --font-size-xs:   12px;
   --font-size-sm:   14px;
@@ -34,90 +45,121 @@
   --font-semibold: 600;
   --font-bold:     700;
 
-  /* ── Layout ──────────────────────────────────────────────────────────────── */
+  /* Layout */
   --sidebar-width: 260px;
 
-  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  /* Spacing */
   --space-1: 4px;  --space-2: 8px;   --space-3: 12px;
   --space-4: 16px; --space-5: 20px;  --space-6: 24px;
   --space-8: 32px; --space-10: 40px;
 
-  /* ── Border radius ───────────────────────────────────────────────────────── */
+  /* Radii */
   --radius-sm:   6px;
   --radius-md:   10px;
   --radius-lg:   16px;
   --radius-xl:   24px;
   --radius-full: 9999px;
 
-  /* ── Transitions ─────────────────────────────────────────────────────────── */
+  /* Transitions */
   --transition:      all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s ease;
   --transition-base: 0.2s ease;
 
-  /* ══════════════════════════════════════════════════════════════════════════
-   * LIGHT MODE TOKENS
-   * ══════════════════════════════════════════════════════════════════════════ */
+
+  /* ── Light mode tokens ──────────────────────────────────────────────────── */
 
   /* Surfaces */
-  --bg-app:     #FCF5F6;
-  --bg-page:    #FCF5F6;
-  --bg-card:    #FFFFFF;
-  --bg-surface: #FFFFFF;
-  --bg-elevated:#FFF9FA;
-  --bg-sidebar: #FFFFFF;
+  --bg-page:       #FCF5F6;
+  --bg-card:       #FFFFFF;
+  --bg-surface:    #FFFFFF;
+  --bg-elevated:   #FFF9FA;
+  --bg-sidebar:    #FFFFFF;
   --bg-nav-active: #F4E8EE;
-  --bg-input: #ffffff;
-  --navbar-bg:  rgba(252, 245, 246, 0.88);
+  --bg-input:      #FFFFFF;
+  --navbar-bg:     rgba(252, 245, 246, 0.88);
 
-  /* Borders & shadows */
+  /* Borders & dividers */
   --border:       #EAD0D3;
   --border-focus: #D66D7D;
-  --shadow-sm:    0 1px 3px rgba(43, 24, 27, 0.07);
-  --shadow-md:    0 4px 12px rgba(43, 24, 27, 0.09);
-  --shadow-lg:    0 12px 32px rgba(43, 24, 27, 0.12);
-  --shadow-card:  0 4px 20px rgba(43, 24, 27, 0.06);
+  --divider:      #e8e8e8;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(155, 123, 138, 0.08), 0 1px 2px rgba(155, 123, 138, 0.05);
+  --shadow-md:   0 4px 12px rgba(155, 123, 138, 0.10), 0 2px 4px rgba(155, 123, 138, 0.06);
+  --shadow-lg:   0 12px 32px rgba(155, 123, 138, 0.12), 0 4px 8px rgba(155, 123, 138, 0.07);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 
   /* Text */
-  --text-primary:   #2B181B;
-  --text-secondary: #583E42;
-  --text-muted:     #8F7074;
-  --text-inverse:   #FFFFFF;
-  --text: #1a1a1a;
-  --text-nav-active: #9B7B8A;
+  --text-primary:      #2B181B;
+  --text-secondary:    #583E42;
+  --text-muted:        #8F7074;
+  --text-inverse:      #FFFFFF;
+  --text-nav-active:   #9B7B8A;
   --text-nav-inactive: #6b7280;
 
-  /* Brand / accent */
+  /* Brand */
   --color-primary:       #D66D7D;
   --color-primary-hover: #C05E6D;
   --color-primary-dark:  #983848;
   --color-primary-light: rgba(244, 172, 183, 0.22);
-  --accent-color:        #F4ACB7;
+
+  --color-accent:        #F4ACBA;
+  --color-accent-hover:  #E896A8;
+  --color-accent-dark:   #E896A8;
+  --color-accent-light:  #FCE8EE;
+
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #6F9088;
+  --color-secondary-dark:  #6F9088;
+  --color-secondary-light: #DCE7E4;
+
+  --color-tertiary:       #D27700;
+  --color-tertiary-hover: #B76600;
+  --color-tertiary-light: #FCE8CC;
 
   /* Semantic */
   --color-success:       #2F9E44;
+  --color-success-hover: #247A34;
   --color-success-light: #D3F9D8;
   --color-success-bg:    #F3FBF5;
+
   --color-warning:       #E67700;
+  --color-warning-hover: #CC6A00;
   --color-warning-light: #FFF3CD;
   --color-warning-bg:    #FFF8EF;
-  --color-danger:        #DF4759;
-  --color-danger-hover:  #C83040;
-  --color-danger-light:  #FDECEC;
-  --color-paused:        #8F7074;
-  --color-paused-light:  #F5EFEF;
+
+  --color-danger:       #DF4759;
+  --color-danger-hover: #C83040;
+  --color-danger-light: #FDECEC;
+
+  --color-paused:       #8F7074;
+  --color-paused-light: #F5EFEF;
 
   /* Priority */
-  --color-low:    #74C0FC;
-  --color-medium: #FFD43B;
-  --color-high:   #FF6B6B;
+  --color-priority-high:         #B85C6E;
+  --color-priority-high-light:   #F7DDE4;
+  --color-priority-high-bg:      #FEE2E2;
+  --color-priority-high-text:    #991B1B;
 
-  /* Category */
-  --color-health:  #51CF66;
-  --color-study:   #845EF7;
-  --color-work:    #339AF0;
-  --color-mindful: #F4ACB7;
-  --color-other:   #94D82D;
+  --color-priority-medium:         #C4956A;
+  --color-priority-medium-light:   #F5E8DA;
+  --color-priority-medium-bg:      #FEF3C7;
+  --color-priority-medium-text:    #92400E;
 
+  --color-priority-low:         #84A59D;
+  --color-priority-low-light:   #C8DDD7;
+  --color-priority-low-bg:      #DBEAFE;
+  --color-priority-low-text:    #1E40AF;
+
+  /* Status */
+  --color-status-active-bg:     #D1FAE5;
+  --color-status-active-text:   #065F46;
+  --color-status-paused-bg:     #E0E7FF;
+  --color-status-paused-text:   #3730A3;
+  --color-status-archived-bg:   #FFE4E6;
+  --color-status-archived-text: #9F1239;
+
+  /* Categories */
   --color-category-health-bg:        #D3F9D8;
   --color-category-health-text:      #1A6B2F;
   --color-category-study-bg:         #EDE9FE;
@@ -129,7 +171,7 @@
   --color-category-other-bg:         #ECFCCB;
   --color-category-other-text:       #3A5C10;
 
-  /* Gray scale (used in TodayPage / HabitsPage module CSS) */
+  /* Gray scale */
   --color-gray-50:  #FBF5F6;
   --color-gray-100: #F5ECEE;
   --color-gray-200: #EAD0D3;
@@ -141,16 +183,15 @@
   --color-gray-800: #3A2226;
   --color-gray-900: #2B181B;
 
-  /* Secondary / tertiary (used in TodayPage priority indicators) */
-  --color-secondary:       #84A59D;
-  --color-secondary-hover: #6F9088;
-  --color-secondary-light: #DCE7E4;
-  --color-tertiary:        #D27700;
-  --color-tertiary-hover:  #B76600;
-  --color-tertiary-light:  #FCE8CC;
-  --color-accent: #F4ACBA;
-  --color-accent-hover: #E896A8;
-  --color-accent-light: #FCE8EE;
+  /* Heatmap */
+  --heat-empty: #e8eeeb;
+  --heat-low:   #f2b8c0;
+  --heat-mid:   #e891a0;
+  --heat-high:  #896474;
+
+  /* Progress */
+  --progress-fill:  #896474;
+  --progress-track: #EAD0D3;
 
   /* Tone badges (Dashboard) */
   --tone-blue-bg:  rgba(93, 135, 255, 0.12);
@@ -161,76 +202,118 @@
   --tone-mint-fg:  #2D7066;
   --tone-red-bg:   rgba(223, 71, 89, 0.12);
   --tone-red-fg:   #DF4759;
+
+  /* Buttons */
+  --btn-primary-bg:   #2d2d2d;
+  --btn-primary-text: #ffffff;
+
+  /* Icons */
+  --icon-stroke: #666666;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
- * DARK MODE TOKEN OVERRIDES
- * Toggle: SettingsContext adds/removes class "dark" on <body>
- * ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ============================================================
+   DARK MODE OVERRIDES
+   Only tokens that actually change value in dark mode.
+   Static tokens (spacing, radii, typography, transitions)
+   are intentionally omitted — they inherit from :root.
+   ============================================================ */
 
 body.dark {
-  /* Surfaces */
-  --bg-app:     #0F1115;
-  --bg-page:    #0F1115;
-  --bg-card:    #161922;
-  --bg-surface: #161922;
-  --bg-elevated:#1E2128;
-  --bg-sidebar: #161922;
-  --navbar-bg:  rgba(15, 17, 21, 0.92);
+  color-scheme: dark;
 
-  /* Borders & shadows */
+  /* Surfaces */
+  --bg-page:       #0F1115;
+  --bg-card:       #161922;
+  --bg-surface:    #161922;
+  --bg-elevated:   #1E2128;
+  --bg-sidebar:    #161922;
+  --bg-nav-active: #2a2526;
+  --bg-input:      #1E2128;
+  --navbar-bg:     rgba(15, 17, 21, 0.92);
+
+  /* Borders & dividers */
   --border:       #2D303A;
   --border-focus: #F4ACB7;
-  --divider: #2D303A;
-  --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg:    0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-card:  0 4px 20px rgba(0, 0, 0, 0.4);
+  --divider:      #2D303A;
+
+  /* Shadows */
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:   0 12px 32px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4);
 
   /* Text */
-  --text-primary:   #FFFFFF;
-  --text-secondary: #F3F4F6;
-  --text-muted:     #9CA3AF;
-  --text-inverse:   #0F1115;
+  --text-primary:      #FFFFFF;
+  --text-secondary:    #F3F4F6;
+  --text-muted:        #9CA3AF;
+  --text-inverse:      #0F1115;
+  --text-nav-active:   #F4ACB7;
+  --text-nav-inactive: #666666;
 
-  /* Brand / accent */
+  /* Brand */
   --color-primary:       #F4ACB7;
   --color-primary-hover: #FFCAD4;
   --color-primary-dark:  #9D8189;
   --color-primary-light: rgba(244, 172, 183, 0.15);
-  --accent-color:        #FFCAD4;
-  /* ── Progress / heatmap ──────────────────────────────────────────────────── */
-  --progress-track: #F4E8EE;
-  --heat-high: #84A59D;
-  --heat-mid: #C8DDD7;
-  --heat-low: #F4ACBA;
-  --heat-empty: #e4e4e7;
-    /* ── Buttons ─────────────────────────────────────────────────────────────── */
-  --btn-primary-bg: #9B7B8A;
-  --btn-primary-text: #ffffff;
-  /* ── Icons ───────────────────────────────────────────────────────────────── */
-  --icon-stroke: #999999;
+
+  --color-accent:       #FFCAD4;
+  --color-accent-hover: #FFD6DE;
+  --color-accent-dark:  #F4ACB7;
+  --color-accent-light: rgba(244, 172, 183, 0.15);
+
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #A0C4BC;
+  --color-secondary-dark:  #A0C4BC;
+  --color-secondary-light: #1A2E2B;
+
+  --color-tertiary:       #FCD34D;
+  --color-tertiary-hover: #FDE68A;
+  --color-tertiary-light: #2D1F00;
+
   /* Semantic */
   --color-success:       #4ADE80;
-  --color-success-hover: #6F9088;
+  --color-success-hover: #22C55E;
   --color-success-light: #14532D;
   --color-success-bg:    #052E16;
+
   --color-warning:       #FCD34D;
+  --color-warning-hover: #FDE68A;
   --color-warning-light: #451A03;
   --color-warning-bg:    #1C0F00;
-  --color-danger:        #EF4444;
-  --color-danger-hover:  #F87171;
-  --color-danger-light:  #450A0A;
-  --color-paused:        #9CA3AF;
-  --color-paused-light:  #1F2937;
 
-  /* Category */
-  --color-health:  #4ADE80;
-  --color-study:   #A78BFA;
-  --color-work:    #60A5FA;
-  --color-mindful: #F4ACB7;
-  --color-other:   #A3E635;
+  --color-danger:       #EF4444;
+  --color-danger-hover: #F87171;
+  --color-danger-light: #450A0A;
 
+  --color-paused:       #9CA3AF;
+  --color-paused-light: #1F2937;
+
+  /* Priority */
+  --color-priority-high:         #E07A8A;
+  --color-priority-high-light:   #3B1219;
+  --color-priority-high-bg:      #3B1219;
+  --color-priority-high-text:    #FDA4AF;
+
+  --color-priority-medium:         #D4A574;
+  --color-priority-medium-light:   #3B2506;
+  --color-priority-medium-bg:      #3B2506;
+  --color-priority-medium-text:    #E8B588;
+
+  --color-priority-low:         #6EC4BD;
+  --color-priority-low-light:   #1A3330;
+  --color-priority-low-bg:      #0F2846;
+  --color-priority-low-text:    #93C5FD;
+
+  /* Status */
+  --color-status-active-bg:     #064E3B;
+  --color-status-active-text:   #6EE7B7;
+  --color-status-paused-bg:     #1E1B4B;
+  --color-status-paused-text:   #A5B4FC;
+  --color-status-archived-bg:   #4C0519;
+  --color-status-archived-text: #FDA4AF;
+
+  /* Categories */
   --color-category-health-bg:        rgba(74, 222, 128, 0.15);
   --color-category-health-text:      #4ADE80;
   --color-category-study-bg:         rgba(167, 139, 250, 0.15);
@@ -253,20 +336,16 @@ body.dark {
   --color-gray-700: #E5E7EB;
   --color-gray-800: #F3F4F6;
   --color-gray-900: #FFFFFF;
-  /* ── Priority ────────────────────────────────────────────────────────────── */
-  --color-priority-high: #B85C6E;
-  --color-priority-high-light: #F7DDE4;
-  --color-priority-medium: #C4956A;
-  --color-priority-medium-light: #F5E8DA;
-  --color-priority-low: #84A59D;
-  --color-priority-low-light: #C8DDD7;
-  /* Secondary / tertiary */
-  --color-secondary:       #84A59D;
-  --color-secondary-hover: #A0C4BC;
-  --color-secondary-light: #1A2E2B;
-  --color-tertiary:        #FCD34D;
-  --color-tertiary-hover:  #FDE68A;
-  --color-tertiary-light:  #2D1F00;
+
+  /* Heatmap */
+  --heat-empty: #222222;
+  --heat-low:   #4a2a30;
+  --heat-mid:   #7a3a48;
+  --heat-high:  #896474;
+
+  /* Progress */
+  --progress-fill:  #896474;
+  --progress-track: #2e2e2e;
 
   /* Tone badges (Dashboard) */
   --tone-blue-bg:  rgba(96, 165, 250, 0.18);
@@ -278,27 +357,10 @@ body.dark {
   --tone-red-bg:   rgba(239, 68, 68, 0.18);
   --tone-red-fg:   #EF4444;
 
-  --color-scheme: dark;
-  --color-priority-low: #84A59D;
-  --color-priority-low-light: #C8DDD7;
+  /* Buttons */
+  --btn-primary-bg:   #9B7B8A;
+  --btn-primary-text: #ffffff;
 
-  /* ── Spacing ─────────────────────────────────────────────────────────────── */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-
-  /* ── Radii ───────────────────────────────────────────────────────────────── */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
-
-  /* ── Transitions ─────────────────────────────────────────────────────────── */
-  --transition-fast: 0.15s ease;
-  --transition-base: 0.2s ease;
+  /* Icons */
+  --icon-stroke: #999999;
 }
