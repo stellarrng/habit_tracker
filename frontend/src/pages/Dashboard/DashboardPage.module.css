@@ -346,13 +346,14 @@
 }
 
 .analyticsPanelHeader .chartTabs {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  align-self: flex-start;
 }
 
 .analyticsPanelHeader .chartTabBtn {
-  flex: 1 1 0;
-  min-width: 0;
-  padding-inline: 6px;
+  flex: 0 0 auto;
+  padding-inline: 10px;
 }
 
 .analyticsPanelHeader h3 {
@@ -369,7 +370,7 @@
 
 .panelTitle {
   color: var(--text-primary);
-  font-size: var(--font-size-lg);
+  font-size: 24px;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -393,28 +394,39 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.breakdownTools::-webkit-scrollbar {
+  display: none;
 }
 
 .breakdownTools .chartTabs {
-  flex: 1 1 100%;
-  justify-content: center;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
 }
 
 .breakdownTools .filterWrapper {
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .chartTabs {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   padding: 4px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-surface);
+  flex-shrink: 0;
 }
 
 .chartTabBtn {
@@ -422,11 +434,13 @@
   background: transparent;
   color: var(--text-secondary);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 6px 10px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
 }
 
@@ -921,13 +935,14 @@
 }
 
 .heatmapPanelHeader .chartTabs {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  align-self: flex-start;
 }
 
 .heatmapPanelHeader .chartTabBtn {
-  flex: 1 1 0;
-  min-width: 0;
-  padding-inline: 6px;
+  flex: 0 0 auto;
+  padding-inline: 10px;
 }
 
 .taskHeatmapList {
@@ -1477,13 +1492,14 @@
 }
 
 .panelHeaderActions .chartTabs {
-  width: 100%;
+  width: auto;
+  max-width: 100%;
+  align-self: flex-start;
 }
 
 .panelHeaderActions .chartTabBtn {
-  flex: 1 1 0;
-  min-width: 0;
-  padding-inline: 6px;
+  flex: 0 0 auto;
+  padding-inline: 10px;
 }
 
 .filterSelectBtn {
@@ -1734,9 +1750,11 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .breakdownTools .chartTabs {
-    flex: 1 1 auto;
-    width: auto;
+  .analyticsPanelHeader,
+  .heatmapPanelHeader,
+  .categoryLineHeader {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
@@ -1805,8 +1823,7 @@
 
   .analyticsPanelHeader .chartTabBtn,
   .heatmapPanelHeader .chartTabBtn {
-    flex: unset;
-    min-width: unset;
+    flex: 0 0 auto;
     padding-inline: 10px;
   }
 
@@ -1831,8 +1848,7 @@
   }
 
   .panelHeaderActions .chartTabBtn {
-    flex: unset;
-    min-width: unset;
+    flex: 0 0 auto;
     padding-inline: 10px;
   }
 
@@ -1859,12 +1875,6 @@
 
   .categoryLineChartWrap .lineAxis {
     left: 40px;
-  }
-
-  .panelTitle,
-  .analyticsPanelHeader h3,
-  .categoryLineHeader h3 {
-    font-size: 24px;
   }
 
   .chartTabBtn {
