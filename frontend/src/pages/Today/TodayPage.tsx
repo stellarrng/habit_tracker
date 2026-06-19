@@ -183,7 +183,20 @@ function WeeklyMomentum({
 
   return (
     <div className={styles.momentumCard}>
-      <p className={styles.momentumLabel}>WEEKLY MOMENTUM</p>
+      <div className={styles.momentumHeader}>
+        <p className={styles.momentumLabel}>WEEKLY MOMENTUM</p>
+
+        {/* Less → empty → low → mid → high → More */}
+        <div className={styles.heatLegend} aria-label="Heatmap intensity legend">
+          <span className={styles.heatLegendLabel}>Less</span>
+          <i className={`${styles.heatLegendCell} ${styles.dotEmpty}`} />
+          <i className={`${styles.heatLegendCell} ${styles.dotLow}`} />
+          <i className={`${styles.heatLegendCell} ${styles.dotMid}`} />
+          <i className={`${styles.heatLegendCell} ${styles.dotHigh}`} />
+          <span className={styles.heatLegendLabel}>More</span>
+        </div>
+      </div>
+
       <div className={styles.momentumDots}>
         {weekDays.map((day, i) => (
           <div key={i} className={`${styles.dot} ${getDotClass(day)}`} />

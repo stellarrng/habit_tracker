@@ -150,6 +150,13 @@
   --color-priority-low-bg:    #DBEAFE;
   --color-priority-low-text:  #1E40AF;
 
+  --color-priority-high: #B85C6E;
+  --color-priority-high-light: #F7DDE4;
+  --color-priority-medium: #C4956A;
+  --color-priority-medium-light: #F5E8DA;
+  --color-priority-low: #84A59D;
+  --color-priority-low-light: #C8DDD7;
+
   /* ── Status ─────────────────────────────────────────────────────────────── */
   --color-status-active-bg:     #D1FAE5;
   --color-status-active-text:   #065F46;
