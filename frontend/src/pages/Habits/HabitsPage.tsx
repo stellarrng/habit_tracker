@@ -156,13 +156,34 @@ export default function HabitsPage() {
   }
 
   const handleExportData = () => {
-    // Clean up internal database fields
-    const cleanHabits = habits.map(habit => {
+    // Clean up internal database fields and group by category
+    const groupedHabits: Record<string, any[]> = {};
+
+    habits.forEach(habit => {
       const { _id, userId, __v, createdAt, updatedAt, goalStartedAt, ...cleanData } = habit as any;
-      return cleanData;
+      const category = cleanData.category || 'Other';
+      
+      if (!groupedHabits[category]) {
+        groupedHabits[category] = [];
+      }
+      groupedHabits[category].push(cleanData);
     });
 
-    const dataStr = JSON.stringify(cleanHabits, null, 2);
+    // Enforce display order
+    const orderedGroupedHabits: Record<string, any[]> = {};
+    CATEGORIES_ORDER.forEach(cat => {
+      if (groupedHabits[cat] && groupedHabits[cat].length > 0) {
+        orderedGroupedHabits[cat] = groupedHabits[cat];
+      }
+    });
+    // Catch any unexpected categories not in CATEGORIES_ORDER
+    Object.keys(groupedHabits).forEach(cat => {
+      if (!orderedGroupedHabits[cat]) {
+        orderedGroupedHabits[cat] = groupedHabits[cat];
+      }
+    });
+
+    const dataStr = JSON.stringify(orderedGroupedHabits, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     
@@ -188,7 +209,7 @@ export default function HabitsPage() {
               Each small step leads to significant change.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button className="btn btn-secondary" onClick={handleExportData} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <DownloadIcon /> Export Habit Data
             </button>
