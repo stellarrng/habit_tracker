@@ -366,6 +366,7 @@ export default function HabitDetailPage() {
           ← Back to Habits
         </button>
 
+        <div className={styles.bannerCard}>
         {/* ── Header Row ────────────────────────────────────────── */}
         <div className={styles.headerRow}>
           {/* <div className={styles.iconWrapper} style={{ background: iconBg }}>
@@ -429,36 +430,10 @@ export default function HabitDetailPage() {
           </span>
         </div>
 
-        {/* ── About Card ─────────────────────────────────────────── */}
-        <div className={styles.aboutCard}>
-          <div className={styles.aboutHeader}>
-            <span className={styles.aboutTitle}>Information</span>
-            <button className={styles.editLink} onClick={handleOpenEdit}>
-              Edit
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
-            </div>
-          </div>
         </div>
 
+        <div className={styles.mainGrid}>
+          <div className={styles.mainColumn}>
         {/* ── Goal progress card ──────────────────────────────────── */}
         <div className={styles.goalCard}>
           <div className={styles.goalCardHeader}>
@@ -560,6 +535,41 @@ export default function HabitDetailPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+          </div>
+          <div className={styles.sideColumn}>
+        {/* ── About Card ─────────────────────────────────────────── */}
+        <div className={styles.aboutCard}>
+          <div className={styles.aboutHeader}>
+            <span className={styles.aboutTitle}>Information</span>
+            <button className={styles.editLink} onClick={handleOpenEdit}>
+              Edit
+            </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
+            </div>
+          </div>
+        </div>
+
           </div>
         </div>
       </div>

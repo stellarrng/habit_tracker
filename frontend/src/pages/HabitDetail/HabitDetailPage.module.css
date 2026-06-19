@@ -1,11 +1,49 @@
 /* ── Layout Container ────────────────────────────────────────── */
 .detailPageContainer {
-  max-width: 680px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 8px 16px 32px 16px;
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+
+.bannerCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
   gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .backButton {
