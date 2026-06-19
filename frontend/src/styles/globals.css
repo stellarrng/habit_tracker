@@ -40,10 +40,10 @@
   /* ── Status ─────────────────────────────────────────────────────────────── */
   --color-status-active-bg:     #D1FAE5;
   --color-status-active-text:   #065F46;
-  --color-status-paused-bg:     #F3F4F6;
-  --color-status-paused-text:   #374151;
-  --color-status-archived-bg:   #E5E7EB;
-  --color-status-archived-text: #4B5563;
+  --color-status-paused-bg:     #E0E7FF;
+  --color-status-paused-text:   #3730A3;
+  --color-status-archived-bg:   #FFE4E6;
+  --color-status-archived-text: #9F1239;
 
   /* ── Category ───────────────────────────────────────────────────────────── */
   --color-health:  #84A59D;

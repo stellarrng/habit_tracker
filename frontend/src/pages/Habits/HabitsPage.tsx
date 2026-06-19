@@ -10,7 +10,7 @@ import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
 import EmptyState from '../../components/shared/EmptyState';
 import ErrorMessage from '../../components/shared/ErrorMessage';
-import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon } from '../../components/shared/Icons';
+import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon, DownloadIcon } from '../../components/shared/Icons';
 import styles from './HabitsPage.module.css';
 
 const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
@@ -155,6 +155,26 @@ export default function HabitsPage() {
     setShowGoalForm(true);
   }
 
+  const handleExportData = () => {
+    // Clean up internal database fields
+    const cleanHabits = habits.map(habit => {
+      const { _id, userId, __v, createdAt, updatedAt, goalStartedAt, ...cleanData } = habit as any;
+      return cleanData;
+    });
+
+    const dataStr = JSON.stringify(cleanHabits, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `my-habit-data.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <AppLayout>
       <div className="page-container">
@@ -168,9 +188,14 @@ export default function HabitsPage() {
               Each small step leads to significant change.
             </p>
           </div>
-          <button className="btn btn-primary" onClick={openCreate} id="add-new-habit-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <PlusIcon /> Add New Habit
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button className="btn btn-secondary" onClick={handleExportData} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <DownloadIcon /> Export Habit Data
+            </button>
+            <button className="btn btn-primary" onClick={openCreate} id="add-new-habit-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <PlusIcon /> Add New Habit
+            </button>
+          </div>
         </div>
 
         {/* Error banner */}
