@@ -3,19 +3,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #EEF2FF 0%, #F8F9FA 60%, #E7EBFF 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--bg-page) 60%, var(--color-accent-light) 100%);
   padding: 20px;
   font-family: 'Inter', system-ui, sans-serif;
 }
 
 .card {
-  background: #fff;
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 40px 36px;
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 12px 40px rgba(59,91,219,.12), 0 2px 8px rgba(0,0,0,.06);
-  border: 1px solid #E9ECEF;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
 }
 
 .brand {
@@ -26,13 +26,13 @@
 .brandName {
   font-size: 26px;
   font-weight: 800;
-  color: #3B5BDB;
+  color: var(--color-primary);
   letter-spacing: -0.5px;
 }
 
 .brandSub {
   font-size: 13px;
-  color: #9EA6B5;
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -40,22 +40,22 @@
   font-size: 22px;
   font-weight: 700;
   margin-bottom: 6px;
-  color: #1A1D23;
+  color: var(--text-primary);
 }
 
 .subtitle {
   font-size: 14px;
-  color: #5C6370;
+  color: var(--text-secondary);
   margin-bottom: 24px;
 }
 
 .errorBox {
-  background: #FFE3E3;
-  border: 1px solid #FFBEBE;
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 13px;
-  color: #C92A2A;
+  color: var(--color-danger-dark);
   font-weight: 500;
   margin-bottom: 18px;
   display: flex;
@@ -82,28 +82,28 @@
 .label {
   font-size: 13px;
   font-weight: 600;
-  color: #1A1D23;
+  color: var(--text-primary);
 }
 
 .input {
   padding: 10px 13px;
-  border: 1.5px solid #E9ECEF;
+  border: 1.5px solid var(--border);
   border-radius: 10px;
   font-size: 14px;
-  color: #1A1D23;
-  background: #F8F9FA;
+  color: var(--text-primary);
+  background: var(--bg-input);
   outline: none;
   font-family: inherit;
   transition: border-color 0.15s;
 }
 
 .input:focus {
-  border-color: #3B5BDB;
+  border-color: var(--color-primary);
 }
 
 .submitBtn {
-  background: #3B5BDB;
-  color: #fff;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
   border: none;
   border-radius: 10px;
   padding: 12px;
@@ -111,24 +111,24 @@
   font-weight: 600;
   cursor: pointer;
   margin-top: 6px;
-  box-shadow: 0 2px 8px rgba(59,91,219,.30);
+  box-shadow: var(--shadow-md);
   font-family: inherit;
   transition: all 0.15s;
 }
 
 .submitBtn:hover {
-  background: #2B49C4;
+  background: var(--color-primary-dark);
 }
 
 .footer {
   text-align: center;
   margin-top: 20px;
   font-size: 13px;
-  color: #5C6370;
+  color: var(--text-secondary);
 }
 
 .link {
-  color: #3B5BDB;
+  color: var(--color-primary);
   font-weight: 600;
   text-decoration: none;
 }
