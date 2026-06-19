@@ -12,9 +12,6 @@ import HabitCategoryIcon from '../shared/HabitCategoryIcon';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-function categoryClass(cat: string) {
-  return `chip chip-category-${cat.toLowerCase().replace(/\s+/g, '')}`;
-}
 function priorityClass(p: string) {
   return `chip chip-${p.toLowerCase()}`;
 }
@@ -246,7 +243,6 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
 
       {/* Meta chips */}
       <div className="habit-meta">
-        <span className={categoryClass(habit.category)}>{habit.category}</span>
         <span className="chip chip-freq">
           {habit.frequency === 'Daily'
             ? 'Daily'
