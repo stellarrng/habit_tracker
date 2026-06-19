@@ -9,7 +9,7 @@
   max-width: 1080px;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 0 var(--space-4);
+  padding: 32px var(--space-4) 0;
   color: var(--text-primary);
 }
 
@@ -23,11 +23,11 @@
 }
 
 .dashboardSection {
-  padding-bottom: 64px;
+  padding-bottom: var(--space-8);
 }
 
-.breakdown > .sectionHeader {
-  padding-top: 32px;
+.breakdown {
+  margin-bottom: var(--space-8);
 }
 
 .cardTop,
@@ -70,7 +70,6 @@
 }
 
 .filterButton svg,
-.summaryIcon svg,
 .habitIcon svg {
   width: 24px;
   height: 24px;
@@ -151,121 +150,130 @@
 .summaryGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
-  margin-bottom: 48px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .summaryCard,
 .habitCard {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
   box-shadow: var(--shadow-card);
-  transition: box-shadow 0.2s ease, background 0.2s ease;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
 .summaryCard:hover,
 .habitCard:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
 }
 
 .summaryCard {
-  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: var(--space-5);
 }
 
-.cardTop {
-  justify-content: space-between;
-  margin-bottom: 12px;
+/* Summary card specific positioning: keep icon and label aligned center */
+.summaryCard .cardTop {
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.summaryIcon,
-.habitIcon {
-  display: grid;
-  place-items: center;
-  border-radius: 8px;
+.summaryCard .summaryStatus {
+  flex: 0 1 auto;
+  text-align: right;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .summaryIcon {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
 }
 
-.blue {
-  background: var(--tone-blue-bg, rgba(31, 83, 201, 0.10));
-  color: var(--tone-blue-fg, #1f53c9);
+.summaryIconCompleted {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
-.green {
-  background: var(--tone-mint-bg, rgba(69, 100, 94, 0.12));
-  color: var(--tone-mint-fg, #45645e);
+.summaryIconActive {
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
-.red {
-  background: var(--tone-red-bg, rgba(186, 26, 26, 0.10));
-  color: var(--tone-red-fg, #ba1a1a);
+.summaryIconRisk {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
 }
 
-.mint {
-  background: var(--tone-mint-bg, rgba(69, 100, 94, 0.12));
-  color: var(--tone-mint-fg, #45645e);
+.summaryStatus {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  line-height: 1.35;
+  text-align: right;
 }
 
-.amber {
-  background: var(--tone-amber-bg, #ffdcc1);
-  color: var(--tone-amber-fg, #8a4c00);
+.summaryStatusCompleted {
+  color: var(--color-primary);
 }
 
-.statusText {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
+.summaryStatusActive {
+  color: var(--color-success);
 }
 
-.blueText {
-  color: #1f53c9;
+.summaryStatusRisk {
+  color: var(--color-danger);
 }
 
-.greenText {
+.summaryDesc {
+  margin-bottom: var(--space-3);
   color: var(--text-secondary);
-}
-
-.redText {
-  color: #ba1a1a;
-}
-
-.summaryCard p {
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-  margin-bottom: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  line-height: 1.5;
 }
 
 .metric {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
   color: var(--text-primary);
 }
 
 .metric strong {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-bold);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .metric span {
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
 }
 
 .progressTrack {
-  height: 5px;
-  margin-top: 12px;
+  height: 6px;
+  margin-top: var(--space-3);
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--bg-elevated);
 }
 
@@ -273,60 +281,65 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #1f53c9;
   transition: width 0.4s ease;
+}
+
+.progressTrackCompleted span {
+  background: var(--color-primary);
 }
 
 .avatarStack {
   display: flex;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .avatarStack span {
-  width: 22px;
-  height: 22px;
-  margin-left: -7px;
+  width: 24px;
+  height: 24px;
+  margin-left: -6px;
   display: grid;
   place-items: center;
-  border: 2px solid var(--bg-surface);
-  border-radius: 50%;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
+  border: 2px solid var(--bg-card);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-bold);
+  line-height: 1;
 }
 
 .avatarStack span:first-child {
   margin-left: 0;
-  background: #406de4;
 }
 
-.avatarStack span:nth-child(2) {
-  background: #ae6100;
+.avatarHealth {
+  background: var(--color-category-health-text);
+  color: var(--bg-card);
 }
 
-.avatarStack span:nth-child(3) {
-  background: #c7eae1;
-  color: #4b6a63;
+.avatarStudy {
+  background: var(--color-category-study-text);
+  color: var(--bg-card);
 }
 
-.avatarStack span:nth-child(4) {
+.avatarWork {
+  background: var(--color-category-work-text);
+  color: var(--bg-card);
+}
+
+.avatarMore {
   background: var(--bg-elevated);
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .riskList {
   display: block;
-  margin-top: 12px;
-  color: rgba(186, 26, 26, 0.85);
-  font-size: 12px;
-  font-weight: 600;
+  margin-top: var(--space-3);
+  color: var(--color-danger);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-semibold);
+  line-height: 1.4;
 }
 
 /* ── Breakdown ───────────────────────────────────────────────────────────── */
-
-.breakdown {
-  margin-bottom: 64px;
-}
 
 .analyticsPanel {
   border: 1px solid var(--border);
@@ -1837,7 +1850,7 @@
 
 @media (min-width: 768px) {
   .content {
-    padding: 0 var(--space-6);
+    padding: 32px var(--space-6) 0;
   }
 
   .sectionHeader {

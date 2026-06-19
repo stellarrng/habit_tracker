@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { BookOpen, Brain, Briefcase, Heart, Sparkles, type LucideIcon } from "lucide-react";
 import AppLayout from "../../components/layout/AppLayout";
 import Footer from "../../components/layout/Footer";
+import { AlertCircleIcon, CheckIcon, TargetIcon } from "../../components/shared/Icons";
 import { DATE_RANGES, useSettings } from "../../context/SettingsContext";
 import styles from "./DashboardPage.module.css";
 
@@ -694,7 +694,6 @@ function HeatmapGrid({
 }
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const { settings, t } = useSettings();
   const [range, setRange] = useState<DateRange>(settings.defaultRange);
   const [chartView, setChartView] = useState<ChartView>("bar");
@@ -777,6 +776,27 @@ export default function DashboardPage() {
       };
     }).filter((item): item is NonNullable<typeof item> => Boolean(item));
   }, [groupedHabitStats]);
+
+  const dashboardSummary = useMemo(() => {
+    const completedTodayHabits = habitStats.filter((habit) => {
+      const latest = habit.dailyRates[habit.dailyRates.length - 1];
+      return latest >= 0.8;
+    });
+    const activeHabits = habitStats.filter((habit) => habit.computed.streak > 0);
+    const atRiskHabits = habitStats.filter((habit) => {
+      const lastThree = habit.dailyRates.slice(-3);
+      return lastThree.length === 3 && lastThree.every((rate) => rate < 0.8);
+    });
+
+    return {
+      completedRate: habitStats.length ? Math.round((completedTodayHabits.length / habitStats.length) * 100) : 0,
+      activeCount: activeHabits.length,
+      riskCount: atRiskHabits.length,
+      riskNames: atRiskHabits.map((habit) => habit.name).slice(0, 2),
+      activeLabel: `${activeHabits.length} in ${days} Days`,
+    };
+  }, [habitStats, days]);
+
   const heatmapSourceHabits = useMemo(
     () => habitStats as DashboardHabit[],
     [habitStats]
@@ -814,6 +834,76 @@ export default function DashboardPage() {
     <AppLayout>
       <div className={styles.content}>
         <section className={styles.dashboardSection}>
+          <div className={styles.summaryGrid}>
+            <article className={styles.summaryCard}>
+              <div className={styles.cardTop}>
+                <div className={`${styles.summaryIcon} ${styles.summaryIconCompleted}`}>
+                  <TargetIcon width={20} height={20} aria-hidden />
+                </div>
+                <span className={`${styles.summaryStatus} ${styles.summaryStatusCompleted}`}>
+                  Completed Today
+                </span>
+              </div>
+              <p className={styles.summaryDesc}>
+                Latest habit completion rate based on today&apos;s progress.
+              </p>
+              <div className={styles.metric}>
+                <strong>{dashboardSummary.completedRate}%</strong>
+                <span>/ 100</span>
+              </div>
+              <div className={`${styles.progressTrack} ${styles.progressTrackCompleted}`}>
+                <span style={{ width: `${dashboardSummary.completedRate}%` }} />
+              </div>
+            </article>
+
+            <article className={styles.summaryCard}>
+              <div className={styles.cardTop}>
+                <div className={`${styles.summaryIcon} ${styles.summaryIconActive}`}>
+                  <CheckIcon width={20} height={20} aria-hidden />
+                </div>
+                <span className={`${styles.summaryStatus} ${styles.summaryStatusActive}`}>
+                  Active Habits
+                </span>
+              </div>
+              <p className={styles.summaryDesc}>
+                Habits with an active streak during the selected range.
+              </p>
+              <div className={styles.metric}>
+                <strong>{dashboardSummary.activeCount}</strong>
+                <span>{dashboardSummary.activeLabel}</span>
+              </div>
+              <div className={styles.avatarStack}>
+                <span className={styles.avatarHealth}>H</span>
+                <span className={styles.avatarStudy}>S</span>
+                <span className={styles.avatarWork}>W</span>
+                <span className={styles.avatarMore}>+{Math.max(0, dashboardSummary.activeCount - 3)}</span>
+              </div>
+            </article>
+
+            <article className={styles.summaryCard}>
+              <div className={styles.cardTop}>
+                <div className={`${styles.summaryIcon} ${styles.summaryIconRisk}`}>
+                  <AlertCircleIcon width={20} height={20} aria-hidden />
+                </div>
+                <span className={`${styles.summaryStatus} ${styles.summaryStatusRisk}`}>
+                  Habits at Risk
+                </span>
+              </div>
+              <p className={styles.summaryDesc}>
+                Habits that may be losing momentum and need attention.
+              </p>
+              <div className={styles.metric}>
+                <strong>{dashboardSummary.riskCount}</strong>
+                <span>Potential break</span>
+              </div>
+              {dashboardSummary.riskNames.length > 0 && (
+                <div className={styles.riskList}>
+                  {dashboardSummary.riskNames.map((name) => `"${name}"`).join(", ")}
+                </div>
+              )}
+            </article>
+          </div>
+
           {/* Habit breakdown */}
           <section className={styles.breakdown}>
             <div className={styles.sectionHeader}>
