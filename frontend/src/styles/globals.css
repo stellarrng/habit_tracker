@@ -142,6 +142,28 @@
   --space-2: 8px;
   --text: #1a1a1a;
   --text-base: #1a1a1a;
+  /* ── Priority ───────────────────────────────────────────────────────────── */
+  --color-priority-high-bg:   #FEE2E2;
+  --color-priority-high-text: #991B1B;
+  --color-priority-medium-bg: #FEF3C7;
+  --color-priority-medium-text: #92400E;
+  --color-priority-low-bg:    #DBEAFE;
+  --color-priority-low-text:  #1E40AF;
+
+  /* ── Status ─────────────────────────────────────────────────────────────── */
+  --color-status-active-bg:     #D1FAE5;
+  --color-status-active-text:   #065F46;
+  --color-status-paused-bg:     #E0E7FF;
+  --color-status-paused-text:   #3730A3;
+  --color-status-archived-bg:   #FFE4E6;
+  --color-status-archived-text: #9F1239;
+
+  /* ── Category ───────────────────────────────────────────────────────────── */
+  --color-health:  #84A59D;
+  --color-study:   #9B7B8A;
+  --color-work:    #A0B4C8;
+  --color-mindful: #F4ACBA;
+  --color-other:   #B5A89A;
 }
 
 /* ── Dark mode ───────────────────────────────────────────────────────────── */
@@ -621,7 +643,6 @@ textarea {
 .habit-goal-msg.achieved {
   color: var(--color-secondary);
 }
-
 /* Card footer */
 .habit-card-footer {
   display: flex;

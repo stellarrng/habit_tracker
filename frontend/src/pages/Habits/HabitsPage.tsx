@@ -12,6 +12,8 @@ import EmptyState from '../../components/shared/EmptyState';
 import ErrorMessage from '../../components/shared/ErrorMessage';
 import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon, DownloadIcon } from '../../components/shared/Icons';
 import styles from './HabitsPage.module.css';
+import Footer from "../../components/layout/Footer";
+
 
 const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
 
@@ -434,6 +436,7 @@ export default function HabitsPage() {
           onClose={() => setLastAction(null)}
         />
       )}
+      <Footer/>
     </AppLayout>
   );
 }

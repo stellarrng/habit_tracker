@@ -1,96 +1,259 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-  /* ── Brand ───────────────────────────────────────────────────────────────── */
-  --color-primary: #9B7B8A;
-  --color-primary-hover: #7E6474;
-  --color-primary-dark: #7E6474;
-  --color-primary-light: #F4E8EE;
+  /* ── Palette (static, never change between light/dark) ───────────────────── */
+  --palette-mint:       #D8E2DC;
+  --palette-white:      #FFFFFF;
+  --palette-light-pink: #FFCAD4;
+  --palette-pink:       #F4ACB7;
+  --palette-dusty:      #9D8189;
 
-  --color-secondary: #84A59D;
-  --color-secondary-hover: #6F9088;
-  --color-secondary-light: #C8DDD7;
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --font-sans:    "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --color-accent: #F4ACBA;
-  --color-accent-hover: #E896A8;
-  --color-accent-light: #FCE8EE;
+  --font-size-xs:   12px;
+  --font-size-sm:   14px;
+  --font-size-base: 15px;
+  --font-size-md:   16px;
+  --font-size-lg:   20px;
+  --font-size-xl:   24px;
+  --font-size-2xl:  32px;
+  --font-size-3xl:  48px;
 
-  /* ── Semantic ────────────────────────────────────────────────────────────── */
-  --color-success: #84A59D;
-  --color-success-hover: #6F9088;
-  --color-success-light: #C8DDD7;
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
 
-  --color-danger: #B85C6E;
-  --color-danger-hover: #9A4A5A;
-  --color-danger-light: #F7DDE4;
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
 
-  --color-warning: #C4956A;
-  --color-warning-light: #F5E8DA;
-  --color-warning-bg: #FDF3E7;
+  /* ── Layout ──────────────────────────────────────────────────────────────── */
+  --sidebar-width: 260px;
 
-  /* ── Gray scale ──────────────────────────────────────────────────────────── */
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f4f4f5;
-  --color-gray-200: #e4e4e7;
-  --color-gray-400: #a1a1aa;
-  --color-gray-500: #71717a;
-  --color-gray-700: #3f3f46;
-  --color-gray-900: #18181b;
+  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px; --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px; --space-10: 40px;
 
-  /* ── Surfaces ────────────────────────────────────────────────────────────── */
-  --bg-page: #f0f0f0;
-  --bg-surface: #ffffff;
-  --bg-elevated: #f4f4f5;
-  --bg-sidebar: #ffffff;
-  --bg-card: #ffffff;
+  /* ── Border radius ───────────────────────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* ── Transitions ─────────────────────────────────────────────────────────── */
+  --transition:      all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+
+  /* ══════════════════════════════════════════════════════════════════════════
+   * LIGHT MODE TOKENS
+   * ══════════════════════════════════════════════════════════════════════════ */
+
+  /* Surfaces */
+  --bg-app:     #FCF5F6;
+  --bg-page:    #FCF5F6;
+  --bg-card:    #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated:#FFF9FA;
+  --bg-sidebar: #FFF9FA;
   --bg-nav-active: #F4E8EE;
   --bg-input: #ffffff;
-  --navbar-bg: rgba(255, 255, 255, 0.90);
+  --navbar-bg:  rgba(252, 245, 246, 0.88);
 
-  /* ── Text ────────────────────────────────────────────────────────────────── */
-  --text-primary: #1a1a1a;
-  --text-secondary: #444444;
-  --text-muted: #999999;
-  --text-inverse: #ffffff;
+  /* Borders & shadows */
+  --border:       #EAD0D3;
+  --border-focus: #D66D7D;
+  --shadow-sm:    0 1px 3px rgba(43, 24, 27, 0.07);
+  --shadow-md:    0 4px 12px rgba(43, 24, 27, 0.09);
+  --shadow-lg:    0 12px 32px rgba(43, 24, 27, 0.12);
+  --shadow-card:  0 4px 20px rgba(43, 24, 27, 0.06);
+
+  /* Text */
+  --text-primary:   #2B181B;
+  --text-secondary: #583E42;
+  --text-muted:     #8F7074;
+  --text-inverse:   #FFFFFF;
   --text: #1a1a1a;
   --text-nav-active: #9B7B8A;
   --text-nav-inactive: #6b7280;
 
-  /* ── Borders ─────────────────────────────────────────────────────────────── */
-  --border: #e8e8e8;
-  --border-focus: #9B7B8A;
-  --divider: #e8e8e8;
+  /* Brand / accent */
+  --color-primary:       #D66D7D;
+  --color-primary-hover: #C05E6D;
+  --color-primary-dark:  #983848;
+  --color-primary-light: rgba(244, 172, 183, 0.22);
+  --accent-color:        #F4ACB7;
 
-  /* ── Shadows ─────────────────────────────────────────────────────────────── */
-  --shadow-sm: 0 1px 3px rgba(155, 123, 138, 0.08);
-  --shadow-md: 0 4px 12px rgba(155, 123, 138, 0.12);
-  --shadow-lg: 0 12px 32px rgba(155, 123, 138, 0.15);
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  /* Semantic */
+  --color-success:       #2F9E44;
+  --color-success-light: #D3F9D8;
+  --color-success-bg:    #F3FBF5;
+  --color-warning:       #E67700;
+  --color-warning-light: #FFF3CD;
+  --color-warning-bg:    #FFF8EF;
+  --color-danger:        #DF4759;
+  --color-danger-hover:  #C83040;
+  --color-danger-light:  #FDECEC;
+  --color-paused:        #8F7074;
+  --color-paused-light:  #F5EFEF;
 
+  /* Priority */
+  --color-low:    #74C0FC;
+  --color-medium: #FFD43B;
+  --color-high:   #FF6B6B;
+
+  /* Category */
+  --color-health:  #51CF66;
+  --color-study:   #845EF7;
+  --color-work:    #339AF0;
+  --color-mindful: #F4ACB7;
+  --color-other:   #94D82D;
+
+  --color-category-health-bg:        #D3F9D8;
+  --color-category-health-text:      #1A6B2F;
+  --color-category-study-bg:         #EDE9FE;
+  --color-category-study-text:       #5B21B6;
+  --color-category-work-bg:          #DBEAFE;
+  --color-category-work-text:        #1E40AF;
+  --color-category-mindfulness-bg:   rgba(244, 172, 183, 0.25);
+  --color-category-mindfulness-text: #983848;
+  --color-category-other-bg:         #ECFCCB;
+  --color-category-other-text:       #3A5C10;
+
+  /* Gray scale (used in TodayPage / HabitsPage module CSS) */
+  --color-gray-50:  #FBF5F6;
+  --color-gray-100: #F5ECEE;
+  --color-gray-200: #EAD0D3;
+  --color-gray-300: #D9B3B8;
+  --color-gray-400: #B98E94;
+  --color-gray-500: #8F7074;
+  --color-gray-600: #6B4F53;
+  --color-gray-700: #4E3337;
+  --color-gray-800: #3A2226;
+  --color-gray-900: #2B181B;
+
+  /* Secondary / tertiary (used in TodayPage priority indicators) */
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #6F9088;
+  --color-secondary-light: #DCE7E4;
+  --color-tertiary:        #D27700;
+  --color-tertiary-hover:  #B76600;
+  --color-tertiary-light:  #FCE8CC;
+  --color-accent: #F4ACBA;
+  --color-accent-hover: #E896A8;
+  --color-accent-light: #FCE8EE;
+
+  /* Tone badges (Dashboard) */
+  --tone-blue-bg:  rgba(93, 135, 255, 0.12);
+  --tone-blue-fg:  #3B5BDB;
+  --tone-amber-bg: rgba(212, 131, 10, 0.12);
+  --tone-amber-fg: #D27700;
+  --tone-mint-bg:  rgba(132, 165, 157, 0.15);
+  --tone-mint-fg:  #2D7066;
+  --tone-red-bg:   rgba(223, 71, 89, 0.12);
+  --tone-red-fg:   #DF4759;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+ * DARK MODE TOKEN OVERRIDES
+ * Toggle: SettingsContext adds/removes class "dark" on <body>
+ * ══════════════════════════════════════════════════════════════════════════════ */
+
+body.dark {
+  /* Surfaces */
+  --bg-app:     #0F1115;
+  --bg-page:    #0F1115;
+  --bg-card:    #161922;
+  --bg-surface: #161922;
+  --bg-elevated:#1E2128;
+  --bg-sidebar: #161922;
+  --navbar-bg:  rgba(15, 17, 21, 0.92);
+
+  /* Borders & shadows */
+  --border:       #2D303A;
+  --border-focus: #F4ACB7;
+  --divider: #2D303A;
+  --shadow-sm:    0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg:    0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card:  0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* Text */
+  --text-primary:   #FFFFFF;
+  --text-secondary: #F3F4F6;
+  --text-muted:     #9CA3AF;
+  --text-inverse:   #0F1115;
+
+  /* Brand / accent */
+  --color-primary:       #F4ACB7;
+  --color-primary-hover: #FFCAD4;
+  --color-primary-dark:  #9D8189;
+  --color-primary-light: rgba(244, 172, 183, 0.15);
+  --accent-color:        #FFCAD4;
   /* ── Progress / heatmap ──────────────────────────────────────────────────── */
   --progress-track: #F4E8EE;
   --heat-high: #84A59D;
   --heat-mid: #C8DDD7;
   --heat-low: #F4ACBA;
   --heat-empty: #e4e4e7;
-
-  /* ── Buttons ─────────────────────────────────────────────────────────────── */
+    /* ── Buttons ─────────────────────────────────────────────────────────────── */
   --btn-primary-bg: #9B7B8A;
   --btn-primary-text: #ffffff;
-
   /* ── Icons ───────────────────────────────────────────────────────────────── */
   --icon-stroke: #999999;
+  /* Semantic */
+  --color-success:       #4ADE80;
+  --color-success-hover: #6F9088;
+  --color-success-light: #14532D;
+  --color-success-bg:    #052E16;
+  --color-warning:       #FCD34D;
+  --color-warning-light: #451A03;
+  --color-warning-bg:    #1C0F00;
+  --color-danger:        #EF4444;
+  --color-danger-hover:  #F87171;
+  --color-danger-light:  #450A0A;
+  --color-paused:        #9CA3AF;
+  --color-paused-light:  #1F2937;
 
-  /* ── Categories ──────────────────────────────────────────────────────────── */
-  --color-category-health-bg: #D7F0EE;
-  --color-category-health-text: #2F7C77;
-  --color-category-study-bg: #FFF1D6;
-  --color-category-study-text: #B57400;
-  --color-category-work-bg: #DDECF7;
-  --color-category-work-text: #3F6D8C;
-  --color-category-mindfulness-bg: #EEE3FA;
-  --color-category-mindfulness-text: #7A56A5;
-  --color-category-other-bg: #ECECEC;
-  --color-category-other-text: #6E6E6E;
+  /* Category */
+  --color-health:  #4ADE80;
+  --color-study:   #A78BFA;
+  --color-work:    #60A5FA;
+  --color-mindful: #F4ACB7;
+  --color-other:   #A3E635;
 
+  --color-category-health-bg:        rgba(74, 222, 128, 0.15);
+  --color-category-health-text:      #4ADE80;
+  --color-category-study-bg:         rgba(167, 139, 250, 0.15);
+  --color-category-study-text:       #A78BFA;
+  --color-category-work-bg:          rgba(96, 165, 250, 0.15);
+  --color-category-work-text:        #60A5FA;
+  --color-category-mindfulness-bg:   rgba(244, 172, 183, 0.15);
+  --color-category-mindfulness-text: #F4ACB7;
+  --color-category-other-bg:         rgba(163, 230, 53, 0.15);
+  --color-category-other-text:       #A3E635;
+
+  /* Gray scale (remapped to dark neutrals) */
+  --color-gray-50:  #1A1D24;
+  --color-gray-100: #22262F;
+  --color-gray-200: #2D303A;
+  --color-gray-300: #3D4150;
+  --color-gray-400: #6B7280;
+  --color-gray-500: #9CA3AF;
+  --color-gray-600: #D1D5DB;
+  --color-gray-700: #E5E7EB;
+  --color-gray-800: #F3F4F6;
+  --color-gray-900: #FFFFFF;
   /* ── Priority ────────────────────────────────────────────────────────────── */
   --color-priority-high: #B85C6E;
   --color-priority-high-light: #F7DDE4;
@@ -98,24 +261,27 @@
   --color-priority-medium-light: #F5E8DA;
   --color-priority-low: #84A59D;
   --color-priority-low-light: #C8DDD7;
+  /* Secondary / tertiary */
+  --color-secondary:       #84A59D;
+  --color-secondary-hover: #A0C4BC;
+  --color-secondary-light: #1A2E2B;
+  --color-tertiary:        #FCD34D;
+  --color-tertiary-hover:  #FDE68A;
+  --color-tertiary-light:  #2D1F00;
 
-  /* ── Typography ──────────────────────────────────────────────────────────── */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --font-size-sm: 0.875rem;
-  /* alias for teammate compatibility */
-  --font-size-base: 1rem;
-  --font-size-md: 1rem;
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
+  /* Tone badges (Dashboard) */
+  --tone-blue-bg:  rgba(96, 165, 250, 0.18);
+  --tone-blue-fg:  #60A5FA;
+  --tone-amber-bg: rgba(252, 211, 77, 0.18);
+  --tone-amber-fg: #FCD34D;
+  --tone-mint-bg:  rgba(132, 165, 157, 0.18);
+  --tone-mint-fg:  #84A59D;
+  --tone-red-bg:   rgba(239, 68, 68, 0.18);
+  --tone-red-fg:   #EF4444;
+
+  --color-scheme: dark;
+  --color-priority-low: #84A59D;
+  --color-priority-low-light: #C8DDD7;
 
   /* ── Spacing ─────────────────────────────────────────────────────────────── */
   --space-1: 4px;

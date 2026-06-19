@@ -9,6 +9,7 @@ import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
 import { useStreaks } from '../../hooks/useStreaks';
 import { getCheckIns } from '../../api/checkins';
+import Footer from "../../components/layout/Footer";
 import {
   InfoIcon,
   TrophyIcon,
@@ -636,6 +637,7 @@ export default function HabitDetailPage() {
           onClose={() => setLastAction(null)}
         />
       )}
+      <Footer/>
     </AppLayout>
   );
 }

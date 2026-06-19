@@ -7,6 +7,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { useHabitContext } from "../../context/HabitContext";
 import { useAuth } from "@/context/AuthContext";
 import WeekStrip from "@/components/today/WeekStrip";
+import Footer from "../../components/layout/Footer";
 import HabitRow, { deriveStatus, type HabitWithCheckIn } from "@/components/today/HabitRow";
 import { CheckCircle2, PartyPopper, Rocket, TrendingUp, Sun, Sunset, Moon } from "lucide-react";
 import Toast from "@/components/shared/Toast";
@@ -718,6 +719,7 @@ export default function TodayPage() {
             </div>
           </div>
         )}
+        <Footer/>
       </AppLayout>
 
       {lastAction && (
