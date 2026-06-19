@@ -247,8 +247,14 @@ export default function HabitsPage() {
         {!loading && (
           <div className={styles.statsRow}>
             <div
-              className={`${styles.statCard} ${filters.status === 'Active' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Active' ? 'All' : 'Active' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Active') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Active');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Active')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Active'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Active habits"
             >
               <div className={`${styles.statIcon} ${styles.iconActive}`}>
@@ -261,8 +267,14 @@ export default function HabitsPage() {
             </div>
 
             <div
-              className={`${styles.statCard} ${filters.status === 'Paused' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Paused' ? 'All' : 'Paused' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Paused') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Paused');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Paused')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Paused'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Paused habits"
             >
               <div className={`${styles.statIcon} ${styles.iconPaused}`}>
@@ -275,8 +287,14 @@ export default function HabitsPage() {
             </div>
 
             <div
-              className={`${styles.statCard} ${filters.status === 'Archived' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Archived' ? 'All' : 'Archived' })}
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Archived') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Archived');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Archived')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Archived'];
+                setFilters({ status: newStatus as any });
+              }}
               title="Filter by Archived habits"
             >
               <div className={`${styles.statIcon} ${styles.iconArchived}`}>
