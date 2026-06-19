@@ -85,7 +85,7 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 50;
+  z-index: 100;
   min-width: 200px;
   padding: 8px;
   border-radius: 12px;
@@ -391,6 +391,7 @@
   gap: var(--space-4);
   justify-content: space-between;
   margin-bottom: 24px;
+  overflow: visible;
 }
 
 .breakdownTools {
@@ -400,12 +401,20 @@
   flex-wrap: nowrap;
   width: 100%;
   min-width: 0;
+}
+
+.breakdownTabsScroll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
-.breakdownTools::-webkit-scrollbar {
+.breakdownTabsScroll::-webkit-scrollbar {
   display: none;
 }
 
@@ -418,6 +427,8 @@
 .breakdownTools .filterWrapper {
   margin-left: auto;
   flex-shrink: 0;
+  position: relative;
+  z-index: 30;
 }
 
 .chartTabs {
@@ -481,28 +492,119 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 20px;
+  margin-top: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
   color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--font-size-md);
+  font-weight: 700;
   line-height: 1.4;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
 }
 
-.blueDot,
-.brownDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.categoryDotHealth,
+.categoryDotStudy,
+.categoryDotWork,
+.categoryDotMindfulness,
+.categoryDotOther {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
-.blueDot {
-  background: #1f53c9;
+.categoryDotHealth {
+  background: var(--color-category-health-text);
 }
 
-.brownDot {
-  background: #8a4c00;
+.categoryDotStudy {
+  background: var(--color-category-study-text);
+}
+
+.categoryDotWork {
+  background: var(--color-category-work-text);
+}
+
+.categoryDotMindfulness {
+  background: var(--color-category-mindfulness-text);
+}
+
+.categoryDotOther {
+  background: var(--color-category-other-text);
+}
+
+.categoryIconHealth {
+  background-color: var(--color-category-health-bg);
+  color: var(--color-category-health-text);
+}
+
+.categoryIconStudy {
+  background-color: var(--color-category-study-bg);
+  color: var(--color-category-study-text);
+}
+
+.categoryIconWork {
+  background-color: var(--color-category-work-bg);
+  color: var(--color-category-work-text);
+}
+
+.categoryIconMindfulness {
+  background-color: var(--color-category-mindfulness-bg);
+  color: var(--color-category-mindfulness-text);
+}
+
+.categoryIconOther {
+  background-color: var(--color-category-other-bg);
+  color: var(--color-category-other-text);
+}
+
+.bars.categoryBarHealth {
+  --bar-base: var(--color-category-health-bg);
+  --bar-accent: var(--color-category-health-text);
+}
+
+.bars.categoryBarStudy {
+  --bar-base: var(--color-category-study-bg);
+  --bar-accent: var(--color-category-study-text);
+}
+
+.bars.categoryBarWork {
+  --bar-base: var(--color-category-work-bg);
+  --bar-accent: var(--color-category-work-text);
+}
+
+.bars.categoryBarMindfulness {
+  --bar-base: var(--color-category-mindfulness-bg);
+  --bar-accent: var(--color-category-mindfulness-text);
+}
+
+.bars.categoryBarOther {
+  --bar-base: var(--color-category-other-bg);
+  --bar-accent: var(--color-category-other-text);
+}
+
+.categoryBadgeHealth {
+  background-color: var(--color-category-health-bg);
+  color: var(--color-category-health-text);
+}
+
+.categoryBadgeStudy {
+  background-color: var(--color-category-study-bg);
+  color: var(--color-category-study-text);
+}
+
+.categoryBadgeWork {
+  background-color: var(--color-category-work-bg);
+  color: var(--color-category-work-text);
+}
+
+.categoryBadgeMindfulness {
+  background-color: var(--color-category-mindfulness-bg);
+  color: var(--color-category-mindfulness-text);
+}
+
+.categoryBadgeOther {
+  background-color: var(--color-category-other-bg);
+  color: var(--color-category-other-text);
 }
 
 .habitCard {
@@ -528,8 +630,11 @@
 .habitIcon {
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .habitHeader h4 {
@@ -568,21 +673,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
-}
-
-.blueBadge {
-  background: var(--tone-blue-bg);
-  color: var(--tone-blue-fg);
-}
-
-.redBadge {
-  background: var(--tone-red-bg);
-  color: var(--tone-red-fg);
-}
-
-.amberBadge {
-  background: var(--tone-amber-bg);
-  color: var(--tone-amber-fg);
 }
 
 .statGrid {
@@ -627,8 +717,6 @@
 }
 
 .bars {
-  --bar-base: var(--tone-blue-bg, #dbe7ff);
-  --bar-accent: var(--tone-blue-fg, #2f63dc);
   height: 58px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -639,26 +727,11 @@
 .bars span {
   min-height: 7px;
   border-radius: 2px 2px 0 0;
-  background: var(--bar-base);
+  background: color-mix(in srgb, var(--bar-accent) 28%, var(--bar-base));
 }
 
 .bars span:last-child {
   background: var(--bar-accent);
-}
-
-.blueBars {
-  --bar-base: var(--tone-blue-bg, #dbe7ff);
-  --bar-accent: var(--tone-blue-fg, #2f63dc);
-}
-
-.mintBars {
-  --bar-base: var(--tone-mint-bg, #d7ede8);
-  --bar-accent: var(--tone-mint-fg, #2e7d6a);
-}
-
-.amberBars {
-  --bar-base: var(--tone-amber-bg, #ffe5cc);
-  --bar-accent: var(--tone-amber-fg, #b56600);
 }
 
 .lineChartWrap {

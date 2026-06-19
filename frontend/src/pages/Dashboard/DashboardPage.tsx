@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { BookOpen, Brain, Briefcase, Heart, Sparkles, type LucideIcon } from "lucide-react";
 import AppLayout from "../../components/layout/AppLayout";
 import Footer from "../../components/layout/Footer";
 import { DATE_RANGES, useSettings } from "../../context/SettingsContext";
@@ -36,25 +37,59 @@ interface DashboardHabit {
 
 const CATEGORY_ORDER: CategoryKey[] = ["Health", "Study", "Work", "Mindfulness", "Other"];
 const CATEGORY_LABEL: Record<CategoryKey, string> = {
-  Health: "Health & Fitness",
+  Health: "Health",
   Study: "Study",
   Work: "Work",
   Mindfulness: "Mindfulness",
   Other: "Other",
 };
-const CATEGORY_TONE: Record<CategoryKey, "blue" | "brown"> = {
-  Health: "blue",
-  Study: "brown",
-  Work: "blue",
-  Mindfulness: "brown",
-  Other: "brown",
-};
+
 const CATEGORY_LINE_COLOR: Record<CategoryKey, string> = {
-  Health: "var(--chart-health-line)",
-  Study: "var(--chart-study-line)",
-  Work: "var(--chart-work-line)",
-  Mindfulness: "var(--chart-mindfulness-line)",
-  Other: "var(--chart-other-line)",
+  Health: "var(--color-category-health-text)",
+  Study: "var(--color-category-study-text)",
+  Work: "var(--color-category-work-text)",
+  Mindfulness: "var(--color-category-mindfulness-text)",
+  Other: "var(--color-category-other-text)",
+};
+
+const CATEGORY_ICONS: Record<CategoryKey, LucideIcon> = {
+  Health: Heart,
+  Study: BookOpen,
+  Work: Briefcase,
+  Mindfulness: Brain,
+  Other: Sparkles,
+};
+
+const CATEGORY_DOT_CLASS: Record<CategoryKey, string> = {
+  Health: styles.categoryDotHealth,
+  Study: styles.categoryDotStudy,
+  Work: styles.categoryDotWork,
+  Mindfulness: styles.categoryDotMindfulness,
+  Other: styles.categoryDotOther,
+};
+
+const CATEGORY_ICON_CLASS: Record<CategoryKey, string> = {
+  Health: styles.categoryIconHealth,
+  Study: styles.categoryIconStudy,
+  Work: styles.categoryIconWork,
+  Mindfulness: styles.categoryIconMindfulness,
+  Other: styles.categoryIconOther,
+};
+
+const CATEGORY_BAR_CLASS: Record<CategoryKey, string> = {
+  Health: styles.categoryBarHealth,
+  Study: styles.categoryBarStudy,
+  Work: styles.categoryBarWork,
+  Mindfulness: styles.categoryBarMindfulness,
+  Other: styles.categoryBarOther,
+};
+
+const CATEGORY_BADGE_CLASS: Record<CategoryKey, string> = {
+  Health: styles.categoryBadgeHealth,
+  Study: styles.categoryBadgeStudy,
+  Work: styles.categoryBadgeWork,
+  Mindfulness: styles.categoryBadgeMindfulness,
+  Other: styles.categoryBadgeOther,
 };
 
 function generateRates(baseRate: number, trend: "up" | "down" | "flat", days = 365): number[] {
@@ -74,7 +109,7 @@ const MOCK_HABITS: DashboardHabit[] = [
     name: "Morning Run",
     nameVi: "Chay bo buoi sang",
     categoryKey: "Health",
-    category: "Health & Fitness",
+    category: "Health",
     categoryTone: "blue",
     time: "Daily - 6:30 AM",
     timeVi: "Hang ngay - 6:30 SA",
@@ -87,7 +122,7 @@ const MOCK_HABITS: DashboardHabit[] = [
     name: "Drink Water",
     nameVi: "Uong nuoc",
     categoryKey: "Health",
-    category: "Health & Fitness",
+    category: "Health",
     categoryTone: "blue",
     time: "Hourly - 2L Target",
     timeVi: "Moi gio - 2L muc tieu",
@@ -139,7 +174,7 @@ const MOCK_HABITS: DashboardHabit[] = [
     name: "Sleep Before 11 PM",
     nameVi: "Ngu truoc 11 gio",
     categoryKey: "Health",
-    category: "Health & Fitness",
+    category: "Health",
     categoryTone: "blue",
     time: "Daily - Night",
     timeVi: "Hang ngay - Buoi dem",
@@ -293,7 +328,6 @@ function computeStats(habit: DashboardHabit, days: number) {
     rate: `${Math.round(avgRate * 100)}%`,
     bars,
     badgeIcon: streak >= 3 ? "fire" : "down",
-    badgeTone: streak >= 3 ? (habit.tone === "blue" ? "blue" : "amber") : "red",
     badge: streak >= 1 ? `${streak} day${streak > 1 ? "s" : ""}` : "0 days",
   };
 }
@@ -413,54 +447,83 @@ function computeCategoryHeatmaps(habits: DashboardHabit[], days: number) {
   });
 }
 
-interface FilterDropdownProps {
+interface BreakdownFilterProps {
   categories: CategoryKey[];
   category: CategoryFilter;
   sort: SortKey;
+  open: boolean;
+  hasActiveFilter: boolean;
+  onToggle: () => void;
   onCategory: (c: CategoryFilter) => void;
   onSort: (s: SortKey) => void;
   onClose: () => void;
 }
 
-function FilterDropdown({ categories, category, sort, onCategory, onSort, onClose }: FilterDropdownProps) {
+function BreakdownFilter({
+  categories,
+  category,
+  sort,
+  open,
+  hasActiveFilter,
+  onToggle,
+  onCategory,
+  onSort,
+  onClose,
+}: BreakdownFilterProps) {
   const ref = useRef<HTMLDivElement>(null);
   const categoryOptions: CategoryFilter[] = ["All", ...categories];
 
   useEffect(() => {
+    if (!open) return;
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [onClose]);
+  }, [open, onClose]);
 
   return (
-    <div ref={ref} className={styles.filterDropdown}>
-      <div className={styles.filterSection}>
-        <p className={styles.filterLabel}>Category</p>
-        {categoryOptions.map((c) => (
-          <button
-            key={c}
-            className={`${styles.filterOption} ${category === c ? styles.filterOptionActive : ""}`}
-            onClick={() => onCategory(c)}
-          >
-            {c === "All" ? "All" : c}
-          </button>
-        ))}
-      </div>
-      <div className={styles.filterDivider} />
-      <div className={styles.filterSection}>
-        <p className={styles.filterLabel}>Sort by</p>
-        {SORT_OPTIONS.map((o) => (
-          <button
-            key={o.key}
-            className={`${styles.filterOption} ${sort === o.key ? styles.filterOptionActive : ""}`}
-            onClick={() => onSort(o.key)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+    <div ref={ref} className={styles.filterWrapper}>
+      <button
+        type="button"
+        className={`${styles.filterButton} ${hasActiveFilter || open ? styles.filterActive : ""}`}
+        aria-label="Filter habits"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <TrendIcon />
+      </button>
+      {open && (
+        <div className={styles.filterDropdown}>
+          <div className={styles.filterSection}>
+            <p className={styles.filterLabel}>Category</p>
+            {categoryOptions.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`${styles.filterOption} ${category === c ? styles.filterOptionActive : ""}`}
+                onClick={() => onCategory(c)}
+              >
+                {c === "All" ? "All" : CATEGORY_LABEL[c as CategoryKey] ?? c}
+              </button>
+            ))}
+          </div>
+          <div className={styles.filterDivider} />
+          <div className={styles.filterSection}>
+            <p className={styles.filterLabel}>Sort by</p>
+            {SORT_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                className={`${styles.filterOption} ${sort === o.key ? styles.filterOptionActive : ""}`}
+                onClick={() => onSort(o.key)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -508,28 +571,9 @@ function TrendIcon() {
   );
 }
 
-function HabitIcon({ type }: { type: string }) {
-  if (type === "drop") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 3s6 6.2 6 11a6 6 0 0 1-12 0c0-4.8 6-11 6-11Z" />
-        <path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5" />
-      </svg>
-    );
-  }
-  if (type === "mind") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" />
-        <path d="M7 19c1.8-1.8 3.5-2.7 5-2.7s3.2.9 5 2.7M6 14l3-3 3 3 3-3 3 3" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M13 5 9 9l4 3-3 7M14 12l3 2 2-3M10 9 6 8M15 4h.01" />
-    </svg>
-  );
+function CategoryIcon({ categoryKey }: { categoryKey: CategoryKey }) {
+  const Icon = CATEGORY_ICONS[categoryKey];
+  return <Icon size={23} strokeWidth={2.5} aria-hidden />;
 }
 
 function HeatmapGrid({
@@ -725,7 +769,6 @@ export default function DashboardPage() {
       return {
         categoryKey,
         label: CATEGORY_LABEL[categoryKey],
-        tone: CATEGORY_TONE[categoryKey] === "blue" ? "blue" : "amber",
         bars,
         rate: `${avgRate}%`,
         total: `${total}`,
@@ -768,7 +811,7 @@ export default function DashboardPage() {
       : "Individual habit completion volume in selected range.";
 
   return (
-    <AppLayout onNewHabit={() => navigate("/habits")}>
+    <AppLayout>
       <div className={styles.content}>
         <section className={styles.dashboardSection}>
           {/* Habit breakdown */}
@@ -776,47 +819,43 @@ export default function DashboardPage() {
             <div className={styles.sectionHeader}>
               <h2>{t("habitBreakdown")}</h2>
               <div className={styles.breakdownTools}>
-                <div className={styles.chartTabs} aria-label="Date range">
-                  {DATE_RANGES.map((item) => (
-                    <button
-                      key={item}
-                      className={`${styles.chartTabBtn} ${range === item ? styles.chartTabActive : ""}`}
-                      onClick={() => setRange(item)}
-                    >
-                      {item}
-                    </button>
-                  ))}
+                <div className={styles.breakdownTabsScroll}>
+                  <div className={styles.chartTabs} aria-label="Date range">
+                    {DATE_RANGES.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`${styles.chartTabBtn} ${range === item ? styles.chartTabActive : ""}`}
+                        onClick={() => setRange(item)}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={styles.chartTabs} aria-label="Chart type switcher">
+                    {(["bar", "line", "heatmap"] as ChartView[]).map((view) => (
+                      <button
+                        key={view}
+                        type="button"
+                        className={`${styles.chartTabBtn} ${chartView === view ? styles.chartTabActive : ""}`}
+                        onClick={() => setChartView(view)}
+                      >
+                        {view.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className={styles.chartTabs} aria-label="Chart type switcher">
-                  {(["bar", "line", "heatmap"] as ChartView[]).map((view) => (
-                    <button
-                      key={view}
-                      className={`${styles.chartTabBtn} ${chartView === view ? styles.chartTabActive : ""}`}
-                      onClick={() => setChartView(view)}
-                    >
-                      {view.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.filterWrapper}>
-                  <button
-                    className={`${styles.filterButton} ${hasActiveFilter || filterOpen ? styles.filterActive : ""}`}
-                    aria-label="Filter habits"
-                    onClick={() => setFilterOpen((v) => !v)}
-                  >
-                    <TrendIcon />
-                  </button>
-                  {filterOpen && (
-                    <FilterDropdown
-                      categories={categories}
-                      category={category}
-                      sort={sort}
-                      onCategory={(c) => { setCategory(c); }}
-                      onSort={(s) => { setSort(s); }}
-                      onClose={() => setFilterOpen(false)}
-                    />
-                  )}
-                </div>
+                <BreakdownFilter
+                  categories={categories}
+                  category={category}
+                  sort={sort}
+                  open={filterOpen}
+                  hasActiveFilter={hasActiveFilter}
+                  onToggle={() => setFilterOpen((v) => !v)}
+                  onCategory={(c) => { setCategory(c); }}
+                  onSort={(s) => { setSort(s); }}
+                  onClose={() => setFilterOpen(false)}
+                />
               </div>
             </div>
 
@@ -964,14 +1003,14 @@ export default function DashboardPage() {
                             return (
                               <section key={categoryKey} className={styles.categorySection}>
                                 <h3 className={styles.categoryLabel}>
-                                  <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
+                                  <span className={CATEGORY_DOT_CLASS[categoryKey]} />
                                   {CATEGORY_LABEL[categoryKey]}
                                 </h3>
                                 <div className={styles.habitGrid}>
                                       {sectionHabits.map((habit) => {
                                         const { computed } = habit;
                                         const habitLineSeries = buildLineSeries(habit.dailyRates, range);
-                                        const habitLineColor = habit.tone === "blue" ? "var(--chart-health-line)" : habit.tone === "mint" ? "var(--chart-mint-line)" : "var(--chart-study-line)";
+                                        const habitLineColor = CATEGORY_LINE_COLOR[habit.categoryKey];
                                         const statItems = [
                                           { label: t("longest"), value: computed.longest },
                                           { label: t("total"), value: computed.total },
@@ -981,14 +1020,14 @@ export default function DashboardPage() {
                                     return (
                                       <article className={styles.habitCard} key={habit.id}>
                                         <div className={styles.habitHeader}>
-                                          <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
-                                            <HabitIcon type={habit.icon} />
+                                          <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[habit.categoryKey]}`}>
+                                            <CategoryIcon categoryKey={habit.categoryKey} />
                                           </span>
                                           <div>
                                             <h4>{isVi ? habit.nameVi : habit.name}</h4>
                                             <p>{isVi ? habit.timeVi : habit.time}</p>
                                           </div>
-                                          <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
+                                          <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[habit.categoryKey]}`}>
                                             {computed.badge}
                                             {computed.badgeIcon === "fire" ? (
                                               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1013,7 +1052,7 @@ export default function DashboardPage() {
 
                                         <p className={styles.chartLabel}>{chartLabel}</p>
                                         {chartView === "bar" && (
-                                          <div className={`${styles.bars} ${styles[`${habit.tone}Bars`]}`}
+                                          <div className={`${styles.bars} ${CATEGORY_BAR_CLASS[habit.categoryKey]}`}
                                             style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
                                           >
                                             {computed.bars.map((height, i) => (
@@ -1103,25 +1142,24 @@ export default function DashboardPage() {
                               rate: item.rate,
                               badge: `${item.streak} day${item.streak > 1 ? "s" : ""}`,
                               badgeIcon: item.streak >= 3 ? "fire" : "down",
-                              badgeTone: item.streak >= 3 ? "blue" : "red",
                             };
                             return (
                               <section key={`category-card-${item.categoryKey}`} className={styles.categorySection}>
                                 <h3 className={styles.categoryLabel}>
-                                  <span className={styles[`${CATEGORY_TONE[item.categoryKey]}Dot`]} />
+                                  <span className={CATEGORY_DOT_CLASS[item.categoryKey]} />
                                   {item.label}
                                 </h3>
                                 <div className={styles.habitGrid}>
                                   <article className={styles.habitCard}>
                                     <div className={styles.habitHeader}>
-                                      <span className={`${styles.habitIcon} ${styles[item.tone]}`}>
-                                        <HabitIcon type={item.categoryKey === "Health" ? "run" : item.categoryKey === "Mindfulness" || item.categoryKey === "Study" ? "mind" : "drop"} />
+                                      <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[item.categoryKey]}`}>
+                                        <CategoryIcon categoryKey={item.categoryKey} />
                                       </span>
                                       <div>
                                         <h4>{item.label}</h4>
                                         <p>Category aggregate</p>
                                       </div>
-                                      <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
+                                      <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[item.categoryKey]}`}>
                                         {computed.badge}
                                       </span>
                                     </div>
@@ -1139,7 +1177,7 @@ export default function DashboardPage() {
                                     </div>
                                     <p className={styles.chartLabel}>{chartLabel}</p>
                                     {chartView === "bar" && (
-                                      <div className={`${styles.bars} ${styles[`${item.tone}Bars`]}`}
+                                      <div className={`${styles.bars} ${CATEGORY_BAR_CLASS[item.categoryKey]}`}
                                         style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
                                       >
                                         {computed.bars.map((height, i) => (
@@ -1193,20 +1231,20 @@ export default function DashboardPage() {
                           {categoryHeatmaps.map((categoryMap) => {
                             const categoryKey = CATEGORY_ORDER.find((key) => CATEGORY_LABEL[key] === categoryMap.categoryName);
                             const aggregate = categoryCardData.find((item) => item.label === categoryMap.categoryName);
-                            const categoryTone = categoryKey ? CATEGORY_TONE[categoryKey] : "brown";
-                            const toneClass = categoryTone === "blue" ? "blue" : "amber";
 
                             return (
                               <article className={styles.habitCard} key={`heatmap-category-${categoryMap.categoryName}`}>
                                 <div className={styles.habitHeader}>
-                                  <span className={`${styles.habitIcon} ${styles[toneClass]}`}>
-                                    <HabitIcon type={categoryKey === "Health" ? "run" : categoryKey === "Mindfulness" || categoryKey === "Study" ? "mind" : "drop"} />
-                                  </span>
+                                  {categoryKey && (
+                                    <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[categoryKey]}`}>
+                                      <CategoryIcon categoryKey={categoryKey} />
+                                    </span>
+                                  )}
                                   <div>
                                     <h4>{categoryMap.categoryName}</h4>
                                     <p>Category consistency overview</p>
                                   </div>
-                                  <span className={styles.badge}>
+                                  <span className={`${styles.badge} ${categoryKey ? CATEGORY_BADGE_CLASS[categoryKey] : ""}`}>
                                     {categoryMap.totalCheckIns} check-ins
                                   </span>
                                 </div>
@@ -1240,7 +1278,7 @@ export default function DashboardPage() {
                             return (
                               <section key={`heatmap-task-${categoryKey}`} className={styles.categorySection}>
                                 <h3 className={styles.categoryLabel}>
-                                  <span className={styles[`${CATEGORY_TONE[categoryKey]}Dot`]} />
+                                  <span className={CATEGORY_DOT_CLASS[categoryKey]} />
                                   {CATEGORY_LABEL[categoryKey]}
                                 </h3>
                                 <div className={styles.habitGrid}>
@@ -1250,14 +1288,14 @@ export default function DashboardPage() {
                                     return (
                                       <article className={styles.habitCard} key={`heatmap-task-card-${habit.id}`}>
                                         <div className={styles.habitHeader}>
-                                          <span className={`${styles.habitIcon} ${styles[habit.tone]}`}>
-                                            <HabitIcon type={habit.icon} />
+                                          <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[habit.categoryKey]}`}>
+                                            <CategoryIcon categoryKey={habit.categoryKey} />
                                           </span>
                                           <div>
                                             <h4>{isVi ? habit.nameVi : habit.name}</h4>
                                             <p>{isVi ? habit.timeVi : habit.time}</p>
                                           </div>
-                                          <span className={`${styles.badge} ${styles[`${computed.badgeTone}Badge`]}`}>
+                                          <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[habit.categoryKey]}`}>
                                             {computed.badge}
                                           </span>
                                         </div>
