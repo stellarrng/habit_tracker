@@ -6,7 +6,7 @@ import styles from './Sidebar.module.css';
 const NAV_ITEMS = [
   { to: '/today', label: 'Today', Icon: CalendarIcon },
   { to: '/habits', label: 'Habits', Icon: TargetIcon },
-  { to: '/dashboard', label: 'Stats', Icon: BarChartIcon },
+  { to: '/dashboard', label: 'Statistics', Icon: BarChartIcon },
 ];
 
 interface SidebarProps {
