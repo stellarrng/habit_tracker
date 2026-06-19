@@ -8,12 +8,12 @@ import { useHabitContext } from "../../context/HabitContext";
 import { useAuth } from "@/context/AuthContext";
 import WeekStrip from "@/components/today/WeekStrip";
 import HabitRow, { deriveStatus, type HabitWithCheckIn } from "@/components/today/HabitRow";
-import { CheckCircle2, Lightbulb, PartyPopper, Rocket, TrendingUp } from "lucide-react";
+import { CheckCircle2, PartyPopper, Rocket, TrendingUp, Sun, Sunset, Moon } from "lucide-react";
 import Toast from "@/components/shared/Toast";
+import { calcPerfectDayStreak } from "@/utils/perfectDayStreakCalculator";
+import { useNavigate } from "react-router-dom";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const mockPerfectDayStreak = 8; // TODO: derive from real check-in history (deferred, see project notes)
 
 const ISO_WEEKDAY_TO_LABEL: WeekDay[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -63,6 +63,13 @@ function greeting(name: string) {
   const h = new Date().getHours();
   const time = h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
   return `Good ${time}, ${name}!`;
+}
+
+function getTimeOfDayIcon(): React.ReactNode {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return <Sun size={28} strokeWidth={1.8} />;
+  if (h >= 12 && h < 18) return <Sunset size={28} strokeWidth={1.8} />;
+  return <Moon size={28} strokeWidth={1.8} />;
 }
 
 function isHabitScheduledOn(habit: Habit, dateISO: string): boolean {
@@ -192,6 +199,57 @@ function WeeklyMomentum({
   );
 }
 
+// ── StatsCard ────────────────────────────────────────────────────────────────
+
+function StatsCard({
+  streak,
+  activeCount,
+  completedCount,
+  inProgressCount,
+  isTodayComplete,
+}: {
+  streak: number;
+  activeCount: number;
+  completedCount: number;
+  inProgressCount: number;
+  isTodayComplete: boolean;
+}) {
+  const stats = [
+    {
+      key: "streak",
+      label: "day streak",
+      content: (
+        <span className={styles.streakValue}>
+          <span className={isTodayComplete ? styles.fireActive : styles.fireInactive}>
+            🔥
+          </span>
+          {streak}
+        </span>
+      ),
+    },
+    { key: "active", label: "active habits", content: <span className={styles.statsValue}>{activeCount}</span> },
+    { key: "completed", label: "completed", content: <span className={styles.statsValue}>{completedCount}</span> },
+    { key: "inProgress", label: "in progress", content: <span className={styles.statsValue}>{inProgressCount}</span> },
+  ];
+
+  return (
+    <div className={styles.statsCard}>
+      <p className={styles.statsCardLabel}>TODAY AT A GLANCE</p>
+      <div className={styles.statsGrid}>
+        {stats.map(({ key, label, content }) => (
+          <div
+            key={key}
+            className={`${styles.statsItem} ${key === "streak" ? styles.statsItemAccent : ""}`}
+          >
+            {content}
+            <span className={styles.statsLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function SkeletonRow() {
@@ -237,6 +295,7 @@ function PageSkeleton() {
 
 function ProgressBar({ percent }: { percent: number }) {
   const clamped = Math.min(percent, 100);
+
   return (
     <div className={styles.progressTrack}>
       <div
@@ -252,7 +311,6 @@ function ProgressBar({ percent }: { percent: number }) {
     </div>
   );
 }
-
 
 // ── Right-panel components ────────────────────────────────────────────────────
 
@@ -277,6 +335,7 @@ function ConsistencyTip({ title, body }: { title: string; body: string }) {
 
 export default function TodayPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { habits, loading: habitsLoading, error: habitsError } = useHabitContext();
 
   // Single source of truth: ALL check-ins, fetched once (teammate's
@@ -393,6 +452,16 @@ export default function TodayPage() {
   const progressPct = totalGoal > 0 ? Math.round((totalDone / totalGoal) * 100) : 0;
   const progressMessage = getProgressMessage(progressPct);
 
+
+  const perfectDayStreak = useMemo(
+    () => calcPerfectDayStreak(allCheckIns, habits, TODAY),
+    [allCheckIns, habits]
+  );
+
+  const isTodayComplete =
+    todayRows.length > 0 &&
+    todayRows.every(r => deriveStatus(r.checkIn.completedCount, r.habit.targetPerDay) === "Completed");
+
   const completedTodayCount = todayRows.filter(
     r => deriveStatus(r.checkIn.completedCount, r.habit.targetPerDay) === "Completed"
   ).length;
@@ -403,18 +472,23 @@ export default function TodayPage() {
 
   // Per-day completion % for the current week (drives WeeklyMomentum dots)
   const weekCompletion = useMemo(() => {
+    const activeHabits = habits.filter(h => h.status === "Active");
     const result = new Map<string, number>();
+
     for (const day of weekDays) {
-      const done = scheduledHabits.filter(h =>
+      // Which habits were scheduled to occur on THIS specific day?
+      const dayScheduled = activeHabits.filter(h => isHabitScheduledOn(h, day.iso));
+      if (dayScheduled.length === 0) {
+        result.set(day.iso, 0);
+        continue;
+      }
+      const done = dayScheduled.filter(h =>
         checkInsByHabitDate.get(h._id)?.get(day.iso)?.status === "Completed"
       ).length;
-      result.set(
-        day.iso,
-        scheduledHabits.length > 0 ? Math.round((done / scheduledHabits.length) * 100) : 0
-      );
+      result.set(day.iso, Math.round((done / dayScheduled.length) * 100));
     }
     return result;
-  }, [checkInsByHabitDate, scheduledHabits, weekDays]);
+  }, [habits, checkInsByHabitDate, weekDays]);
 
   // ── Update a check-in (optimistic against allCheckIns) ──────────────────────
 
@@ -538,18 +612,27 @@ export default function TodayPage() {
             <div className={styles.container}>
 
               {/* Greeting */}
-              <div className={styles.heroCard}>
-                <h1 className={styles.greeting}>{greeting(user?.name?.split(" ")[0] ?? "there")}</h1>
+              <div className={styles.greetingRow}>
+                <span className={styles.greetingIcon}>
+                  {getTimeOfDayIcon()}
+                </span>
+                <h1 className={styles.greeting}>
+                  {greeting(user?.name?.split(" ")[0] ?? "there")}
+                </h1>
               </div>
 
+              {/* Page Grid */}
               <div className={styles.pageGrid}>
+                {/* Main Column */}
                 <div className={styles.mainColumn}>
                   <div className={styles.progressGroup}>
                     <p className={styles.progressMessage}>
                       {progressMessage.icon}
                       <span>{progressMessage.text}</span>
                     </p>
-                    <ProgressBar percent={progressPct} />
+                    <div className={styles.progressRow}>
+                      <ProgressBar percent={progressPct} />
+                    </div>
                   </div>
 
                   <DateNavigator
@@ -575,51 +658,48 @@ export default function TodayPage() {
                     {rows.length === 0 ? (
                       <div className={styles.emptyState}>
                         <p>No active habits yet.</p>
-                        <p>Create one to get started!</p>
+                        <button
+                          className={styles.addHabitBtn}
+                          onClick={() => navigate("/habits")}
+                        >
+                          + Add your first habit
+                        </button>
                       </div>
                     ) : (
-                      <div className={styles.habitList}>
-                        {rows.map(row => (
-                          <HabitRow
-                            key={row.habit._id}
-                            row={row}
-                            onIncrement={r => updateCount(r, 1)}
-                            onDecrement={r => updateCount(r, -1)}
-                            isPending={pendingId === row.habit._id}
-                            isReadOnly={isReadOnly}
-                          />
-                        ))}
-                      </div>
+                      <>
+                        <div className={styles.habitList}>
+                          {rows.map(row => (
+                            <HabitRow
+                              key={row.habit._id}
+                              row={row}
+                              onIncrement={r => updateCount(r, 1)}
+                              onDecrement={r => updateCount(r, -1)}
+                              isPending={pendingId === row.habit._id}
+                              isReadOnly={isReadOnly}
+                            />
+                          ))}
+                        </div>
+                        <button
+                          className={styles.addHabitBtn}
+                          onClick={() => navigate("/habits")}
+                        >
+                          + Add habit
+                        </button>
+                      </>
                     )}
                   </section>
                 </div>
 
+                {/* Side Column */}
                 <aside className={styles.sideColumn}>
 
-                  <div className={styles.statsCard}>
-                    <div className={styles.statsHeader}>
-                      <span>📊</span>
-                      <span className={styles.statsTitle}>Today at a Glance</span>
-                    </div>
-                    <div className={styles.statsGrid}>
-                      <div className={styles.statsItem}>
-                        <span className={styles.statsValue}>🔥 {mockPerfectDayStreak}</span>
-                        <span className={styles.statsLabel}>day streak</span>
-                      </div>
-                      <div className={styles.statsItem}>
-                        <span className={styles.statsValue}>{todayRows.length}</span>
-                        <span className={styles.statsLabel}>active habits</span>
-                      </div>
-                      <div className={styles.statsItem}>
-                        <span className={styles.statsValue}>{completedTodayCount}</span>
-                        <span className={styles.statsLabel}>completed</span>
-                      </div>
-                      <div className={styles.statsItem}>
-                        <span className={styles.statsValue}>{inProgressTodayCount}</span>
-                        <span className={styles.statsLabel}>in progress</span>
-                      </div>
-                    </div>
-                  </div>
+                  <StatsCard
+                    streak={perfectDayStreak}
+                    activeCount={todayRows.length}
+                    completedCount={completedTodayCount}
+                    inProgressCount={inProgressTodayCount}
+                    isTodayComplete={isTodayComplete}
+                  />
 
                   <WeeklyMomentum
                     weekDays={weekDays}
@@ -627,8 +707,8 @@ export default function TodayPage() {
                     today={TODAY}
                   />
 
-                  
-<ConsistencyTip
+
+                  <ConsistencyTip
                     title={dailyTip.title}
                     body={dailyTip.body}
                   />

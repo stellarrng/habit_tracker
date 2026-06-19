@@ -15,7 +15,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-4);
 }
 
 .pageGrid {
@@ -27,6 +27,10 @@
 
 .mainColumn {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* controls spacing between all direct children */
 }
 
 .sideColumn {
@@ -50,22 +54,29 @@
 
 /* ── Header / hero ───────────────────────────────────────────────────────── */
 
-.heroCard {
+.greetingRow {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  background: linear-gradient(135deg, #fff 0%, var(--color-gray-50) 100%);
-  border: 1px solid var(--color-gray-100);
-  border-radius: var(--radius-lg);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0 var(--space-5);
+}
+
+.greetingIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+  opacity: 0.85;
 }
 
 .greeting {
   font-size: 1.75rem;
   font-weight: var(--font-bold);
-  color: var(--color-gray-900);
+  font-style: italic;
+  color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* ── Progress message + bar ──────────────────────────────────────────────── */
@@ -74,27 +85,40 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  /* tighter internal gap between message and bar */
 }
 
 .progressMessage {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  justify-content: center;
+  gap: var(--space-2);
   font-size: var(--text-sm);
   font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+  color: var(--text-primary);
   margin: 0;
 }
 
 .progressMessage svg {
   flex-shrink: 0;
   color: var(--color-primary);
+  width: 18px;
+  height: 18px;
+}
+
+/* Row: bar takes all remaining space, percentage sits to the right */
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .progressTrack {
-  width: 100%;
-  height: 10px;
-  background-color: var(--color-gray-100);
+  flex: 1;
+  height: 12px;
+  /* slightly taller than 10px — more visible */
+  background-color: var(--color-primary-light);
+  /* tinted track instead of flat gray */
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -104,15 +128,26 @@
   height: 100%;
   border-radius: var(--radius-full);
   background: linear-gradient(90deg, var(--color-primary) 0%, #a5f3fc 100%);
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.4s ease;
+  /* smooth color transition at 100% */
   overflow: hidden;
+}
+
+/* 100% complete: drop the gradient, go solid cyan-blue */
+.progressFillComplete {
+  background: #a5f3fc;
 }
 
 .progressGlow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 100%);
   border-radius: var(--radius-full);
+  /* subtle shimmer effect — hidden at 100% (glow span not rendered then) */
 }
 
 /* ── Date navigator (teammate's, wraps our WeekStrip) ───────────────────── */
@@ -195,8 +230,8 @@
 /* ── Read-only notice ─────────────────────────────────────────────────────── */
 
 .readOnlyNoticeSlot {
-  min-height: 38px;
-  margin-bottom: var(--space-2);
+  min-height: 8px;
+  /* no margin-bottom — the parent gap handles spacing above the habit list */
 }
 
 .readOnlyNotice {
@@ -349,54 +384,82 @@
 /* ── Stats card (ours) ───────────────────────────────────────────────────── */
 
 .statsCard {
-  background-color: #fff;
-  border: 1px solid var(--color-gray-100);
+  background: linear-gradient(145deg, var(--color-primary-light) 0%, #fff 60%);
+  border: 1px solid var(--color-primary-light);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
 }
 
-.statsHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
-  font-size: var(--text-base);
-}
-
-.statsTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-gray-700);
+.statsCardLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  opacity: 0.8;
+  margin: 0 0 var(--space-3) 0;
 }
 
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .statsItem {
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-100);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(155, 123, 138, 0.12);
+  /* subtle primary-tinted border */
+  backdrop-filter: blur(4px);
+}
+
+/* Streak slot gets a slightly warmer tint to stand out */
+.statsItemAccent {
+  background: rgba(244, 172, 186, 0.15);
+  /* blush pink tint — --color-accent at low opacity */
+  border-color: rgba(244, 172, 186, 0.35);
 }
 
 .statsValue {
   display: block;
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: var(--font-bold);
-  color: var(--color-gray-900);
+  color: var(--text-primary);
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .statsLabel {
   display: block;
-  margin-top: 4px;
+  margin-top: var(--space-1);
   font-size: var(--text-xs);
-  color: var(--color-gray-500);
+  color: var(--text-muted);
   line-height: 1.4;
+}
+
+.streakValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+ 
+/* Colored fire — today is fully complete, streak maintained */
+.fireActive {
+  font-size: 1.1em;
+  filter: none;                 /* full color emoji */
+}
+ 
+/* Monochrome fire — streak exists but today not yet done */
+.fireInactive {
+  font-size: 1.1em;
+  filter: grayscale(100%) opacity(0.45);   /* desaturated + dimmed */
+  transition: filter 0.3s ease;            /* smooth color-in when today completes */
 }
 
 /* ── Error state ─────────────────────────────────────────────────────────── */
@@ -557,4 +620,35 @@
   .pageHeader {
     flex-direction: column;
   }
+}
+
+/* Add New Habit Button */
+
+.addHabitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+ 
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-2);
+ 
+  background: transparent;
+  border: 1.5px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+ 
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  opacity: 0.7;
+ 
+  cursor: pointer;
+  transition: opacity var(--transition-fast),
+              background var(--transition-fast);
+}
+ 
+.addHabitBtn:hover {
+  opacity: 1;
+  background: var(--color-primary-light);
 }
