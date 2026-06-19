@@ -1,8 +1,4 @@
-/* ── Layout Container ────────────────────────────────────────── */
 .detailPageContainer {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 8px 16px 32px 16px;
   display: flex;
   flex-direction: column;
   gap: 20px;
