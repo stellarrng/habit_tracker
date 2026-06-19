@@ -31,6 +31,7 @@ export interface Habit {
   status: HabitStatus;
   goalTargetType?: GoalTargetType | null;
   goalTargetValue?: number | null;
+  goalStartedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -82,6 +83,7 @@ export interface CreateHabitInput {
   priority?: HabitPriority;
   goalTargetType?: GoalTargetType | null;
   goalTargetValue?: number | null;
+  goalStartedAt?: string | null;
   description?: string;
 }
 

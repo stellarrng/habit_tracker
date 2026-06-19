@@ -55,14 +55,14 @@
 .formInput:focus, .formSelect:focus, .formTextarea:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59,91,219,.12);
-  background: #fff;
+  box-shadow: 0 0 0 3px rgba(155, 123, 138, 0.12);
+  background: var(--bg-surface);
 }
 .formInput.error, .formSelect.error, .formTextarea.error { border-color: var(--color-danger); }
 .formError { font-size: var(--font-size-xs); color: var(--color-danger); font-weight: 500; }
 .formSelect { appearance: none; cursor: pointer; }
 .formTextarea { resize: vertical; min-height: 90px; }
-
+ 
 /* Priority toggle */
 .priorityGroup { display: flex; border: 1.5px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
 .priorityBtn {
@@ -76,9 +76,9 @@
   text-transform: uppercase;
 }
 .priorityBtn + .priorityBtn { border-left: 1.5px solid var(--border); }
-.priorityBtn.selLow    { background: #DBF4FF; color: #1864AB; }
-.priorityBtn.selMedium { background: #FFF3BF; color: #855C04; }
-.priorityBtn.selHigh   { background: #FFE3E3; color: var(--color-danger); }
+.priorityBtn.selLow    { background: var(--color-secondary-light); color: var(--color-secondary-dark); }
+.priorityBtn.selMedium { background: var(--color-warning-light); color: var(--color-warning); }
+.priorityBtn.selHigh   { background: var(--color-primary-light); color: var(--color-primary-dark); }
 
 /* Days picker */
 .daysPicker { display: flex; gap: 6px; flex-wrap: wrap; }

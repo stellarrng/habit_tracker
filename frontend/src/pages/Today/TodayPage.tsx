@@ -8,7 +8,7 @@ import { useHabitContext } from "../../context/HabitContext";
 import { useAuth } from "@/context/AuthContext";
 import WeekStrip from "@/components/today/WeekStrip";
 import HabitRow, { deriveStatus, type HabitWithCheckIn } from "@/components/today/HabitRow";
-import { CheckCircle2, Lightbulb, PartyPopper, Rocket, TrendingUp } from "lucide-react";
+import { CheckCircle2, PartyPopper, Rocket, TrendingUp } from "lucide-react";
 import Toast from "@/components/shared/Toast";
 
 // ── Constants ─────────────────────────────────────────────────────────────────

@@ -70,6 +70,11 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     // Explicitly allow resetting goal to undefined/null or updating it
     if (goalTargetType !== undefined)  habit.goalTargetType  = goalTargetType || undefined;
     if (goalTargetValue !== undefined) habit.goalTargetValue = goalTargetValue || undefined;
+    if (req.body.goalStartedAt !== undefined) {
+      habit.goalStartedAt = req.body.goalStartedAt ? new Date(req.body.goalStartedAt) : undefined;
+    } else if (goalTargetType !== undefined || goalTargetValue !== undefined) {
+      habit.goalStartedAt = new Date();
+    }
 
     if (description !== undefined)  habit.description  = description;
 

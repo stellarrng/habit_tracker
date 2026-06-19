@@ -65,7 +65,7 @@
 
 .goalBar {
   height: 5px;
-  background: #EEF0F7;
+  background: var(--progress-track);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -73,12 +73,12 @@
 .goalBarFill {
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--color-primary), #6EB5FF);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
   transition: width 0.4s ease;
 }
 
 .goalBarFillComplete {
-  background: linear-gradient(90deg, var(--color-success), #69DB7C);
+  background: var(--color-success);
 }
 
 .goalMsg {

@@ -253,4 +253,6 @@ body.dark {
   --tone-red-fg:   #EF4444;
 
   color-scheme: dark;
+  --color-priority-low: #84A59D;
+  --color-priority-low-light: #C8DDD7;
 }
