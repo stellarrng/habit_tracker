@@ -1,485 +1,438 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Habit, CheckIn } from '../../types';
+import { useState, useMemo, useEffect } from 'react';
+import { Habit } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
-import { getCheckIns, upsertCheckIn } from '../../api/checkins';
 import AppLayout from '../../components/layout/AppLayout';
+import HabitFilters from '../../components/habits/HabitFilters';
+import HabitCard from '../../components/habits/HabitCard';
 import HabitForm from '../../components/habits/HabitForm';
+import GoalHabitForm from '../../components/habits/GoalHabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
-import HabitCategoryIcon from '../../components/shared/HabitCategoryIcon';
-import { PlusIcon, EditIcon, TrashIcon, PlayIcon } from '../../components/shared/Icons';
+import EmptyState from '../../components/shared/EmptyState';
+import ErrorMessage from '../../components/shared/ErrorMessage';
+import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon, DownloadIcon } from '../../components/shared/Icons';
 import styles from './HabitsPage.module.css';
 
-// ── Inline icon ───────────────────────────────────────────────────────────────
+const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
 
-function DownloadIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
-    </svg>
-  );
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function fmt(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
-
-function buildCurrentWeek(todayStr: string) {
-  const today = new Date(todayStr + 'T00:00:00');
-  const offset = (today.getDay() + 6) % 7;
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - offset + i);
-    return { label: WEEK_LABELS[i], iso: fmt(d) };
-  });
-}
-
-function buildLast60Days(todayStr: string): string[] {
-  const today = new Date(todayStr + 'T00:00:00');
-  return Array.from({ length: 60 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - 59 + i);
-    return fmt(d);
-  });
-}
-
-function heatColor(pct: number): string {
-  if (pct === 0)  return '#EDEDED';
-  if (pct < 34)   return '#FCE8EE';
-  if (pct < 67)   return '#F4ACBA';
-  if (pct < 100)  return '#C4789A';
-  return '#896474';
-}
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const ALL_CATEGORIES = ['All', 'Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
-const PRIORITIES     = ['All Priorities', 'High', 'Medium', 'Low'] as const;
-const STATUSES       = ['Any Status', 'Active', 'Paused'] as const;
-
-// ── Component ─────────────────────────────────────────────────────────────────
+const CATEGORY_DOT_COLORS: Record<string, string> = {
+  Health: 'var(--color-category-health-text)',
+  Study: 'var(--color-category-study-text)',
+  Work: 'var(--color-category-work-text)',
+  Mindfulness: 'var(--color-category-mindfulness-text)',
+  Other: 'var(--color-category-other-text)',
+};
 
 export default function HabitsPage() {
-  const navigate = useNavigate();
-  const { habits, loading, removeHabit, changeStatus } = useHabitContext();
+  const { filteredHabits, habits, loading, error, removeHabit, clearError, changeStatus, filters, setFilters } = useHabitContext();
 
-  const [allCheckIns, setAllCheckIns] = useState<CheckIn[]>([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  // Calculate status counts
+  const { activeCount, pausedCount, archivedCount } = useMemo(() => {
+    let active = 0;
+    let paused = 0;
+    let archived = 0;
+    habits.forEach(habit => {
+      if (habit.status === 'Active') active++;
+      else if (habit.status === 'Paused') paused++;
+      else if (habit.status === 'Archived') archived++;
+    });
+    return { activeCount: active, pausedCount: paused, archivedCount: archived };
+  }, [habits]);
 
   const [showForm, setShowForm]         = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
-  const [archiveTarget, setArchiveTarget] = useState<Habit | null>(null);
-  const [deleteTarget, setDeleteTarget]   = useState<Habit | null>(null);
-  const [toast, setToast]               = useState<string | null>(null);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [habitToArchive, setHabitToArchive] = useState<Habit | null>(null);
+  const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
 
-  const [catFilter, setCatFilter]           = useState('All');
-  const [priorityFilter, setPriorityFilter] = useState('All Priorities');
-  const [statusFilter, setStatusFilter]     = useState('Any Status');
-
-  const todayStr = fmt(new Date());
-
-  // ── Fetch ─────────────────────────────────────────────────────────────────
-
-  const fetchCheckIns = useCallback(async () => {
-    try {
-      const data = await getCheckIns();
-      setAllCheckIns(data);
-    } catch {
-      // silently ignore
-    } finally {
-      setDataLoading(false);
-    }
-  }, []);
-
+  // Restore and save scroll position
   useEffect(() => {
-    if (!loading) fetchCheckIns();
-  }, [loading, fetchCheckIns]);
+    const mainEl = document.querySelector('main');
+    if (!mainEl) return;
 
-  // ── Derived ───────────────────────────────────────────────────────────────
-
-  const checkInMap = useMemo(() => {
-    const map = new Map<string, Map<string, CheckIn>>();
-    for (const ci of allCheckIns) {
-      if (!map.has(ci.habitId)) map.set(ci.habitId, new Map());
-      map.get(ci.habitId)!.set(ci.date, ci);
+    const savedPos = sessionStorage.getItem('habitsPageScroll');
+    if (savedPos) {
+      // Small delay to ensure render is complete before scrolling
+      setTimeout(() => {
+        mainEl.scrollTop = parseInt(savedPos, 10);
+      }, 0);
     }
-    return map;
-  }, [allCheckIns]);
 
-  const nonArchivedHabits = useMemo(() => habits.filter(h => h.status !== 'Archived'), [habits]);
-
-  const displayHabits = useMemo(() => {
-    return nonArchivedHabits.filter(h => {
-      if (catFilter !== 'All' && h.category !== catFilter) return false;
-      if (priorityFilter !== 'All Priorities' && h.priority !== priorityFilter) return false;
-      if (statusFilter !== 'Any Status' && h.status !== statusFilter) return false;
-      return true;
-    });
-  }, [nonArchivedHabits, catFilter, priorityFilter, statusFilter]);
-
-  const availableCategories = useMemo(() => {
-    const cats = new Set(nonArchivedHabits.map(h => h.category));
-    return ALL_CATEGORIES.filter(c => c === 'All' || cats.has(c as Habit['category']));
-  }, [nonArchivedHabits]);
-
-  const todayCheckInMap = useMemo(() => {
-    const map = new Map<string, CheckIn>();
-    for (const h of nonArchivedHabits) {
-      const ci = checkInMap.get(h._id)?.get(todayStr);
-      if (ci) map.set(h._id, ci);
-    }
-    return map;
-  }, [nonArchivedHabits, checkInMap, todayStr]);
-
-  // Weekly bar chart
-  const weekDays = useMemo(() => buildCurrentWeek(todayStr), [todayStr]);
-
-  const weeklyBars = useMemo(() => {
-    const activeHabits = nonArchivedHabits.filter(h => h.status === 'Active');
-    const total = activeHabits.length || 1;
-    return weekDays.map(day => {
-      const completed = activeHabits.filter(
-        h => checkInMap.get(h._id)?.get(day.iso)?.status === 'Completed'
-      ).length;
-      return { label: day.label, pct: Math.round((completed / total) * 100) };
-    });
-  }, [nonArchivedHabits, checkInMap, weekDays]);
-
-  const avgWeeklyPct = useMemo(() => {
-    const past = weeklyBars.filter((_, i) => weekDays[i].iso <= todayStr);
-    if (!past.length) return 0;
-    return Math.round(past.reduce((s, b) => s + b.pct, 0) / past.length);
-  }, [weeklyBars, weekDays, todayStr]);
-
-  // 30-day heatmap
-  const last60Days = useMemo(() => buildLast60Days(todayStr), [todayStr]);
-
-  const heatmapData = useMemo(() => {
-    const activeHabits = nonArchivedHabits.filter(h => h.status === 'Active');
-    const total = activeHabits.length || 1;
-    return last60Days.map(date => {
-      const completed = activeHabits.filter(
-        h => checkInMap.get(h._id)?.get(date)?.status === 'Completed'
-      ).length;
-      return { date, pct: Math.round((completed / total) * 100) };
-    });
-  }, [nonArchivedHabits, checkInMap, last60Days]);
-
-  const activeCount = nonArchivedHabits.filter(h => h.status === 'Active').length;
-
-  // ── Actions ───────────────────────────────────────────────────────────────
-
-  async function handleLogActivity(habit: Habit) {
-    const existing = todayCheckInMap.get(habit._id);
-    const newCount = (existing?.completedCount ?? 0) + 1;
-
-    const optimistic: CheckIn = {
-      _id: existing?._id ?? `tmp-${habit._id}`,
-      userId: habit.userId,
-      habitId: habit._id,
-      date: todayStr,
-      completedCount: newCount,
-      status: newCount >= habit.targetPerDay ? 'Completed' : 'In Progress',
-      note: existing?.note ?? '',
+    const handleScroll = () => {
+      sessionStorage.setItem('habitsPageScroll', mainEl.scrollTop.toString());
     };
 
-    setAllCheckIns(prev => {
-      const idx = prev.findIndex(ci => ci.habitId === habit._id && ci.date === todayStr);
-      if (idx >= 0) { const copy = [...prev]; copy[idx] = optimistic; return copy; }
-      return [...prev, optimistic];
-    });
+    mainEl.addEventListener('scroll', handleScroll);
+    return () => mainEl.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    try {
-      const result = await upsertCheckIn({ habitId: habit._id, date: todayStr, completedCount: newCount });
-      setAllCheckIns(prev => {
-        const idx = prev.findIndex(ci => ci.habitId === habit._id && ci.date === todayStr);
-        if (idx >= 0) { const copy = [...prev]; copy[idx] = result; return copy; }
-        return prev;
+  type ActionState = 
+    | { type: 'status'; habitId: string; prevStatus: string; message: string }
+    | { type: 'delete'; habitId: string; message: string; timeoutId: ReturnType<typeof setTimeout> };
+
+  const [lastAction, setLastAction] = useState<ActionState | null>(null);
+  const [toastKey, setToastKey] = useState(0);
+
+  function undoLast() {
+    if (!lastAction) return;
+    if (lastAction.type === 'status') {
+      changeStatus(lastAction.habitId, lastAction.prevStatus as any);
+    } else if (lastAction.type === 'delete') {
+      clearTimeout(lastAction.timeoutId);
+    }
+    setLastAction(null);
+  }
+
+  function triggerActionToast(action: ActionState) {
+    if (lastAction && lastAction.type === 'delete') {
+      // If there was a previous pending delete, it stays pending until timeout. 
+      // Actually we don't need to force it here since the timeout is still running.
+    }
+    setLastAction(action);
+    setToastKey(k => k + 1);
+  }
+
+  // GoalHabitForm states
+  const [showGoalForm, setShowGoalForm] = useState(false);
+  const [goalHabit, setGoalHabit] = useState<Habit | null>(null);
+  const [goalStreak, setGoalStreak] = useState(0);
+  const [goalCompletions, setGoalCompletions] = useState(0);
+
+  // Group filtered habits by category
+  const habitsByCategory = useMemo(() => {
+    const groups: Record<string, Habit[]> = {};
+    filteredHabits.forEach(habit => {
+      if (!groups[habit.category]) {
+        groups[habit.category] = [];
+      }
+      groups[habit.category].push(habit);
+    });
+    return groups;
+  }, [filteredHabits]);
+
+  // Determine active categories to show in predefined order
+  const activeCategories = useMemo(() => {
+    const defined = CATEGORIES_ORDER.filter(cat => habitsByCategory[cat] && habitsByCategory[cat].length > 0);
+    const undefinedCats = Object.keys(habitsByCategory).filter(cat => !CATEGORIES_ORDER.includes(cat as any));
+    return [...defined, ...undefinedCats];
+  }, [habitsByCategory]);
+
+  function openCreate() { setEditingHabit(null); setShowForm(true); }
+  function openEdit(habit: Habit) { setEditingHabit(habit); setShowForm(true); }
+  function closeForm() { setShowForm(false); setEditingHabit(null); }
+  
+  function requestArchive(habit: Habit) {
+    setHabitToArchive(habit);
+    setShowArchiveDialog(true);
+  }
+  
+  function confirmArchive() {
+    if (habitToArchive) {
+      changeStatus(habitToArchive._id, 'Archived');
+      triggerActionToast({
+        type: 'status',
+        habitId: habitToArchive._id,
+        prevStatus: habitToArchive.status,
+        message: `"${habitToArchive.name}" archived`
       });
-      if (result.status === 'Completed') setToast(`${habit.name} completed today! 🎉`);
-    } catch {
-      // rollback
-      setAllCheckIns(prev => {
-        if (!existing) return prev.filter(ci => !(ci.habitId === habit._id && ci.date === todayStr));
-        return prev.map(ci => ci.habitId === habit._id && ci.date === todayStr ? existing : ci);
-      });
+      setShowArchiveDialog(false);
+      setHabitToArchive(null);
+    }
+  }
+  
+  function handleStatusChangeNotification(habitId: string, habitName: string, action: 'paused' | 'resumed' | 'restored', prevStatus: string) {
+    if (action === 'resumed') {
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" resumed` });
+    } else if (action === 'paused') {
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" paused` });
+    } else if (action === 'restored') {
+      triggerActionToast({ type: 'status', habitId, prevStatus, message: `"${habitName}" restored` });
     }
   }
 
-  async function handleDelete() {
-    if (!deleteTarget) return;
-    const name = deleteTarget.name;
-    setDeleteTarget(null);
-    await removeHabit(deleteTarget._id);
-    setToast(`${name} deleted`);
+  function handleDeleteConfirm() {
+    if (habitToDelete) {
+      const id = habitToDelete._id;
+      const name = habitToDelete.name;
+      // We don't remove immediately. We delay it to allow Undo.
+      const timeoutId = setTimeout(() => {
+        removeHabit(id);
+      }, 5500);
+
+      triggerActionToast({
+        type: 'delete',
+        habitId: id,
+        message: `"${name}" deleted`,
+        timeoutId
+      });
+    }
+    setHabitToDelete(null);
   }
 
-  async function handleArchive() {
-    if (!archiveTarget) return;
-    const name = archiveTarget.name;
-    await changeStatus(archiveTarget._id, 'Archived');
-    setArchiveTarget(null);
-    setToast(`${name} archived`);
+  function openSetGoal(habit: Habit, streak: number, completions: number) {
+    setGoalHabit(habit);
+    setGoalStreak(streak);
+    setGoalCompletions(completions);
+    setShowGoalForm(true);
   }
 
-  const isLoading = loading || dataLoading;
+  const handleExportData = () => {
+    // Clean up internal database fields and group by category
+    const groupedHabits: Record<string, any[]> = {};
 
-  // ── Render ────────────────────────────────────────────────────────────────
+    habits.forEach(habit => {
+      const { _id, userId, __v, createdAt, updatedAt, goalStartedAt, ...cleanData } = habit as any;
+      const category = cleanData.category || 'Other';
+      
+      if (!groupedHabits[category]) {
+        groupedHabits[category] = [];
+      }
+      groupedHabits[category].push(cleanData);
+    });
+
+    // Enforce display order
+    const orderedGroupedHabits: Record<string, any[]> = {};
+    CATEGORIES_ORDER.forEach(cat => {
+      if (groupedHabits[cat] && groupedHabits[cat].length > 0) {
+        orderedGroupedHabits[cat] = groupedHabits[cat];
+      }
+    });
+    // Catch any unexpected categories not in CATEGORIES_ORDER
+    Object.keys(groupedHabits).forEach(cat => {
+      if (!orderedGroupedHabits[cat]) {
+        orderedGroupedHabits[cat] = groupedHabits[cat];
+      }
+    });
+
+    const dataStr = JSON.stringify(orderedGroupedHabits, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `my-habit-data.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <AppLayout>
-      <div className={styles.page}>
+      <div className="page-container">
 
         {/* Page Header */}
-        <div className={styles.pageHeader}>
+        <div className="page-header">
           <div>
-            <h1 className={styles.pageTitle}>Manage Habits</h1>
-            <p className={styles.pageSub}>
-              Design your ideal daily architecture. Small, consistent steps lead to transformative lasting change.
+            <h1 className="page-title">Manage Habits</h1>
+            <p className="page-subtitle">
+              Define your routines and track your long-term consistency.
+              Each small step leads to significant change.
             </p>
           </div>
-          <div className={styles.headerActions}>
-            <button className={styles.exportBtn} onClick={() => setToast('Export coming soon')}>
-              <DownloadIcon style={{ width: 15, height: 15 }} />
-              Export Data
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <button className="btn btn-secondary" onClick={handleExportData} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <DownloadIcon /> Export Habit Data
             </button>
-            <button className={styles.addBtn} onClick={() => { setEditingHabit(null); setShowForm(true); }}>
-              <PlusIcon style={{ width: 15, height: 15 }} />
-              Add New Habit
+            <button className="btn btn-primary" onClick={openCreate} id="add-new-habit-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <PlusIcon /> Add New Habit
             </button>
           </div>
         </div>
 
-        {/* Top two-column grid */}
-        <div className={styles.topGrid}>
+        {/* Error banner */}
+        {error && <ErrorMessage message={error} onDismiss={clearError} />}
 
-          {/* Weekly Snapshot */}
-          <div className={styles.card}>
-            <div className={styles.snapshotHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Weekly Snapshot</h2>
-                <p className={styles.cardSub}>Completion rate over the last 7 days</p>
+        {/* Summary stats cards */}
+        {!loading && (
+          <div className={styles.statsRow}>
+            <div
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Active') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Active');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Active')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Active'];
+                setFilters({ status: newStatus as any });
+              }}
+              title="Filter by Active habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconActive}`}>
+                <CheckIcon style={{ width: 20, height: 20 }} />
               </div>
-              <span className={styles.avgBadge}>
-                <span className={styles.avgDot} />
-                Avg: {avgWeeklyPct}%
-              </span>
-            </div>
-            <div className={styles.barChart}>
-              {weeklyBars.map((bar, i) => (
-                <div key={i} className={styles.barCol}>
-                  <div className={styles.barTrack}>
-                    <div
-                      className={`${styles.barFill} ${weekDays[i].iso > todayStr ? styles.barFuture : ''}`}
-                      style={{ height: `${Math.max(bar.pct, 4)}%` }}
-                    />
-                  </div>
-                  <span className={styles.barLabel}>{bar.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className={styles.card}>
-            <h2 className={styles.cardTitle}>Filters</h2>
-
-            <div className={styles.filterSection}>
-              <span className={styles.filterLabel}>Category</span>
-              <div className={styles.catPills}>
-                {availableCategories.map(cat => (
-                  <button
-                    key={cat}
-                    className={`${styles.catPill} ${catFilter === cat ? styles.catPillActive : ''}`}
-                    onClick={() => setCatFilter(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{activeCount}</span>
+                <span className={styles.statName}>Active</span>
               </div>
             </div>
 
-            <div className={styles.filterSection}>
-              <span className={styles.filterLabel}>Priority</span>
-              <select
-                className={styles.filterSelect}
-                value={priorityFilter}
-                onChange={e => setPriorityFilter(e.target.value)}
-              >
-                {PRIORITIES.map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-
-            <div className={styles.filterSection}>
-              <span className={styles.filterLabel}>Status</span>
-              <select
-                className={styles.filterSelect}
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-              >
-                {STATUSES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Habits list */}
-        <div className={styles.habitsSection}>
-          <div className={styles.habitsSectionHeader}>
-            <h2 className={styles.sectionTitle}>Your Habits</h2>
-            <span className={styles.activeCount}>{activeCount} habit{activeCount !== 1 ? 's' : ''} active</span>
-          </div>
-
-          {isLoading && (
-            <div className={styles.skeletonList}>
-              {[1, 2, 3].map(i => <div key={i} className={styles.skeletonRow} />)}
-            </div>
-          )}
-
-          {!isLoading && displayHabits.length === 0 && (
-            <div className={styles.emptyState}>
-              <p>No habits match your filters.</p>
-              {nonArchivedHabits.length === 0 && (
-                <button className={styles.addBtn} onClick={() => { setEditingHabit(null); setShowForm(true); }}>
-                  <PlusIcon style={{ width: 14, height: 14 }} /> Add Your First Habit
-                </button>
-              )}
-            </div>
-          )}
-
-          {!isLoading && displayHabits.map(habit => {
-            const ci = todayCheckInMap.get(habit._id);
-            const isCompleted = ci?.status === 'Completed';
-            const isPaused = habit.status === 'Paused';
-            const desc = habit.description;
-
-            return (
-              <div key={habit._id} className={styles.habitRow}>
-                <HabitCategoryIcon category={habit.category} size={44} completed={isCompleted} />
-
-                <div className={styles.habitInfo}>
-                  <div className={styles.habitNameRow}>
-                    <button
-                      className={styles.habitName}
-                      onClick={() => navigate(`/habits/${habit._id}`)}
-                      title="View details"
-                    >
-                      {habit.name}
-                    </button>
-                    <span className={`${styles.priorityBadge} ${styles[`priority${habit.priority}`]}`}>
-                      {habit.priority.toUpperCase()}
-                    </span>
-                  </div>
-                  {desc && <p className={styles.habitDesc}>{desc}</p>}
-                </div>
-
-                <div className={styles.statusCol}>
-                  <span className={styles.statusColLabel}>Status</span>
-                  <span className={styles.statusValue}>
-                    <span className={`${styles.statusDot} ${styles[`dot${habit.status}`]}`} />
-                    {habit.status}
-                  </span>
-                </div>
-
-                <div className={styles.habitActions}>
-                  <button className={styles.iconBtn} onClick={() => { setEditingHabit(habit); setShowForm(true); }} title="Edit">
-                    <EditIcon style={{ width: 15, height: 15 }} />
-                  </button>
-                  <button className={`${styles.iconBtn} ${styles.deleteBtnIcon}`} onClick={() => setDeleteTarget(habit)} title="Delete">
-                    <TrashIcon style={{ width: 15, height: 15 }} />
-                  </button>
-
-                  <div className={styles.actionBtnWrap}>
-                    {isCompleted && (
-                      <span className={styles.goalBadge}>GOAL ACHIEVED TODAY</span>
-                    )}
-                    {isPaused ? (
-                      <button className={styles.resumeBtn} onClick={() => changeStatus(habit._id, 'Active')}>
-                        <PlayIcon style={{ width: 11, height: 11 }} /> Resume
-                      </button>
-                    ) : isCompleted ? (
-                      <button className={styles.loggedBtn} disabled>Logged</button>
-                    ) : (
-                      <button className={styles.logBtn} onClick={() => handleLogActivity(habit)}>
-                        Log Activity
-                      </button>
-                    )}
-                  </div>
-                </div>
+            <div
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Paused') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Paused');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Paused')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Paused'];
+                setFilters({ status: newStatus as any });
+              }}
+              title="Filter by Paused habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconPaused}`}>
+                <PauseIcon style={{ width: 20, height: 20 }} />
               </div>
-            );
-          })}
-        </div>
-
-        {/* Consistency Landscape */}
-        {!isLoading && (
-          <div className={`${styles.card} ${styles.heatmapCard}`}>
-            <div className={styles.heatmapHeader}>
-              <div>
-                <h2 className={styles.cardTitle}>Consistency Landscape</h2>
-                <p className={styles.cardSub}>Daily activity heatmap (last 60 days)</p>
-              </div>
-              <div className={styles.heatLegend}>
-                <span className={styles.legendLabel}>Less</span>
-                {['#EDEDED', '#FCE8EE', '#F4ACBA', '#C4789A', '#896474'].map((c, i) => (
-                  <span key={i} className={styles.legendCell} style={{ background: c }} />
-                ))}
-                <span className={styles.legendLabel}>More</span>
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{pausedCount}</span>
+                <span className={styles.statName}>Paused</span>
               </div>
             </div>
-            <div className={styles.heatmapGrid}>
-              {heatmapData.map(({ date, pct }) => (
-                <div
-                  key={date}
-                  className={styles.heatCell}
-                  style={{ background: heatColor(pct) }}
-                  title={`${date}: ${pct}%`}
-                />
-              ))}
+
+            <div
+              className={`${styles.statCard} ${Array.isArray(filters.status) && filters.status.includes('Archived') ? styles.activeFilter : ''}`}
+              onClick={() => {
+                const isSelected = Array.isArray(filters.status) && filters.status.includes('Archived');
+                const newStatus = isSelected
+                  ? filters.status.filter((s: any) => s !== 'Archived')
+                  : [...(Array.isArray(filters.status) ? filters.status : []), 'Archived'];
+                setFilters({ status: newStatus as any });
+              }}
+              title="Filter by Archived habits"
+            >
+              <div className={`${styles.statIcon} ${styles.iconArchived}`}>
+                <ArchiveIcon style={{ width: 20, height: 20 }} />
+              </div>
+              <div className={styles.statDetails}>
+                <span className={styles.statNumber}>{archivedCount}</span>
+                <span className={styles.statName}>Archived</span>
+              </div>
             </div>
           </div>
         )}
 
+        {/* Filters */}
+        <HabitFilters />
+
+        {/* Loading */}
+        {loading && (
+          <div className="loading-center">
+            <div className="spinner" />
+          </div>
+        )}
+
+        {/* Empty: no habits at all */}
+        {!loading && habits.length === 0 && (
+          <EmptyState
+            icon={<TargetIcon style={{ width: 48, height: 48 }} />}
+            title="No habits yet"
+            subtitle="Start building your routine by adding your first habit. Track daily progress and build streaks!"
+            action={{ label: 'Add Your First Habit', onClick: openCreate }}
+          />
+        )}
+
+        {/* Empty: habits exist but filters give 0 results */}
+        {!loading && habits.length > 0 && filteredHabits.length === 0 && (
+          <EmptyState
+            icon={<SearchIcon style={{ width: 48, height: 48 }} />}
+            title="No habits match your filters"
+            subtitle="Try adjusting the filters above to see your habits."
+          />
+        )}
+
+        {/* Habit Groups by Category */}
+        {!loading && filteredHabits.length > 0 && (
+          <div className={styles.categoryGroups}>
+            {activeCategories.map(category => (
+              <div key={category} className={styles.categorySection}>
+                <h2 className={styles.categoryHeading}>
+                  <span
+                    className={styles.categoryHeadingDot}
+                    style={{ backgroundColor: CATEGORY_DOT_COLORS[category] || 'var(--text-muted)' }}
+                  />
+                  {category}
+                  <span className={styles.categoryCount}>
+                    ({habitsByCategory[category].length})
+                  </span>
+                </h2>
+                <div className={styles.habitsGrid}>
+                  {habitsByCategory[category].map((habit, idx) => (
+                    <div
+                      key={habit._id}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <HabitCard
+                        habit={habit}
+                        onEdit={openEdit}
+                        onArchiveRequest={requestArchive}
+                        onDeleteRequest={setHabitToDelete}
+                        onStatusChange={(name, action, prevStatus) => handleStatusChangeNotification(habit._id, name, action, prevStatus)}
+                        onSetGoal={openSetGoal}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+
+
       </div>
 
-      {/* Modals */}
+      {/* Form Modal */}
       {showForm && (
         <HabitForm
           editingHabit={editingHabit}
-          onClose={() => { setShowForm(false); setEditingHabit(null); }}
+          onClose={closeForm}
         />
       )}
 
+      {/* Goal Form Modal */}
+      {showGoalForm && (
+        <GoalHabitForm
+          editingHabit={goalHabit}
+          onClose={() => {
+            setShowGoalForm(false);
+            setGoalHabit(null);
+          }}
+          currentStreak={goalStreak}
+          totalCompletions={goalCompletions}
+        />
+      )}
+
+      {/* Archive Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={!!archiveTarget}
+        isOpen={showArchiveDialog}
         title="Archive Habit"
-        message={archiveTarget ? `Archive "${archiveTarget.name}"? You can restore it later.` : ''}
+        message={habitToArchive ? `Are you sure you want to archive "${habitToArchive.name}"? You can restore it later.` : ''}
         type="warning"
         confirmLabel="Archive"
         cancelLabel="Cancel"
-        onConfirm={handleArchive}
-        onCancel={() => setArchiveTarget(null)}
+        onConfirm={confirmArchive}
+        onCancel={() => setShowArchiveDialog(false)}
       />
 
+      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={!!deleteTarget}
+        isOpen={!!habitToDelete}
         title="Delete Habit"
-        message={deleteTarget ? `Delete "${deleteTarget.name}"? This cannot be undone.` : ''}
-        type="warning"
+        message={`Are you sure you want to delete "${habitToDelete?.name}"? This action cannot be undone.`}
         confirmLabel="Delete"
-        cancelLabel="Cancel"
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
+        type="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setHabitToDelete(null)}
       />
 
-      {toast && (
-        <Toast message={toast} type="success" duration={3000} onClose={() => setToast(null)} />
+      {/* Toast Notification */}
+      {lastAction && (
+        <Toast
+          key={toastKey}
+          message={lastAction.message}
+          type="info"
+          duration={5500}
+          actionLabel="Undo"
+          onAction={undoLast}
+          onClose={() => setLastAction(null)}
+        />
       )}
     </AppLayout>
   );

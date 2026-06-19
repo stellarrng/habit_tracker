@@ -12,7 +12,7 @@ export default function Footer() {
           <a href="#terms">Terms</a>
         </nav>
       </div>
-      <p>&copy; 2026 Habit Hackers. Built for clarity.</p>
+      <p>&copy; 2026 Habit Hackers. Build better habits, every day.</p>
     </footer>
   );
 }

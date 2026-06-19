@@ -15,6 +15,7 @@ interface GoalHabitFormProps {
   onClose: () => void;
   currentStreak: number;
   totalCompletions: number;
+  nextGoalStartDate?: string;
 }
 
 const BLANK = {
@@ -22,7 +23,7 @@ const BLANK = {
   goalTargetValue: 30,
 };
 
-export default function GoalHabitForm({ editingHabit, onClose, currentStreak, totalCompletions }: GoalHabitFormProps) {
+export default function GoalHabitForm({ editingHabit, onClose, currentStreak, totalCompletions, nextGoalStartDate }: GoalHabitFormProps) {
   const { editHabit } = useHabitContext();
   const isEdit = !!editingHabit;
   const hasExistingGoalType = !!editingHabit?.goalTargetType;
@@ -78,9 +79,14 @@ export default function GoalHabitForm({ editingHabit, onClose, currentStreak, to
       const goalTargetValue = form.goalTargetValue ? form.goalTargetValue: null;
 
       if (isEdit && editingHabit) {
+        const isCurrentlyComplete =
+          editingHabit.goalTargetValue &&
+          (editingHabit.goalTargetType === 'Streak' ? currentStreak : totalCompletions) >= editingHabit.goalTargetValue;
+
         const input: UpdateHabitInput = {
           goalTargetType,
           goalTargetValue,
+          ...(isCurrentlyComplete ? { goalStartedAt: nextGoalStartDate || new Date().toISOString() } : {})
         };
         await editHabit(editingHabit._id, input);
       } else {

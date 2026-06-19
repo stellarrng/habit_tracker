@@ -54,8 +54,8 @@
 .formInput:focus, .formSelect:focus, .formTextarea:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59,91,219,.12);
-  background: #fff;
+  box-shadow: 0 0 0 3px rgba(155, 123, 138, 0.12);
+  background: var(--bg-surface);
 }
 .formInput.error, .formSelect.error, .formTextarea.error { border-color: var(--color-danger); }
 .formError { font-size: var(--font-size-xs); color: var(--color-danger); font-weight: 500; }

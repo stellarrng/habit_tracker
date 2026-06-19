@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useHabitContext } from '../../context/HabitContext';
-import { HabitStatus, CheckIn } from '../../types';
+import { CheckIn } from '../../types';
 import AppLayout from '../../components/layout/AppLayout';
 import InforHabitForm from '../../components/habits/InforHabitForm';
 import GoalHabitForm from '../../components/habits/GoalHabitForm';
@@ -10,11 +10,6 @@ import Toast from '../../components/shared/Toast';
 import { useStreaks } from '../../hooks/useStreaks';
 import { getCheckIns } from '../../api/checkins';
 import {
-  DropletIcon,
-  BookIcon,
-  BriefcaseIcon,
-  LotusIcon,
-  StarIcon,
   InfoIcon,
   TrophyIcon,
   CalendarIcon,
@@ -24,18 +19,15 @@ import styles from './HabitDetailPage.module.css';
 import HabitCategoryIcon from '@/components/shared/HabitCategoryIcon';
 
 // ─── Color maps ──────────────────────────────────────────────────────────
-const CATEGORY_COLORS: Record<string, string> = {
-  Health: '#D3F9D8', Study: '#F3D9FA', Work: '#D0EBFF', Mindfulness: '#FFD6E7', Other: '#E9FAC8',
-};
 const PRIORITY_COLORS: Record<string, { bg: string; color: string }> = {
-  Low: { bg: '#DBF4FF', color: '#1864AB' },
-  Medium: { bg: '#FFF3BF', color: '#855C04' },
-  High: { bg: '#FFE3E3', color: '#C92A2A' },
+  Low: { bg: 'var(--color-priority-low-bg)', color: 'var(--color-priority-low-text)' },
+  Medium: { bg: 'var(--color-priority-medium-bg)', color: 'var(--color-priority-medium-text)' },
+  High: { bg: 'var(--color-priority-high-bg)', color: 'var(--color-priority-high-text)' },
 };
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  Active: { bg: '#D3F9D8', color: '#2F9E44' },
-  Paused: { bg: '#F1F3F5', color: '#868E96' },
-  Archived: { bg: '#FFF3CD', color: '#E67700' },
+  Active: { bg: 'var(--color-status-active-bg)', color: 'var(--color-status-active-text)' },
+  Paused: { bg: 'var(--color-status-paused-bg)', color: 'var(--color-status-paused-text)' },
+  Archived: { bg: 'var(--color-status-archived-bg)', color: 'var(--color-status-archived-text)' },
 };
 
 // ─── Page ─────────────────────────────────────────────────────────────────
@@ -46,7 +38,31 @@ export default function HabitDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  type ActionState = 
+    | { type: 'status'; habitId: string; prevStatus: string; message: string }
+    | { type: 'delete'; habitId: string; message: string; timeoutId: ReturnType<typeof setTimeout> };
+
+  const [lastAction, setLastAction] = useState<ActionState | null>(null);
+  const [toastKey, setToastKey] = useState(0);
+
+  function undoLast() {
+    if (!lastAction) return;
+    if (lastAction.type === 'status') {
+      changeStatus(lastAction.habitId, lastAction.prevStatus as any);
+    } else if (lastAction.type === 'delete') {
+      clearTimeout(lastAction.timeoutId);
+    }
+    setLastAction(null);
+  }
+
+  function triggerActionToast(action: ActionState) {
+    if (lastAction && lastAction.type === 'delete') {
+      // Allow it to timeout independently
+    }
+    setLastAction(action);
+    setToastKey(k => k + 1);
+  }
+  const [showCongrats, setShowCongrats] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -143,6 +159,61 @@ export default function HabitDetailPage() {
 
   const completionRate = streaks.completionRate;
 
+  const currentStreak = streaks.current;
+  const longestStreak = streaks.longest;
+  const totalCompletions = streaks.totalSessions;
+
+  // Calculate goal-specific check-ins since current goal started
+  const goalCheckIns = useMemo(() => {
+    if (!habit) return [];
+    const startStr = habit.goalStartedAt || habit.createdAt;
+    const startDate = new Date(startStr);
+    startDate.setHours(0, 0, 0, 0);
+
+    return checkIns.filter(c => {
+      const checkInDate = new Date(c.date);
+      checkInDate.setHours(0, 0, 0, 0);
+      return checkInDate >= startDate;
+    });
+  }, [habit, checkIns]);
+
+  const goalStreaks = useStreaks(goalCheckIns);
+
+  const nextGoalStartDate = useMemo(() => {
+    if (!habit || checkIns.length === 0) return new Date().toISOString();
+    const completedCheckIns = checkIns.filter(c => c.completedCount >= habit.targetPerDay);
+    if (completedCheckIns.length === 0) return new Date().toISOString();
+    const sorted = [...completedCheckIns].sort((a, b) => b.date.localeCompare(a.date));
+    const latestDateStr = sorted[0].date;
+    const parts = latestDateStr.split('-');
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    d.setDate(d.getDate() + 1);
+    return d.toISOString();
+  }, [habit, checkIns]);
+
+  // Goal details
+  const hasGoal = habit ? (!!habit.goalTargetType && !!habit.goalTargetValue) : false;
+  const goalType = habit?.goalTargetType || 'Streak';
+  const target = habit?.goalTargetValue || 30;
+  const currentValue = goalType === 'Streak' ? goalStreaks.current : goalStreaks.totalSessions;
+  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
+  const isComplete = pct >= 100;
+
+  // Trigger congrats popup if goal completed (100%) and not yet shown for this goal config
+  useEffect(() => {
+    if (loadingCheckIns || !habit || !hasGoal || pct < 100) return;
+
+    const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+    const isShown = localStorage.getItem(storageKey);
+
+    if (!isShown) {
+      setShowCongrats(true);
+    }
+  }, [loadingCheckIns, habit, hasGoal, pct, goalType, target]);
+
   if (!habit) {
     return (
       <AppLayout>
@@ -170,20 +241,7 @@ export default function HabitDetailPage() {
     );
   }
 
-  const currentStreak = streaks.current;
-  const longestStreak = streaks.longest;
-  const totalCompletions = streaks.totalSessions;
-
-  // Goal details
-  const hasGoal = !!habit.goalTargetType && !!habit.goalTargetValue;
-  const goalType = habit.goalTargetType || 'Streak';
-  const target = habit.goalTargetValue || 30;
-  const currentValue = goalType === 'Streak' ? currentStreak : totalCompletions;
-  const pct = Math.min(Math.round((currentValue / target) * 100), 100);
-  const isComplete = pct >= 100;
-
   const isActive = habit.status === 'Active';
-  const iconBg = CATEGORY_COLORS[habit.category] ?? '#EEF0F7';
   const statusStyle = STATUS_COLORS[habit.status] ?? STATUS_COLORS.Active;
   const priorityStyle = PRIORITY_COLORS[habit.priority] ?? PRIORITY_COLORS.Medium;
 
@@ -195,17 +253,6 @@ export default function HabitDetailPage() {
         : `Keep going! ${target - currentValue} more to reach your goal.`
     : null;
 
-  function renderCategoryIcon() {
-    const props = { style: { color: 'rgba(0,0,0,0.6)', width: 24, height: 24 } };
-    switch (habit!.category) {
-      case 'Health': return <DropletIcon {...props} />;
-      case 'Study': return <BookIcon {...props} />;
-      case 'Work': return <BriefcaseIcon {...props} />;
-      case 'Mindfulness': return <LotusIcon {...props} />;
-      default: return <StarIcon {...props} />;
-    }
-  }
-
   function handleDelete() {
     triggerConfirm({
       title: 'Delete Habit',
@@ -213,25 +260,41 @@ export default function HabitDetailPage() {
       confirmLabel: 'Delete',
       type: 'danger',
       onConfirm: () => {
-        removeHabit(habit!._id);
-        navigate('/habits');
+        const id = habit!._id;
+        const name = habit!.name;
+        // Delay deletion by 5.5s to allow undo
+        const timeoutId = setTimeout(() => {
+          removeHabit(id);
+          navigate('/habits');
+        }, 5500);
+        
+        triggerActionToast({
+          type: 'delete',
+          habitId: id,
+          message: `"${name}" deleted`,
+          timeoutId
+        });
+        
         closeConfirm();
+        setMenuOpen(false);
       },
     });
   }
 
   function handlePause() {
     if (habit) {
+      const prevStatus = habit.status;
       changeStatus(habit._id, 'Paused');
-      setToastMessage(`"${habit.name}" paused successfully`);
+      triggerActionToast({ type: 'status', habitId: habit._id, prevStatus, message: `"${habit.name}" paused` });
       setMenuOpen(false);
     }
   }
 
   function handleResume() {
     if (habit) {
+      const prevStatus = habit.status;
       changeStatus(habit._id, 'Active');
-      setToastMessage(`"${habit.name}" resumed successfully`);
+      triggerActionToast({ type: 'status', habitId: habit._id, prevStatus, message: `"${habit.name}" resumed` });
       setMenuOpen(false);
     }
   }
@@ -253,26 +316,45 @@ export default function HabitDetailPage() {
       confirmLabel: 'Archive',
       type: 'warning',
       onConfirm: () => {
+        const prevStatus = habit!.status;
         changeStatus(habit!._id, 'Archived');
-        setToastMessage(`"${habit!.name}" archived successfully`);
+        triggerActionToast({ type: 'status', habitId: habit!._id, prevStatus, message: `"${habit!.name}" archived` });
         closeConfirm();
       },
     });
     setMenuOpen(false);
   }
 
-  function handleUnarchive() {
+  function handleRestore() {
     triggerConfirm({
-      title: 'Unarchive Habit',
-      message: `Are you sure you want to unarchive "${habit!.name}"?`,
-      confirmLabel: 'Unarchive',
+      title: 'Restore Habit',
+      message: `Are you sure you want to Restore "${habit!.name}"?`,
+      confirmLabel: 'Restore',
       type: 'info',
       onConfirm: () => {
+        const prevStatus = habit!.status;
         changeStatus(habit!._id, 'Active');
-        setToastMessage(`"${habit!.name}" unarchived successfully`);
+        triggerActionToast({ type: 'status', habitId: habit!._id, prevStatus, message: `"${habit!.name}" restored` });
         closeConfirm();
       },
     });
+  }
+
+  function handleCloseCongrats() {
+    if (habit) {
+      const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+      localStorage.setItem(storageKey, 'true');
+    }
+    setShowCongrats(false);
+  }
+
+  function handleSetNewGoalFromCongrats() {
+    if (habit) {
+      const storageKey = `congrats_shown_${habit._id}_${goalType}_${target}`;
+      localStorage.setItem(storageKey, 'true');
+    }
+    setShowCongrats(false);
+    handleOpenGoalEdit();
   }
 
   return (
@@ -284,6 +366,7 @@ export default function HabitDetailPage() {
           ← Back to Habits
         </button>
 
+        <div className={styles.bannerCard}>
         {/* ── Header Row ────────────────────────────────────────── */}
         <div className={styles.headerRow}>
           {/* <div className={styles.iconWrapper} style={{ background: iconBg }}>
@@ -301,27 +384,37 @@ export default function HabitDetailPage() {
             </span>
           </div>
           {/* 3-dot menu */}
-          {habit.status !== 'Archived' && (
-            <div className={styles.menuContainer} ref={menuRef}>
-              <button
-                className={styles.menuButton}
-                onClick={() => setMenuOpen(!menuOpen)}
-                title="More options"
-              >
-                <MoreVerticalIcon style={{ width: 20, height: 20 }} />
-              </button>
-              {menuOpen && (
-                <div className={styles.menu}>
-                  <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
-                    {isActive ? 'Pause' : 'Resume'}
+          <div className={styles.menuContainer} ref={menuRef}>
+            <button
+              className={styles.menuButton}
+              onClick={() => setMenuOpen(!menuOpen)}
+              title="More options"
+            >
+              <MoreVerticalIcon style={{ width: 20, height: 20 }} />
+            </button>
+            {menuOpen && (
+              <div className={styles.menu}>
+                <button className={styles.menuItem} onClick={handleDelete}>
+                  Delete
+                </button>
+                {habit.status === 'Archived' ? (
+                  <button className={styles.menuItem} onClick={handleRestore}>
+                    Restore
                   </button>
-                  <button className={styles.menuItem} onClick={handleArchive}>
-                    Archive
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+                ) : (
+                  <>
+                    <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
+                      {isActive ? 'Pause' : 'Resume'}
+                    </button>
+                    <button className={styles.menuItem} onClick={handleArchive}>
+                      Archive
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
         </div>
 
         {/* ── Chips ───────────────────────────────────────────────── */}
@@ -337,36 +430,10 @@ export default function HabitDetailPage() {
           </span>
         </div>
 
-        {/* ── About Card ─────────────────────────────────────────── */}
-        <div className={styles.aboutCard}>
-          <div className={styles.aboutHeader}>
-            <span className={styles.aboutTitle}>Information</span>
-            <button className={styles.editLink} onClick={handleOpenEdit}>
-              Edit
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
-            </div>
-          </div>
         </div>
 
+        <div className={styles.mainGrid}>
+          <div className={styles.mainColumn}>
         {/* ── Goal progress card ──────────────────────────────────── */}
         <div className={styles.goalCard}>
           <div className={styles.goalCardHeader}>
@@ -402,6 +469,13 @@ export default function HabitDetailPage() {
                 <span className={styles.goalBarPct}>{pct}%</span>
                 {goalMsg && <span className={styles.goalBarMsg}>{goalMsg}</span>}
               </div>
+              {isComplete && (
+                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenGoalEdit} id="set-new-goal-completed">
+                    Set New Goal
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* No-goal empty state */
@@ -464,23 +538,39 @@ export default function HabitDetailPage() {
           </div>
         </div>
 
-        {/* ── Actions Row ────────────────────────────────────────── */}
-        <div className={styles.actionsRow}>
-          <button className={`${styles.actionBtn} ${styles.editBtn}`} onClick={handleOpenEdit} id={`detail-edit-${habit._id}`}>
-            Edit Habit Information
-          </button>
-          {habit.status !== 'Archived' ? (
-            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleArchive}>
-              Archive Habit
+          </div>
+          <div className={styles.sideColumn}>
+        {/* ── About Card ─────────────────────────────────────────── */}
+        <div className={styles.aboutCard}>
+          <div className={styles.aboutHeader}>
+            <span className={styles.aboutTitle}>Information</span>
+            <button className={styles.editLink} onClick={handleOpenEdit}>
+              Edit
             </button>
-          ) : (
-            <button className={`${styles.actionBtn} ${styles.archiveBtn}`} onClick={handleUnarchive}>
-              Unarchive Habit
-            </button>
-          )}
-          <button className={`${styles.actionBtn} ${styles.deleteBtn}`} onClick={handleDelete}>
-            Delete Habit
-          </button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
+              </p>
+            </div>
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
+              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
+            </div>
+          </div>
+        </div>
+
+          </div>
         </div>
       </div>
 
@@ -491,8 +581,9 @@ export default function HabitDetailPage() {
         <GoalHabitForm
           editingHabit={habit}
           onClose={() => setShowEdit(false)}
-          currentStreak={currentStreak}
-          totalCompletions={totalCompletions}
+          currentStreak={goalStreaks.current}
+          totalCompletions={goalStreaks.totalSessions}
+          nextGoalStartDate={nextGoalStartDate}
         />
       )}
       <ConfirmDialog
@@ -505,13 +596,44 @@ export default function HabitDetailPage() {
         onCancel={closeConfirm}
       />
 
+      {showCongrats && (
+        <div className={styles.confirmBackdrop} onClick={e => { if (e.target === e.currentTarget) handleCloseCongrats(); }}>
+          <div className={styles.confirmDialog} role="dialog" aria-modal="true" aria-labelledby="congrats-title">
+            <div className={styles.confirmBody}>
+              <div className={`${styles.confirmIconWrapper} ${styles.confirmIcon_success}`}>
+                <TrophyIcon style={{ width: 22, height: 22 }} />
+              </div>
+              <div className={styles.confirmContent}>
+                <h3 className={styles.confirmTitle} id="congrats-title">Goal Reached!</h3>
+                <p className={styles.confirmMessage}>
+                  Incredible job! You've successfully completed 100% of your goal target for <strong>{habit.name}</strong> ({target} {goalType === 'Streak' ? 'days streak' : 'sessions total'}).
+                  <br /><br />
+                  Would you like to keep the momentum going and set a new goal target now?
+                </p>
+              </div>
+            </div>
+            <div className={styles.confirmFooter}>
+              <button type="button" className="btn btn-secondary" onClick={handleCloseCongrats}>
+                Maybe Later
+              </button>
+              <button type="button" className="btn btn-primary" onClick={handleSetNewGoalFromCongrats}>
+                Set New Goal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast Notification */}
-      {toastMessage && (
+      {lastAction && (
         <Toast
-          message={toastMessage}
-          type="success"
-          duration={3000}
-          onClose={() => setToastMessage(null)}
+          key={toastKey}
+          message={lastAction.message}
+          type="info"
+          duration={5500}
+          actionLabel="Undo"
+          onAction={undoLast}
+          onClose={() => setLastAction(null)}
         />
       )}
     </AppLayout>

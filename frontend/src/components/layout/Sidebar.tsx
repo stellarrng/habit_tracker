@@ -6,7 +6,7 @@ import styles from './Sidebar.module.css';
 const NAV_ITEMS = [
   { to: '/today', label: 'Today', Icon: CalendarIcon },
   { to: '/habits', label: 'Habits', Icon: TargetIcon },
-  { to: '/dashboard', label: 'Stats', Icon: BarChartIcon },
+  { to: '/dashboard', label: 'Statistics', Icon: BarChartIcon },
 ];
 
 interface SidebarProps {
@@ -22,10 +22,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       {/* Brand */}
       <div className={styles.brand}>
-        <img src="/logo.png" alt="HabitFlow logo" className={styles.brandLogo} />
+        <img src="/logo.png" alt="Habit Tracker Pro logo" className={styles.brandLogo} />
         <div className={styles.brandText}>
-          <span className={styles.brandName}>HabitFlow</span>
-          <span className={styles.brandSub}>Stay mindful</span>
+          <span className={styles.brandName}>Habit Tracker Pro</span>
+          <span className={styles.brandSub}>Build better habits, every day.</span>
         </div>
       </div>
 

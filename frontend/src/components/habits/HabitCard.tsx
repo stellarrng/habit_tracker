@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Habit, HabitStatus, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import { getCheckIns } from '../../api/checkins';
 import { useStreaks } from '../../hooks/useStreaks';
 import {
-  TrashIcon,
   MoreVerticalIcon
 } from '../shared/Icons';
 import styles from './HabitCard.module.css';
@@ -31,7 +30,7 @@ function GoalRing({ pct, complete }: { pct: number; complete: boolean }) {
   const color = complete ? 'var(--color-success)' : 'var(--color-primary)';
   return (
     <svg width="40" height="40" viewBox="0 0 40 40" className={styles.goalRing}>
-      <circle cx="20" cy="20" r={r} fill="none" stroke="#EEF0F7" strokeWidth="4" />
+      <circle cx="20" cy="20" r={r} fill="none" stroke="var(--progress-track)" strokeWidth="4" />
       <circle
         cx="20" cy="20" r={r}
         fill="none"
@@ -62,12 +61,13 @@ interface HabitCardProps {
   habit: Habit;
   onEdit: (habit: Habit) => void;
   onArchiveRequest?: (habit: Habit) => void;
-  onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored') => void;
+  onStatusChange?: (habitName: string, action: 'paused' | 'resumed' | 'restored', prevStatus: string) => void;
+  onDeleteRequest?: (habit: Habit) => void;
   onSetGoal?: (habit: Habit, currentStreak: number, totalCompletions: number) => void;
 }
 
-export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusChange, onSetGoal }: HabitCardProps) {
-  const { changeStatus, removeHabit } = useHabitContext();
+export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteRequest, onStatusChange, onSetGoal }: HabitCardProps) {
+  const { changeStatus } = useHabitContext();
   const navigate = useNavigate();
   const isActive = habit.status === 'Active';
 
@@ -109,10 +109,25 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
   const goalType = habit.goalTargetType || 'Streak';
   const target = habit.goalTargetValue || 30;
 
+  const goalCheckIns = useMemo(() => {
+    if (!habit) return [];
+    const startStr = habit.goalStartedAt || habit.createdAt;
+    const startDate = new Date(startStr);
+    startDate.setHours(0, 0, 0, 0);
+
+    return checkIns.filter(c => {
+      const checkInDate = new Date(c.date);
+      checkInDate.setHours(0, 0, 0, 0);
+      return checkInDate >= startDate;
+    });
+  }, [habit, checkIns]);
+
+  const goalStreaks = useStreaks(goalCheckIns);
+
   // Calculate progress from real check-in data
   const currentValue = goalType === 'Streak'
-    ? streaks.current
-    : streaks.totalSessions;
+    ? goalStreaks.current
+    : goalStreaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -124,24 +139,29 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
         : null
     : null;
 
-  function handlePause() {
+  function handlePause(e: React.MouseEvent) {
+    e.stopPropagation();
+    const prevStatus = habit.status;
     const nextStatus: HabitStatus = isActive ? 'Paused' : 'Active';
     changeStatus(habit._id, nextStatus);
     setMenuOpen(false);
     if (onStatusChange) {
-      onStatusChange(habit.name, isActive ? 'paused' : 'resumed');
+      onStatusChange(habit.name, isActive ? 'paused' : 'resumed', prevStatus);
     }
   }
 
-  function handleRestore() {
+  function handleRestore(e: React.MouseEvent) {
+    e.stopPropagation();
+    const prevStatus = habit.status;
     changeStatus(habit._id, 'Active');
     setMenuOpen(false);
     if (onStatusChange) {
-      onStatusChange(habit.name, 'restored');
+      onStatusChange(habit.name, 'restored', prevStatus);
     }
   }
 
-  function handleArchive() {
+  function handleArchive(e: React.MouseEvent) {
+    e.stopPropagation();
     if (onArchiveRequest) {
       onArchiveRequest(habit);
     }
@@ -150,13 +170,22 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
-    if (window.confirm(`Delete "${habit.name}"? This cannot be undone.`)) {
-      removeHabit(habit._id);
+
+    if (onDeleteRequest) {
+      onDeleteRequest(habit);
     }
+
+    setMenuOpen(false);
   }
 
   return (
-    <div className={`habit-card ${habit.status.toLowerCase()}`} id={`habit-card-${habit._id}`}>
+    <div
+      className={`habit-card ${habit.status.toLowerCase()}`}
+      id={`habit-card-${habit._id}`}
+      onClick={() => navigate(`/habits/${habit._id}`)} 
+      style={{ cursor: 'pointer' }}
+      role="button"
+      tabIndex={0}>
 
       {/* Header */}
       <div className="habit-card-header">
@@ -183,13 +212,19 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
         <div className={styles.menuContainer} ref={menuRef}>
           <button
             className={styles.menuButton}
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={(e) => {
+              e.stopPropagation(); 
+              setMenuOpen(!menuOpen);
+            }}
             title="More options"
           >
             <MoreVerticalIcon style={{ width: 18, height: 18 }} />
           </button>
           {menuOpen && (
             <div className={styles.menu}>
+              <button className={styles.menuItem} onClick={handleDelete}>
+                Delete
+              </button>
               {habit.status === 'Archived' ? (
                 <button className={styles.menuItem} onClick={handleRestore}>
                   Restore
@@ -265,7 +300,8 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
           <span className={styles.noGoalText}>No goal target set</span>
           <button
             className={styles.noGoalLink}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (onSetGoal) {
                 onSetGoal(habit, streaks.current, streaks.totalSessions);
               } else {
@@ -278,37 +314,6 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onStatusCha
           </button>
         </div>
       )}
-
-      {/* Footer */}
-      <div className="habit-card-footer">
-        {habit.status === 'Paused' ? (
-          <button
-            className="habit-view-link"
-            onClick={() => {
-              changeStatus(habit._id, 'Active');
-              if (onStatusChange) {
-                onStatusChange(habit.name, 'resumed');
-              }
-            }}
-            id={`resume-${habit._id}`}
-          >
-            Resume
-          </button>
-        ) : (
-          <button className="habit-view-link" onClick={() => navigate(`/habits/${habit._id}`)} id={`view-${habit._id}`}>
-            View Details →
-          </button>
-        )}
-        <button
-          className="habit-delete-btn"
-          onClick={handleDelete}
-          title="Delete habit"
-          id={`delete-${habit._id}`}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <TrashIcon style={{ width: 14, height: 14 }} />
-        </button>
-      </div>
     </div>
   );
 }
