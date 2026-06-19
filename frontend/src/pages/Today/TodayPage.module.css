@@ -11,40 +11,111 @@
   gap: 20px;
 }
 
-/* ── Page header ─────────────────────────────────────────────────────────── */
-
-.pageHeader {
+.container {
+  width: 100%;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 24px;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.pageTitle {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.5px;
+.pageGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.mainColumn {
+  min-width: 0;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .pageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    position: static;
+  }
+}
+
+/* ── Header / hero ───────────────────────────────────────────────────────── */
+
+.heroCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: linear-gradient(135deg, #fff 0%, var(--color-gray-50) 100%);
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-lg);
+}
+
+.greeting {
+  font-size: 1.75rem;
+  font-weight: var(--font-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ── Progress message + bar ──────────────────────────────────────────────── */
+
+.progressGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.progressMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
   margin: 0;
 }
 
-.pageSub {
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.55;
+.progressMessage svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
 }
 
-/* ── Info cards row ──────────────────────────────────────────────────────── */
-
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+.progressTrack {
+  flex: 1;
+  height: 8px;
+  background-color: var(--progress-track);
+  border-radius: var(--radius-full);
+  overflow: hidden;
 }
 
-/* ── Date navigator ─────────────────────────────────────────────────────────── */
+.progressFill {
+  position: relative;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-primary) 0%, #a5f3fc 100%);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.progressGlow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+  border-radius: var(--radius-full);
+}
+
+/* ── Date navigator (teammate's, wraps our WeekStrip) ───────────────────── */
 
 .dateNav {
   background: var(--bg-surface);
@@ -82,13 +153,20 @@
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.navArrowBtn:hover {
+.navArrowBtn:hover:not(:disabled) {
   background: var(--bg-elevated);
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
 
-.navArrowBtn:active { transform: scale(0.94); }
+.navArrowBtn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.navArrowBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 
 .dateNavMonth {
   font-size: 13px;
@@ -114,148 +192,25 @@
   color: #fff;
 }
 
-.dateNavStrip {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+/* ── Read-only notice ─────────────────────────────────────────────────────── */
+
+.readOnlyNoticeSlot {
+  min-height: 38px;
+  margin-bottom: var(--space-2);
 }
 
-.dayCell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 7px 4px 9px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg-elevated);
-  cursor: pointer;
-  position: relative;
-  transition: border-color 0.15s ease, background 0.15s ease;
+.readOnlyNotice {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
 }
 
-.dayCell:hover:not(.dayCellSelected) {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
-}
-
-.dayLabel {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.dayNum {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.todayDot {
-  position: absolute;
-  bottom: 4px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-primary);
-}
-
-.dayCellToday {
-  border-color: var(--color-primary);
-}
-.dayCellToday .dayLabel { color: var(--color-primary); }
-.dayCellToday .dayNum   { color: var(--color-primary); }
-
-.dayCellSelected {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-.dayCellSelected .dayLabel,
-.dayCellSelected .dayNum  { color: #fff; }
-.dayCellSelected .todayDot { background: rgba(255,255,255,0.7); }
-
-.dayCellFuture { opacity: 0.45; }
-
-.dayCellPast .dayNum { color: var(--text-secondary); }
-
-
-/* ── Progress row ────────────────────────────────────────────────────────────── */
-
-.progressRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.progressTrack {
-  flex: 1;
-  height: 8px;
-  background-color: var(--progress-track);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.progressFill {
-  position: relative;
-  height: 100%;
-  border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.progressGlow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
-  border-radius: var(--radius-full);
-}
-
-.progressLabel {
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* ── Section header ──────────────────────────────────────────────────────────── */
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.sectionTitle {
-  font-size: var(--font-size-base);
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.undoBtn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-primary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s ease;
-}
-
-.undoBtn:hover {
-  color: var(--color-primary-dark);
-}
-
-/* ── Habit list ────────────────────────────────────────────────────────────── */
+/* ── Habit list ──────────────────────────────────────────────────────────── */
+/* Row styling itself lives in HabitRow.module.css (separate component) —
+   this file only needs the list container spacing. */
 
 .habitList {
   display: flex;
@@ -263,165 +218,25 @@
   gap: 10px;
 }
 
-/* ── Habit row ─────────────────────────────────────────────────────────────── */
+/* ── 3-card info row ─────────────────────────────────────────────────────── */
+/* Left: our tip card · Middle: teammate's WeeklyMomentum · Right: our stats card */
 
-.habitRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  gap: 12px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  transition: border-color 0.15s ease, background-color 0.2s ease;
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
-.habitRow:hover {
-  border-color: var(--color-primary);
+@media (max-width: 900px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.habitRowCompleted {
-  background-color: var(--color-primary-light);
-  border-color: var(--color-accent);
-}
-
-.habitRowPending {
-  opacity: 0.65;
-  pointer-events: none;
-}
-
-/* ── Habit content ─────────────────────────────────────────────────────────── */
-
-.habitLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  flex: 1;
-}
-
-.habitInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.categoryChip {
-  align-self: flex-start;
-  margin-bottom: 1px;
-}
-
-.habitName {
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.habitNameDone {
-  color: var(--text-muted);
-}
-
-/* ── Status line ─────────────────────────────────────────────────────────────── */
-
-.statusLine {
-  font-size: var(--font-size-sm);
-  line-height: 1.4;
-}
-
-.statusCompleted {
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.statusInProgress {
-  color: var(--text-muted);
-}
-
-/* ── Counter ─────────────────────────────────────────────────────────────────── */
-
-.counter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.counterPill {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.counterBtn {
-  width: 30px;
-  height: 30px;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s ease;
-}
-
-.counterBtn:hover:not(:disabled) {
-  background-color: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.counterBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* ── Check button ─────────────────────────────────────────────────────────────── */
-
-.checkBtn {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-full);
-  border: 2px solid var(--border);
-  background: none;
-  color: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
-}
-
-.checkBtn:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  transform: scale(1.08);
-}
-
-.checkBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.checkBtnDone {
-  background-color: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
-}
-
-.checkBtnDone:hover:not(:disabled) {
-  background-color: var(--color-primary-dark);
-  border-color: var(--color-primary-dark);
-  color: #fff;
-  transform: scale(1.06);
+@media (max-width: 640px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Right panel: Consistency Tip ────────────────────────────────────────────── */
@@ -473,13 +288,102 @@
   margin: 0;
 }
 
-/* ── Right panel: Weekly Momentum ────────────────────────────────────────────── */
+/* ── Weekly Momentum card (teammate's) ───────────────────────────────────── */
 
 .momentumCard {
   background-color: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
+}
+
+.momentumLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.momentumDots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dot {
+  flex: 1;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.dotHigh {
+  background-color: var(--heat-high);
+}
+
+.dotMid {
+  background-color: var(--heat-mid);
+}
+
+.dotLow {
+  background-color: var(--heat-low);
+}
+
+.dotEmpty {
+  background-color: var(--heat-empty);
+}
+
+.momentumDays {
+  display: flex;
+  gap: 6px;
+}
+
+.momentumDay {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ── Stats card (ours) ───────────────────────────────────────────────────── */
+
+.statsCard {
+  background-color: #fff;
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.tipIconWrap {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tipLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.statsTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-gray-700);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
 .momentumLabel {
@@ -601,20 +505,57 @@
 
 /* ── Empty state ─────────────────────────────────────────────────────────────── */
 
-.emptyState {
-  padding: 40px;
+/* ── Error state ─────────────────────────────────────────────────────────── */
+
+.errorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  background: #fff;
+  border: 1px solid var(--color-danger-light);
+  border-radius: var(--radius-lg);
   text-align: center;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  background: var(--bg-surface);
-  border: 1px dashed var(--border);
+}
+
+.errorText {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.retryBtn {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: #fff;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-5);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.retryBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+  background: #fff;
+  border: 1px dashed var(--color-gray-200);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
-/* ── Skeleton ────────────────────────────────────────────────────────────────── */
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
@@ -622,7 +563,7 @@
 }
 
 .skeletonBox {
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 400px 100%;
   animation: shimmer 1.4s infinite;
   border-radius: var(--radius-md);
@@ -657,8 +598,8 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
+  border: 1px solid var(--color-gray-100);
+  background: #fff;
 }
 
 .skeletonLeft {
@@ -706,18 +647,9 @@
   border-radius: var(--radius-lg);
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────────── */
-
-@media (max-width: 900px) {
-  .infoGrid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+/* ── Responsive ──────────────────────────────────────────────────────────── */
 
 @media (max-width: 640px) {
-  .infoGrid {
-    grid-template-columns: 1fr;
-  }
   .pageHeader {
     flex-direction: column;
   }

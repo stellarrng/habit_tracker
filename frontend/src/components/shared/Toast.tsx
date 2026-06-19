@@ -7,9 +7,11 @@ export interface ToastProps {
   type?: 'success' | 'error' | 'info';
   duration?: number;
   onClose?: () => void;
+  actionLabel?: string;
+  onAction?: () => void;
 }
 
-export default function Toast({ message, type = 'success', duration = 3000, onClose }: ToastProps) {
+export default function Toast({ message, type = 'success', duration = 3000, onClose, actionLabel, onAction }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
@@ -27,12 +29,22 @@ export default function Toast({ message, type = 'success', duration = 3000, onCl
 
   if (!isVisible) return null;
 
+  function handleAction() {
+    onAction?.();
+    setIsVisible(false);
+  }
+
   return (
     <div className={`${styles.toast} ${styles[`toast_${type}`]}`} role="status">
       <div className={styles.toastContent}>
         {type === 'success' && <CheckIcon style={{ width: 18, height: 18 }} />}
         <span className={styles.toastMessage}>{message}</span>
       </div>
+      {actionLabel && onAction && (
+        <button className={styles.toastAction} onClick={handleAction}>
+          {actionLabel}
+        </button>
+      )}
     </div>
   );
 }

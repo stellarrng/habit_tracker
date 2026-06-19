@@ -4,21 +4,29 @@ import { CalendarIcon, TargetIcon, BarChartIcon } from '../shared/Icons';
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
-  { to: '/today',     label: 'Today',  Icon: CalendarIcon },
-  { to: '/habits',    label: 'Habits', Icon: TargetIcon   },
-  { to: '/dashboard', label: 'Stats',  Icon: BarChartIcon },
+  { to: '/today', label: 'Today', Icon: CalendarIcon },
+  { to: '/habits', label: 'Habits', Icon: TargetIcon },
+  { to: '/dashboard', label: 'Stats', Icon: BarChartIcon },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { logout } = useAuth();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       {/* Brand */}
       <div className={styles.brand}>
-        <span className={styles.brandName}>HabitFlow</span>
-        <span className={styles.brandSub}>Stay mindful</span>
+        <img src="/logo.png" alt="HabitFlow logo" className={styles.brandLogo} />
+        <div className={styles.brandText}>
+          <span className={styles.brandName}>HabitFlow</span>
+          <span className={styles.brandSub}>Stay mindful</span>
+        </div>
       </div>
 
       {/* Nav */}
@@ -30,6 +38,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
             }
+            onClick={onClose}
           >
             <Icon />
             <span>{label}</span>
@@ -39,7 +48,7 @@ export default function Sidebar() {
 
       {/* Footer actions */}
       <div className={styles.footer}>
-        <button className={styles.footerLink} onClick={() => {}}>
+        <button className={styles.footerLink} onClick={() => { }}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="10" />
             <line x1="12" x2="12" y1="8" y2="12" />

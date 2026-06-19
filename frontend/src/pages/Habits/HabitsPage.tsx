@@ -1,19 +1,18 @@
-import { useState, useMemo } from 'react';
-import { Habit } from '../../types';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Habit, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
+import { getCheckIns, upsertCheckIn } from '../../api/checkins';
 import AppLayout from '../../components/layout/AppLayout';
-import HabitFilters from '../../components/habits/HabitFilters';
-import HabitCard from '../../components/habits/HabitCard';
 import HabitForm from '../../components/habits/HabitForm';
-import GoalHabitForm from '../../components/habits/GoalHabitForm';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
 import Toast from '../../components/shared/Toast';
 import EmptyState from '../../components/shared/EmptyState';
-import ErrorMessage from '../../components/shared/ErrorMessage';
 import { TargetIcon, SearchIcon, PlusIcon, CheckIcon, PauseIcon, ArchiveIcon } from '../../components/shared/Icons';
+import HabitCategoryIcon from '../../components/shared/HabitCategoryIcon';
 import styles from './HabitsPage.module.css';
 
-const CATEGORIES_ORDER = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'] as const;
+// ── Inline icon ───────────────────────────────────────────────────────────────
 
 const CATEGORY_DOT_COLORS: Record<string, string> = {
   Health: 'var(--color-category-health-text)',
@@ -26,18 +25,8 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 export default function HabitsPage() {
   const { filteredHabits, habits, loading, error, removeHabit, clearError, changeStatus, filters, setFilters } = useHabitContext();
 
-  // Calculate status counts
-  const { activeCount, pausedCount, archivedCount } = useMemo(() => {
-    let active = 0;
-    let paused = 0;
-    let archived = 0;
-    habits.forEach(habit => {
-      if (habit.status === 'Active') active++;
-      else if (habit.status === 'Paused') paused++;
-      else if (habit.status === 'Archived') archived++;
-    });
-    return { activeCount: active, pausedCount: paused, archivedCount: archived };
-  }, [habits]);
+  const [allCheckIns, setAllCheckIns] = useState<CheckIn[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [showForm, setShowForm]         = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -46,102 +35,198 @@ export default function HabitsPage() {
   const [habitToDelete, setHabitToDelete] = useState<Habit | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // GoalHabitForm states
-  const [showGoalForm, setShowGoalForm] = useState(false);
-  const [goalHabit, setGoalHabit] = useState<Habit | null>(null);
-  const [goalStreak, setGoalStreak] = useState(0);
-  const [goalCompletions, setGoalCompletions] = useState(0);
+  const [catFilter, setCatFilter]           = useState('All');
+  const [priorityFilter, setPriorityFilter] = useState('All Priorities');
+  const [statusFilter, setStatusFilter]     = useState('Any Status');
 
-  // Group filtered habits by category
-  const habitsByCategory = useMemo(() => {
-    const groups: Record<string, Habit[]> = {};
-    filteredHabits.forEach(habit => {
-      if (!groups[habit.category]) {
-        groups[habit.category] = [];
-      }
-      groups[habit.category].push(habit);
+  const todayStr = fmt(new Date());
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
+  const fetchCheckIns = useCallback(async () => {
+    try {
+      const data = await getCheckIns();
+      setAllCheckIns(data);
+    } catch {
+      // silently ignore
+    } finally {
+      setDataLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loading) fetchCheckIns();
+  }, [loading, fetchCheckIns]);
+
+  // ── Derived ───────────────────────────────────────────────────────────────
+
+  const checkInMap = useMemo(() => {
+    const map = new Map<string, Map<string, CheckIn>>();
+    for (const ci of allCheckIns) {
+      if (!map.has(ci.habitId)) map.set(ci.habitId, new Map());
+      map.get(ci.habitId)!.set(ci.date, ci);
+    }
+    return map;
+  }, [allCheckIns]);
+
+  const nonArchivedHabits = useMemo(() => habits.filter(h => h.status !== 'Archived'), [habits]);
+
+  const displayHabits = useMemo(() => {
+    return nonArchivedHabits.filter(h => {
+      if (catFilter !== 'All' && h.category !== catFilter) return false;
+      if (priorityFilter !== 'All Priorities' && h.priority !== priorityFilter) return false;
+      if (statusFilter !== 'Any Status' && h.status !== statusFilter) return false;
+      return true;
     });
-    return groups;
-  }, [filteredHabits]);
+  }, [nonArchivedHabits, catFilter, priorityFilter, statusFilter]);
 
-  // Determine active categories to show in predefined order
-  const activeCategories = useMemo(() => {
-    const defined = CATEGORIES_ORDER.filter(cat => habitsByCategory[cat] && habitsByCategory[cat].length > 0);
-    const undefinedCats = Object.keys(habitsByCategory).filter(cat => !CATEGORIES_ORDER.includes(cat as any));
-    return [...defined, ...undefinedCats];
-  }, [habitsByCategory]);
+  const availableCategories = useMemo(() => {
+    const cats = new Set(nonArchivedHabits.map(h => h.category));
+    return ALL_CATEGORIES.filter(c => c === 'All' || cats.has(c as Habit['category']));
+  }, [nonArchivedHabits]);
 
-  function openCreate() { setEditingHabit(null); setShowForm(true); }
-  function openEdit(habit: Habit) { setEditingHabit(habit); setShowForm(true); }
-  function closeForm() { setShowForm(false); setEditingHabit(null); }
-  
-  function requestArchive(habit: Habit) {
-    setHabitToArchive(habit);
-    setShowArchiveDialog(true);
-  }
-  
-  function confirmArchive() {
-    if (habitToArchive) {
-      changeStatus(habitToArchive._id, 'Archived');
-      setToastMessage(`"${habitToArchive.name}" archived successfully`);
-      setShowArchiveDialog(false);
-      setHabitToArchive(null);
+  const todayCheckInMap = useMemo(() => {
+    const map = new Map<string, CheckIn>();
+    for (const h of nonArchivedHabits) {
+      const ci = checkInMap.get(h._id)?.get(todayStr);
+      if (ci) map.set(h._id, ci);
+    }
+    return map;
+  }, [nonArchivedHabits, checkInMap, todayStr]);
+
+  // Weekly bar chart
+  const weekDays = useMemo(() => buildCurrentWeek(todayStr), [todayStr]);
+
+  const weeklyBars = useMemo(() => {
+    const activeHabits = nonArchivedHabits.filter(h => h.status === 'Active');
+    const total = activeHabits.length || 1;
+    return weekDays.map(day => {
+      const completed = activeHabits.filter(
+        h => checkInMap.get(h._id)?.get(day.iso)?.status === 'Completed'
+      ).length;
+      return { label: day.label, pct: Math.round((completed / total) * 100) };
+    });
+  }, [nonArchivedHabits, checkInMap, weekDays]);
+
+  const avgWeeklyPct = useMemo(() => {
+    const past = weeklyBars.filter((_, i) => weekDays[i].iso <= todayStr);
+    if (!past.length) return 0;
+    return Math.round(past.reduce((s, b) => s + b.pct, 0) / past.length);
+  }, [weeklyBars, weekDays, todayStr]);
+
+  // 30-day heatmap
+  const last60Days = useMemo(() => buildLast60Days(todayStr), [todayStr]);
+
+  const heatmapData = useMemo(() => {
+    const activeHabits = nonArchivedHabits.filter(h => h.status === 'Active');
+    const total = activeHabits.length || 1;
+    return last60Days.map(date => {
+      const completed = activeHabits.filter(
+        h => checkInMap.get(h._id)?.get(date)?.status === 'Completed'
+      ).length;
+      return { date, pct: Math.round((completed / total) * 100) };
+    });
+  }, [nonArchivedHabits, checkInMap, last60Days]);
+
+  const activeCount = nonArchivedHabits.filter(h => h.status === 'Active').length;
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+
+  async function handleLogActivity(habit: Habit) {
+    const existing = todayCheckInMap.get(habit._id);
+    const newCount = (existing?.completedCount ?? 0) + 1;
+
+    const optimistic: CheckIn = {
+      _id: existing?._id ?? `tmp-${habit._id}`,
+      userId: habit.userId,
+      habitId: habit._id,
+      date: todayStr,
+      completedCount: newCount,
+      status: newCount >= habit.targetPerDay ? 'Completed' : 'In Progress',
+      note: existing?.note ?? '',
+    };
+
+    setAllCheckIns(prev => {
+      const idx = prev.findIndex(ci => ci.habitId === habit._id && ci.date === todayStr);
+      if (idx >= 0) { const copy = [...prev]; copy[idx] = optimistic; return copy; }
+      return [...prev, optimistic];
+    });
+
+    try {
+      const result = await upsertCheckIn({ habitId: habit._id, date: todayStr, completedCount: newCount });
+      setAllCheckIns(prev => {
+        const idx = prev.findIndex(ci => ci.habitId === habit._id && ci.date === todayStr);
+        if (idx >= 0) { const copy = [...prev]; copy[idx] = result; return copy; }
+        return prev;
+      });
+      if (result.status === 'Completed') setToast(`${habit.name} completed today! 🎉`);
+    } catch {
+      // rollback
+      setAllCheckIns(prev => {
+        if (!existing) return prev.filter(ci => !(ci.habitId === habit._id && ci.date === todayStr));
+        return prev.map(ci => ci.habitId === habit._id && ci.date === todayStr ? existing : ci);
+      });
     }
   }
-  
-  function handleStatusChangeNotification(habitName: string, action: 'paused' | 'resumed' | 'restored') {
-    if (action === 'resumed') {
-      setToastMessage(`"${habitName}" resumed successfully`);
-    } else if (action === 'paused') {
-      setToastMessage(`"${habitName}" paused successfully`);
-    } else if (action === 'restored') {
-      setToastMessage(`"${habitName}" restored successfully`);
-    }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    const name = deleteTarget.name;
+    setDeleteTarget(null);
+    await removeHabit(deleteTarget._id);
+    setToast(`${name} deleted`);
   }
 
-  function openSetGoal(habit: Habit, streak: number, completions: number) {
-    setGoalHabit(habit);
-    setGoalStreak(streak);
-    setGoalCompletions(completions);
-    setShowGoalForm(true);
+  async function handleArchive() {
+    if (!archiveTarget) return;
+    const name = archiveTarget.name;
+    await changeStatus(archiveTarget._id, 'Archived');
+    setArchiveTarget(null);
+    setToast(`${name} archived`);
   }
+
+  const isLoading = loading || dataLoading;
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <AppLayout>
-      <div className="page-container">
+      <div className={styles.page}>
 
         {/* Page Header */}
-        <div className="page-header">
+        <div className={styles.pageHeader}>
           <div>
-            <h1 className="page-title">Manage Habits</h1>
-            <p className="page-subtitle">
-              Define your routines and track your long-term consistency.
-              Each small step leads to significant change.
+            <h1 className={styles.pageTitle}>Manage Habits</h1>
+            <p className={styles.pageSub}>
+              Design your ideal daily architecture. Small, consistent steps lead to transformative lasting change.
             </p>
           </div>
-          <button className="btn btn-primary" onClick={openCreate} id="add-new-habit-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <PlusIcon /> Add New Habit
-          </button>
+          <div className={styles.headerActions}>
+            <button className={styles.exportBtn} onClick={() => setToast('Export coming soon')}>
+              <DownloadIcon style={{ width: 15, height: 15 }} />
+              Export Data
+            </button>
+            <button className={styles.addBtn} onClick={() => { setEditingHabit(null); setShowForm(true); }}>
+              <PlusIcon style={{ width: 15, height: 15 }} />
+              Add New Habit
+            </button>
+          </div>
         </div>
 
-        {/* Error banner */}
-        {error && <ErrorMessage message={error} onDismiss={clearError} />}
+        {/* Top two-column grid */}
+        <div className={styles.topGrid}>
 
-        {/* Summary stats cards */}
-        {!loading && (
-          <div className={styles.statsRow}>
-            <div
-              className={`${styles.statCard} ${filters.status === 'Active' ? styles.activeFilter : ''}`}
-              onClick={() => setFilters({ status: filters.status === 'Active' ? 'All' : 'Active' })}
-              title="Filter by Active habits"
-            >
-              <div className={`${styles.statIcon} ${styles.iconActive}`}>
-                <CheckIcon style={{ width: 20, height: 20 }} />
+          {/* Weekly Snapshot */}
+          <div className={styles.card}>
+            <div className={styles.snapshotHeader}>
+              <div>
+                <h2 className={styles.cardTitle}>Weekly Snapshot</h2>
+                <p className={styles.cardSub}>Completion rate over the last 7 days</p>
               </div>
-              <div className={styles.statDetails}>
-                <span className={styles.statNumber}>{activeCount}</span>
-                <span className={styles.statName}>Active</span>
-              </div>
+              <span className={styles.avgBadge}>
+                <span className={styles.avgDot} />
+                Avg: {avgWeeklyPct}%
+              </span>
             </div>
 
             <div
@@ -221,8 +306,99 @@ export default function HabitsPage() {
                 <div className={styles.habitsGrid}>
                   {habitsByCategory[category].map((habit, idx) => (
                     <div
-                      key={habit._id}
-                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className={`${styles.barFill} ${weekDays[i].iso > todayStr ? styles.barFuture : ''}`}
+                      style={{ height: `${Math.max(bar.pct, 4)}%` }}
+                    />
+                  </div>
+                  <span className={styles.barLabel}>{bar.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className={styles.card}>
+            <h2 className={styles.cardTitle}>Filters</h2>
+
+            <div className={styles.filterSection}>
+              <span className={styles.filterLabel}>Category</span>
+              <div className={styles.catPills}>
+                {availableCategories.map(cat => (
+                  <button
+                    key={cat}
+                    className={`${styles.catPill} ${catFilter === cat ? styles.catPillActive : ''}`}
+                    onClick={() => setCatFilter(cat)}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.filterSection}>
+              <span className={styles.filterLabel}>Priority</span>
+              <select
+                className={styles.filterSelect}
+                value={priorityFilter}
+                onChange={e => setPriorityFilter(e.target.value)}
+              >
+                {PRIORITIES.map(p => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+
+            <div className={styles.filterSection}>
+              <span className={styles.filterLabel}>Status</span>
+              <select
+                className={styles.filterSelect}
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+              >
+                {STATUSES.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Habits list */}
+        <div className={styles.habitsSection}>
+          <div className={styles.habitsSectionHeader}>
+            <h2 className={styles.sectionTitle}>Your Habits</h2>
+            <span className={styles.activeCount}>{activeCount} habit{activeCount !== 1 ? 's' : ''} active</span>
+          </div>
+
+          {isLoading && (
+            <div className={styles.skeletonList}>
+              {[1, 2, 3].map(i => <div key={i} className={styles.skeletonRow} />)}
+            </div>
+          )}
+
+          {!isLoading && displayHabits.length === 0 && (
+            <div className={styles.emptyState}>
+              <p>No habits match your filters.</p>
+              {nonArchivedHabits.length === 0 && (
+                <button className={styles.addBtn} onClick={() => { setEditingHabit(null); setShowForm(true); }}>
+                  <PlusIcon style={{ width: 14, height: 14 }} /> Add Your First Habit
+                </button>
+              )}
+            </div>
+          )}
+
+          {!isLoading && displayHabits.map(habit => {
+            const ci = todayCheckInMap.get(habit._id);
+            const isCompleted = ci?.status === 'Completed';
+            const isPaused = habit.status === 'Paused';
+            const desc = habit.description;
+
+            return (
+              <div key={habit._id} className={styles.habitRow}>
+                <HabitCategoryIcon category={habit.category} size={44} completed={isCompleted} />
+
+                <div className={styles.habitInfo}>
+                  <div className={styles.habitNameRow}>
+                    <button
+                      className={styles.habitName}
+                      onClick={() => navigate(`/habits/${habit._id}`)}
+                      title="View details"
                     >
                       <HabitCard
                         habit={habit}
@@ -236,45 +412,30 @@ export default function HabitsPage() {
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-
+            );
+          })}
+        </div>
 
 
       </div>
 
-      {/* Form Modal */}
+      {/* Modals */}
       {showForm && (
         <HabitForm
           editingHabit={editingHabit}
-          onClose={closeForm}
+          onClose={() => { setShowForm(false); setEditingHabit(null); }}
         />
       )}
 
-      {/* Goal Form Modal */}
-      {showGoalForm && (
-        <GoalHabitForm
-          editingHabit={goalHabit}
-          onClose={() => {
-            setShowGoalForm(false);
-            setGoalHabit(null);
-          }}
-          currentStreak={goalStreak}
-          totalCompletions={goalCompletions}
-        />
-      )}
-
-      {/* Archive Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={showArchiveDialog}
+        isOpen={!!archiveTarget}
         title="Archive Habit"
-        message={habitToArchive ? `Are you sure you want to archive "${habitToArchive.name}"? You can restore it later.` : ''}
+        message={archiveTarget ? `Archive "${archiveTarget.name}"? You can restore it later.` : ''}
         type="warning"
         confirmLabel="Archive"
         cancelLabel="Cancel"
-        onConfirm={confirmArchive}
-        onCancel={() => setShowArchiveDialog(false)}
+        onConfirm={handleArchive}
+        onCancel={() => setArchiveTarget(null)}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -9,9 +9,41 @@
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    z-index: 100;
+    width: 260px;
+
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+}
+
 /* ── Brand ────────────────────────────────────────────────────────────────── */
 .brand {
   padding: 24px 20px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandLogo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.brandText {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -51,7 +83,9 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.navItem svg { flex-shrink: 0; }
+.navItem svg {
+  flex-shrink: 0;
+}
 
 .navItem:hover {
   background: var(--bg-page);
@@ -71,26 +105,6 @@
   flex-direction: column;
   gap: 2px;
 }
-
-.addBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 8px;
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.addBtn:hover { opacity: 0.85; }
 
 .footerLink {
   display: flex;

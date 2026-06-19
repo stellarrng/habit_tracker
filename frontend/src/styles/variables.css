@@ -1,70 +1,89 @@
 :root {
   /* ── Brand ───────────────────────────────────────────────────────────────── */
-  --color-primary:       #9B7B8A;   /* dusty rose  */
+  --color-primary: #9B7B8A;
+  /* dusty rose  */
   --color-primary-hover: #7E6474;
   --color-primary-light: #F4E8EE;
 
-  --color-secondary:       #84A59D; /* sage green  */
+  --color-secondary: #84A59D;
+  /* sage green  */
   --color-secondary-hover: #6F9088;
   --color-secondary-light: #C8DDD7;
 
-  --color-accent:       #F4ACBA;    /* blush pink  */
+  --color-accent: #F4ACBA;
+  /* blush pink  */
   --color-accent-hover: #E896A8;
   --color-accent-light: #FCE8EE;
 
   /* ── Semantic (derived from brand) ──────────────────────────────────────── */
-  --color-success:       #84A59D;
+  --color-success: #84A59D;
+  --color-success-hover: #6F9088;
   --color-success-light: #C8DDD7;
 
-  --color-danger:        #B85C6E;
-  --color-danger-hover:  #9A4A5A;
-  --color-danger-light:  #F7DDE4;
+  --color-danger: #B85C6E;
+  --color-danger-hover: #9A4A5A;
+  --color-danger-light: #F7DDE4;
 
-  --color-warning:       #C4956A;
+  --color-warning: #C4956A;
   --color-warning-light: #F5E8DA;
 
   /* ── Surfaces ────────────────────────────────────────────────────────────── */
-  --bg-page:     #f0f0f0;
-  --bg-surface:  #ffffff;
+  --bg-page: #f0f0f0;
+  --bg-surface: #ffffff;
   --bg-elevated: #f0f0f0;
-  --bg-sidebar:  #ffffff;
-  --navbar-bg:   rgba(255, 255, 255, 0.90);
+  --bg-sidebar: #ffffff;
+  --navbar-bg: rgba(255, 255, 255, 0.90);
 
-  --text-primary:   #1a1a1a;
+  --text-primary: #1a1a1a;
   --text-secondary: #444444;
-  --text-muted:     #999999;
-  --border:         #e8e8e8;
-  --shadow-card:    0 4px 20px rgba(0, 0, 0, 0.06);
+  --text-muted: #999999;
+  --border: #e8e8e8;
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
 
   /* ── Categories ──────────────────────────────────────────────────────────── */
-  --color-category-health-bg:        #C8DDD7;
-  --color-category-health-text:      #4A7A72;
-  --color-category-study-bg:         #EAE0E6;
-  --color-category-study-text:       #7E6474;
-  --color-category-work-bg:          #D6E4EE;
-  --color-category-work-text:        #4A6880;
-  --color-category-mindfulness-bg:   #FADADF;
-  --color-category-mindfulness-text: #8B4A5C;
-  --color-category-other-bg:         #E8E0D8;
-  --color-category-other-text:       #6B5A4A;
+
+  --color-category-health-bg: #D7F0EE;
+  --color-category-health-text: #2F7C77;
+  /* teal */
+
+  --color-category-study-bg: #FFF1D6;
+  --color-category-study-text: #B57400;
+  /* golden */
+
+  --color-category-work-bg: #DDECF7;
+  --color-category-work-text: #3F6D8C;
+  /* blue */
+
+  --color-category-mindfulness-bg: #EEE3FA;
+  --color-category-mindfulness-text: #7A56A5;
+  /* purple */
+
+  --color-category-other-bg: #ECECEC;
+  --color-category-other-text: #6E6E6E;
+  /* gray */
 
   /* ── Typography ──────────────────────────────────────────────────────────── */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --text-xs:   0.75rem;
-  --text-sm:   0.875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
   --text-base: 1rem;
-  --text-lg:   1.125rem;
-  --text-xl:   1.25rem;
-  --text-2xl:  1.5rem;
-  --font-normal:   400;
-  --font-medium:   500;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --font-normal: 400;
+  --font-medium: 500;
   --font-semibold: 600;
-  --font-bold:     700;
+  --font-bold: 700;
 
   /* ── Spacing ─────────────────────────────────────────────────────────────── */
-  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;
-  --space-4: 16px; --space-5: 20px;  --space-6: 24px;
-  --space-8: 32px; --space-10: 40px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
 
   /* ── Radii ───────────────────────────────────────────────────────────────── */
   --radius-sm: 6px;
@@ -79,4 +98,15 @@
   /* ── Transitions ─────────────────────────────────────────────────────────── */
   --transition-fast: 0.15s ease;
   --transition-base: 0.2s ease;
+
+  /* ── Priority ───────────────────────────────────────── */
+
+  --color-priority-high: #B85C6E;
+  --color-priority-high-light: #F7DDE4;
+
+  --color-priority-medium: #C4956A;
+  --color-priority-medium-light: #F5E8DA;
+
+  --color-priority-low: #84A59D;
+  --color-priority-low-light: #C8DDD7;
 }

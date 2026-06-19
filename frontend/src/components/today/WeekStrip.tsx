@@ -1,4 +1,4 @@
-import type { WeekStripDay } from "../../types";
+import { WeekStripDay } from "@/types";
 import styles from "./WeekStrip.module.css";
 
 interface WeekStripProps {
@@ -19,6 +19,7 @@ export default function WeekStrip({
       {days.map(day => {
         const isSelected = selectedDate === day.iso;
         const isFuture = day.iso > today;
+        const isToday = day.iso === today;
 
         return (
           <button
@@ -30,6 +31,7 @@ export default function WeekStrip({
               styles.dayBtn,
               isSelected ? styles.dayBtnActive : "",
               isFuture ? styles.dayBtnDisabled : "",
+              isToday ? styles.dayBtnToday : "",
             ].join(" ")}
           >
             <span className={styles.dayLabel}>
@@ -39,6 +41,8 @@ export default function WeekStrip({
             <span className={styles.dayDate}>
               {day.date}
             </span>
+
+            {isToday && <span className={styles.todayDot} />}
           </button>
         );
       })}
