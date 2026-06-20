@@ -139,7 +139,7 @@ export default function HabitsPage() {
     }
 
     if (activeParts.length === 0) {
-      return 'All habits';
+      return '';
     }
     return activeParts.join(' | ');
   }, [filters]);
@@ -339,10 +339,12 @@ export default function HabitsPage() {
         <HabitFilters />
 
         {/* Active Filters Row */}
-        <div className={styles.activeFiltersRow}>
-          <span className={styles.activeFiltersLabel}>Filtering by:</span>
-          <span className={styles.activeFiltersValue}>{activeFiltersSummaryText}</span>
-        </div>
+        {activeFiltersSummaryText && (
+          <div className={styles.activeFiltersRow}>
+            <span className={styles.activeFiltersLabel}>Filtering by:</span>
+            <span className={styles.activeFiltersValue}>{activeFiltersSummaryText}</span>
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
