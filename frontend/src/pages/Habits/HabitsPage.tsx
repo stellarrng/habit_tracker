@@ -134,6 +134,9 @@ export default function HabitsPage() {
     if (filters.frequency && filters.frequency.length > 0) {
       activeParts.push(`Frequency: ${filters.frequency.join(', ')}`);
     }
+    if (filters.weekdays && filters.weekdays.length > 0) {
+      activeParts.push(`Days: ${filters.weekdays.join(', ')}`);
+    }
     if (filters.priority && filters.priority.length > 0) {
       activeParts.push(`Priority: ${filters.priority.join(', ')}`);
     }
