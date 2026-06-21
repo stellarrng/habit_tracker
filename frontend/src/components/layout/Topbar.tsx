@@ -6,6 +6,8 @@ import { useNotifications } from '../../context/NotificationContext';
 import NotificationPanel from './NotificationPanel';
 import styles from './Topbar.module.css';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { resetAllUserData } from '../../api/userData';
+import { createPortal } from 'react-dom';
 
 // ── SettingsPanel ─────────────────────────────────────────────────────────────
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
@@ -16,6 +18,64 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
     </button>
   );
 }
+
+function ResetModal({
+  onConfirm,
+  onCancel,
+  isLoading,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}) {
+  return createPortal(
+    <div
+      className={styles.modalOverlay}
+      onClick={onCancel}
+      onMouseDown={e => e.stopPropagation()}
+    >
+      <div
+        className={styles.modal}
+        onClick={e => e.stopPropagation()}
+      >
+        {isLoading ? (
+          <div className={styles.modalLoading}>
+            <div className={styles.modalSpinner} />
+            <p className={styles.modalLoadingText}>Resetting your data…</p>
+            <p className={styles.modalLoadingSub}>This will only take a moment.</p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.modalIcon}>⚠️</div>
+            <h3 className={styles.modalTitle}>Reset all data?</h3>
+            <p className={styles.modalBody}>
+              This will permanently delete all your habits, check-ins, and goals.
+              This action cannot be undone.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={styles.modalCancelBtn}
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.modalConfirmBtn}
+                onClick={onConfirm}
+                disabled={isLoading}
+              >
+                Yes, reset everything
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>,
+    document.body  // ← renders directly on body, escapes drawer's transform context
+  );
+}
+
 function SettingsPanel({
   onClose, drawerMode
 }: {
@@ -27,18 +87,17 @@ function SettingsPanel({
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
 
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose();
       }
     }
-
     document.addEventListener("mousedown", handleClick);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClick);
-    };
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [onClose]);
 
   const initials = user?.name
@@ -48,64 +107,106 @@ function SettingsPanel({
   function set<K extends keyof Settings>(key: K, value: Settings[K]) {
     setSettings({ ...settings, [key]: value });
   }
+
   function setNotif(key: keyof NotifPrefs, value: boolean) {
     setSettings({ ...settings, notifPrefs: { ...settings.notifPrefs, [key]: value } });
   }
 
+  async function handleReset() {
+    try {
+      setResetLoading(true);
+      await resetAllUserData();
+      setShowResetModal(false);
+      onClose();
+      // Navigate to today page — it will refetch and show empty state
+      navigate('/today');
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      // Could show an error toast here
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   return (
-    <div
-      ref={ref}
-      className={drawerMode ? styles.drawerPanel : styles.panel}
-      style={!drawerMode ? { width: 280 } : undefined}
-    >      <div className={styles.settingsProfile}>
-        <div className={styles.settingsAvatar}>{initials}</div>
-        <div>
-          <p className={styles.settingsName}>{user?.name ?? 'Guest'}</p>
-          <p className={styles.settingsEmail}>{user?.email ?? ''}</p>
-        </div>
-      </div>
-
-      <div className={styles.panelDivider} />
-
-      <div className={styles.settingsSection}>
-        <p className={styles.settingsSectionLabel}>Preferences</p>
-        <div className={styles.settingsRow}>
-          <span>Dark mode</span>
-          <Toggle on={settings.darkMode} onToggle={() => set('darkMode', !settings.darkMode)} />
-        </div>
-        {/* <div className={styles.settingsRow}>
-          <span>Language</span>
-          <select className={styles.settingsSelect} value={settings.language}
-            onChange={e => set('language', e.target.value as Settings['language'])}>
-            <option value="English">English</option>
-            <option value="Vietnamese">Tiếng Việt</option>
-          </select>
-        </div> */}
-      </div>
-
-      <div className={styles.panelDivider} />
-
-      <div className={styles.settingsSection}>
-        <p className={styles.settingsSectionLabel}>Notifications</p>
-        {(['warnings', 'reminders', 'achievements'] as (keyof NotifPrefs)[]).map(key => (
-          <div key={key} className={styles.settingsRow}>
-            <span style={{ textTransform: 'capitalize' }}>{key}</span>
-            <Toggle on={settings.notifPrefs[key]} onToggle={() => setNotif(key, !settings.notifPrefs[key])} />
+    <>
+      <div
+        ref={ref}
+        className={drawerMode ? styles.drawerPanel : styles.panel}
+        style={!drawerMode ? { width: 280 } : undefined}
+      >
+        <div className={styles.settingsProfile}>
+          <div className={styles.settingsAvatar}>{initials}</div>
+          <div>
+            <p className={styles.settingsName}>{user?.name ?? 'Guest'}</p>
+            <p className={styles.settingsEmail}>{user?.email ?? ''}</p>
           </div>
-        ))}
+        </div>
+
+        <div className={styles.panelDivider} />
+
+        <div className={styles.settingsSection}>
+          <p className={styles.settingsSectionLabel}>Preferences</p>
+          <div className={styles.settingsRow}>
+            <span>Dark mode</span>
+            <Toggle on={settings.darkMode} onToggle={() => set('darkMode', !settings.darkMode)} />
+          </div>
+        </div>
+
+        <div className={styles.panelDivider} />
+
+        <div className={styles.settingsSection}>
+          <p className={styles.settingsSectionLabel}>Notifications</p>
+          {(['warnings', 'reminders', 'achievements'] as (keyof NotifPrefs)[]).map(key => (
+            <div key={key} className={styles.settingsRow}>
+              <span style={{ textTransform: 'capitalize' }}>{key}</span>
+              <Toggle on={settings.notifPrefs[key]} onToggle={() => setNotif(key, !settings.notifPrefs[key])} />
+            </div>
+          ))}
+        </div>
+
+        <div className={styles.panelDivider} />
+
+        {/* Danger zone */}
+        <div className={styles.settingsSection}>
+          <p className={styles.settingsSectionLabel}>Data</p>
+          <button
+            className={styles.resetDataBtn}
+            onClick={() => setShowResetModal(true)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+            Reset all data
+          </button>
+        </div>
+
+        <div className={styles.panelDivider} />
+
+        <div className={styles.settingsSection}>
+          <button className={styles.signOutBtn} onClick={() => { logout(); navigate('/login'); }}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+            </svg>
+            Sign out
+          </button>
+        </div>
       </div>
 
-      <div className={styles.panelDivider} />
-
-      <div className={styles.settingsSection}>
-        <button className={styles.signOutBtn} onClick={() => { logout(); navigate('/login'); }}>
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
-          </svg>
-          Sign out
-        </button>
-      </div>
-    </div>
+      {/* Modal renders outside the panel so it isn't clipped by overflow */}
+      {showResetModal && (
+        <ResetModal
+          onConfirm={handleReset}
+          onCancel={() => {
+            setShowResetModal(false)
+            onClose();    // close the SettingsPanel as well
+          }}
+          isLoading={resetLoading}
+        />
+      )}
+    </>
   );
 }
 
