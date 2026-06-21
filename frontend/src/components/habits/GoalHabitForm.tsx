@@ -15,7 +15,7 @@ interface GoalHabitFormProps {
   onClose: () => void;
   currentStreak: number;
   totalCompletions: number;
-  nextGoalStartDate?: string;
+  // nextGoalStartDate?: string;
 }
 
 const BLANK = {
@@ -23,13 +23,14 @@ const BLANK = {
   goalTargetValue: 30,
 };
 
-export default function GoalHabitForm({ editingHabit, onClose, currentStreak, totalCompletions, nextGoalStartDate }: GoalHabitFormProps) {
+// export default function GoalHabitForm({ editingHabit, onClose, currentStreak, totalCompletions, nextGoalStartDate }: GoalHabitFormProps) {
+export default function GoalHabitForm({ editingHabit, onClose, currentStreak, totalCompletions }: GoalHabitFormProps) {
   const { editHabit } = useHabitContext();
   const isEdit = !!editingHabit;
   const hasExistingGoalType = !!editingHabit?.goalTargetType;
 
-  const [form, setForm]       = useState({ ...BLANK });
-  const [errors, setErrors]   = useState<FormErrors>({});
+  const [form, setForm] = useState({ ...BLANK });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -53,9 +54,8 @@ export default function GoalHabitForm({ editingHabit, onClose, currentStreak, to
   function validate(): boolean {
     const e: FormErrors = {};
     if (!form.goalTargetValue || form.goalTargetValue < minGoalValue) {
-      e.goalTargetValue = `Goal target must be at least ${minGoalValue} ${
-        form.goalTargetType === 'Streak' ? 'days' : 'sessions'
-      }.`;
+      e.goalTargetValue = `Goal target must be at least ${minGoalValue} ${form.goalTargetType === 'Streak' ? 'days' : 'sessions'
+        }.`;
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -76,17 +76,21 @@ export default function GoalHabitForm({ editingHabit, onClose, currentStreak, to
     setSubmitting(true);
     try {
       const goalTargetType = form.goalTargetType ? form.goalTargetType : null;
-      const goalTargetValue = form.goalTargetValue ? form.goalTargetValue: null;
+      const goalTargetValue = form.goalTargetValue ? form.goalTargetValue : null;
 
       if (isEdit && editingHabit) {
-        const isCurrentlyComplete =
-          editingHabit.goalTargetValue &&
-          (editingHabit.goalTargetType === 'Streak' ? currentStreak : totalCompletions) >= editingHabit.goalTargetValue;
+        // const isCurrentlyComplete =
+        //   editingHabit.goalTargetValue &&
+        //   (editingHabit.goalTargetType === 'Streak' ? currentStreak : totalCompletions) >= editingHabit.goalTargetValue;
 
+        // const input: UpdateHabitInput = {
+        //   goalTargetType,
+        //   goalTargetValue,
+        //   ...(isCurrentlyComplete ? { goalStartedAt: nextGoalStartDate || new Date().toISOString() } : {})
+        // };
         const input: UpdateHabitInput = {
           goalTargetType,
           goalTargetValue,
-          ...(isCurrentlyComplete ? { goalStartedAt: nextGoalStartDate || new Date().toISOString() } : {})
         };
         await editHabit(editingHabit._id, input);
       } else {
@@ -125,53 +129,53 @@ export default function GoalHabitForm({ editingHabit, onClose, currentStreak, to
           <div className={styles.formGroup} style={{ marginBottom: 18, borderTop: '1px solid var(--border-color)', paddingTop: 14 }}>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className={styles.formLabel} htmlFor="goal-type" style={{ fontSize: '12px' }}>Target Type</label>
-                {hasExistingGoalType ? (
-                  <div className={styles.readOnlyField} style={{ padding: '10px 13px', fontSize: '14px' }}>
-                    {form.goalTargetType === 'Streak' 
-                        ? 'Streak Target (Consecutive Days)' 
-                        : 'Total Completions Target (Total Sessions)'}
-                  </div>
-                ) : (
-                  <select
-                    id="goal-type"
-                    className={styles.formInput}
-                    value={form.goalTargetType}
-                    onChange={e => setForm(p => ({ ...p, goalTargetType: e.target.value as any }))}
-                    style={{ padding: '8px 12px', fontSize: '14px' }}
-                  >
-                    <option value="Streak">Streak Target (Consecutive Days)</option>
-                    <option value="Total Completions">Total Completions Target (Total Sessions)</option>
-                  </select>
-                )}
+              <label className={styles.formLabel} htmlFor="goal-type" style={{ fontSize: '12px' }}>Target Type</label>
+              {hasExistingGoalType ? (
+                <div className={styles.readOnlyField} style={{ padding: '10px 13px', fontSize: '14px' }}>
+                  {form.goalTargetType === 'Streak'
+                    ? 'Streak Target (Consecutive Days)'
+                    : 'Total Completions Target (Total Sessions)'}
+                </div>
+              ) : (
+                <select
+                  id="goal-type"
+                  className={styles.formInput}
+                  value={form.goalTargetType}
+                  onChange={e => setForm(p => ({ ...p, goalTargetType: e.target.value as any }))}
+                  style={{ padding: '8px 12px', fontSize: '14px' }}
+                >
+                  <option value="Streak">Streak Target (Consecutive Days)</option>
+                  <option value="Total Completions">Total Completions Target (Total Sessions)</option>
+                </select>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <label className={styles.formLabel} htmlFor="goal-value" style={{ fontSize: '12px' }}>Target Value</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <label className={styles.formLabel} htmlFor="goal-value" style={{ fontSize: '12px' }}>Target Value</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
-                    id="goal-value"
-                    type="number"
-                    className={`${styles.formInput} ${errors.goalTargetValue ? styles.error : ''}`}
-                    min={minGoalValue}
-                    value={form.goalTargetValue}
-                    onChange={e => {
+                  id="goal-value"
+                  type="number"
+                  className={`${styles.formInput} ${errors.goalTargetValue ? styles.error : ''}`}
+                  min={minGoalValue}
+                  value={form.goalTargetValue}
+                  onChange={e => {
                     const v = parseInt(e.target.value, 10);
                     setForm(p => ({ ...p, goalTargetValue: isNaN(v) ? minGoalValue : Math.max(minGoalValue, v) }));
-                    }}
-                    style={{ maxWidth: 120 }}
+                  }}
+                  style={{ maxWidth: 120 }}
                 />
                 <span className={styles.goalSuffix}>
-                    {form.goalTargetType === 'Streak' ? 'days in a row' : 'completed sessions'}
+                  {form.goalTargetType === 'Streak' ? 'days in a row' : 'completed sessions'}
                 </span>
-                </div>
-                {errors.goalTargetValue ? (
-                  <span className={styles.formError}>{errors.goalTargetValue}</span>
-                ) : (
-                  <span className={styles.fieldHint}>
-                    Current progress: {currentProgress} {form.goalTargetType === 'Streak' ? 'days' : 'sessions'}.
-                  </span>
-                )}
+              </div>
+              {errors.goalTargetValue ? (
+                <span className={styles.formError}>{errors.goalTargetValue}</span>
+              ) : (
+                <span className={styles.fieldHint}>
+                  Current progress: {currentProgress} {form.goalTargetType === 'Streak' ? 'days' : 'sessions'}.
+                </span>
+              )}
             </div>
           </div>
 

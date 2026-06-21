@@ -106,25 +106,29 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
   const goalType = habit.goalTargetType || 'Streak';
   const target = habit.goalTargetValue || 30;
 
-  const goalCheckIns = useMemo(() => {
-    if (!habit) return [];
-    const startStr = habit.goalStartedAt || habit.createdAt;
-    const startDate = new Date(startStr);
-    startDate.setHours(0, 0, 0, 0);
+  // const goalCheckIns = useMemo(() => {
+  //   if (!habit) return [];
+  //   const startStr = habit.goalStartedAt || habit.createdAt;
+  //   const startDate = new Date(startStr);
+  //   startDate.setHours(0, 0, 0, 0);
 
-    return checkIns.filter(c => {
-      const checkInDate = new Date(c.date);
-      checkInDate.setHours(0, 0, 0, 0);
-      return checkInDate >= startDate;
-    });
-  }, [habit, checkIns]);
+  //   return checkIns.filter(c => {
+  //     const checkInDate = new Date(c.date);
+  //     checkInDate.setHours(0, 0, 0, 0);
+  //     return checkInDate >= startDate;
+  //   });
+  // }, [habit, checkIns]);
 
-  const goalStreaks = useStreaks(goalCheckIns);
+  // const goalStreaks = useStreaks(goalCheckIns);
 
   // Calculate progress from real check-in data
-  const currentValue = goalType === 'Streak'
-    ? goalStreaks.current
-    : goalStreaks.totalSessions;
+  // const currentValue = goalType === 'Streak'
+  //   ? goalStreaks.current
+  //   : goalStreaks.totalSessions;
+  const currentValue =
+    goalType === 'Streak'
+      ? streaks.current
+      : streaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -179,7 +183,7 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
     <div
       className={`habit-card ${habit.status.toLowerCase()}`}
       id={`habit-card-${habit._id}`}
-      onClick={() => navigate(`/habits/${habit._id}`)} 
+      onClick={() => navigate(`/habits/${habit._id}`)}
       style={{ cursor: 'pointer' }}
       role="button"
       tabIndex={0}>
@@ -210,7 +214,7 @@ export default function HabitCard({ habit, onEdit, onArchiveRequest, onDeleteReq
           <button
             className={styles.menuButton}
             onClick={(e) => {
-              e.stopPropagation(); 
+              e.stopPropagation();
               setMenuOpen(!menuOpen);
             }}
             title="More options"

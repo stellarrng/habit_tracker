@@ -39,7 +39,7 @@ export default function HabitDetailPage() {
   const [showEdit, setShowEdit] = useState(false);
   const [editMode, setEditMode] = useState<'info' | 'goal'>('info');
 
-  type ActionState = 
+  type ActionState =
     | { type: 'status'; habitId: string; prevStatus: string; message: string }
     | { type: 'delete'; habitId: string; message: string; timeoutId: ReturnType<typeof setTimeout> };
 
@@ -165,41 +165,45 @@ export default function HabitDetailPage() {
   const totalCompletions = streaks.totalSessions;
 
   // Calculate goal-specific check-ins since current goal started
-  const goalCheckIns = useMemo(() => {
-    if (!habit) return [];
-    const startStr = habit.goalStartedAt || habit.createdAt;
-    const startDate = new Date(startStr);
-    startDate.setHours(0, 0, 0, 0);
+  // const goalCheckIns = useMemo(() => {
+  //   if (!habit) return [];
+  //   const startStr = habit.goalStartedAt || habit.createdAt;
+  //   const startDate = new Date(startStr);
+  //   startDate.setHours(0, 0, 0, 0);
 
-    return checkIns.filter(c => {
-      const checkInDate = new Date(c.date);
-      checkInDate.setHours(0, 0, 0, 0);
-      return checkInDate >= startDate;
-    });
-  }, [habit, checkIns]);
+  //   return checkIns.filter(c => {
+  //     const checkInDate = new Date(c.date);
+  //     checkInDate.setHours(0, 0, 0, 0);
+  //     return checkInDate >= startDate;
+  //   });
+  // }, [habit, checkIns]);
 
-  const goalStreaks = useStreaks(goalCheckIns);
+  // const goalStreaks = useStreaks(goalCheckIns);
 
-  const nextGoalStartDate = useMemo(() => {
-    if (!habit || checkIns.length === 0) return new Date().toISOString();
-    const completedCheckIns = checkIns.filter(c => c.completedCount >= habit.targetPerDay);
-    if (completedCheckIns.length === 0) return new Date().toISOString();
-    const sorted = [...completedCheckIns].sort((a, b) => b.date.localeCompare(a.date));
-    const latestDateStr = sorted[0].date;
-    const parts = latestDateStr.split('-');
-    const year = parseInt(parts[0], 10);
-    const month = parseInt(parts[1], 10) - 1;
-    const day = parseInt(parts[2], 10);
-    const d = new Date(year, month, day);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString();
-  }, [habit, checkIns]);
+  // const nextGoalStartDate = useMemo(() => {
+  //   if (!habit || checkIns.length === 0) return new Date().toISOString();
+  //   const completedCheckIns = checkIns.filter(c => c.completedCount >= habit.targetPerDay);
+  //   if (completedCheckIns.length === 0) return new Date().toISOString();
+  //   const sorted = [...completedCheckIns].sort((a, b) => b.date.localeCompare(a.date));
+  //   const latestDateStr = sorted[0].date;
+  //   const parts = latestDateStr.split('-');
+  //   const year = parseInt(parts[0], 10);
+  //   const month = parseInt(parts[1], 10) - 1;
+  //   const day = parseInt(parts[2], 10);
+  //   const d = new Date(year, month, day);
+  //   d.setDate(d.getDate() + 1);
+  //   return d.toISOString();
+  // }, [habit, checkIns]);
 
   // Goal details
   const hasGoal = habit ? (!!habit.goalTargetType && !!habit.goalTargetValue) : false;
   const goalType = habit?.goalTargetType || 'Streak';
   const target = habit?.goalTargetValue || 30;
-  const currentValue = goalType === 'Streak' ? goalStreaks.current : goalStreaks.totalSessions;
+  // const currentValue = goalType === 'Streak' ? goalStreaks.current : goalStreaks.totalSessions;
+  const currentValue =
+    goalType === 'Streak'
+      ? streaks.current
+      : streaks.totalSessions;
   const pct = Math.min(Math.round((currentValue / target) * 100), 100);
   const isComplete = pct >= 100;
 
@@ -268,14 +272,14 @@ export default function HabitDetailPage() {
           removeHabit(id);
           navigate('/habits');
         }, 5500);
-        
+
         triggerActionToast({
           type: 'delete',
           habitId: id,
           message: `"${name}" deleted`,
           timeoutId
         });
-        
+
         closeConfirm();
         setMenuOpen(false);
       },
@@ -368,208 +372,208 @@ export default function HabitDetailPage() {
         </button>
 
         <div className={styles.bannerCard}>
-        {/* ── Header Row ────────────────────────────────────────── */}
-        <div className={styles.headerRow}>
-          {/* <div className={styles.iconWrapper} style={{ background: iconBg }}>
+          {/* ── Header Row ────────────────────────────────────────── */}
+          <div className={styles.headerRow}>
+            {/* <div className={styles.iconWrapper} style={{ background: iconBg }}>
             {renderCategoryIcon()}
           </div> */}
-          {/* Component for Category Icon */}
-          <HabitCategoryIcon
-            category={habit.category}
-            size={55}
-          />
-          <div className={styles.titleArea}>
-            <h1 className={styles.titleText}>{habit.name}</h1>
-            <span className={styles.statusIndicator} style={{ color: statusStyle.color, background: statusStyle.bg }}>
-              ● {habit.status}
+            {/* Component for Category Icon */}
+            <HabitCategoryIcon
+              category={habit.category}
+              size={55}
+            />
+            <div className={styles.titleArea}>
+              <h1 className={styles.titleText}>{habit.name}</h1>
+              <span className={styles.statusIndicator} style={{ color: statusStyle.color, background: statusStyle.bg }}>
+                ● {habit.status}
+              </span>
+            </div>
+            {/* 3-dot menu */}
+            <div className={styles.menuContainer} ref={menuRef}>
+              <button
+                className={styles.menuButton}
+                onClick={() => setMenuOpen(!menuOpen)}
+                title="More options"
+              >
+                <MoreVerticalIcon style={{ width: 20, height: 20 }} />
+              </button>
+              {menuOpen && (
+                <div className={styles.menu}>
+                  <button className={styles.menuItem} onClick={handleDelete}>
+                    Delete
+                  </button>
+                  {habit.status === 'Archived' ? (
+                    <button className={styles.menuItem} onClick={handleRestore}>
+                      Restore
+                    </button>
+                  ) : (
+                    <>
+                      <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
+                        {isActive ? 'Pause' : 'Resume'}
+                      </button>
+                      <button className={styles.menuItem} onClick={handleArchive}>
+                        Archive
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* ── Chips ───────────────────────────────────────────────── */}
+          <div className={styles.chipsRow}>
+            <span className={`chip chip-category-${habit.category.toLowerCase()}`}>{habit.category}</span>
+            <span className="chip chip-freq" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <CalendarIcon style={{ width: 13, height: 13 }} />
+              {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
+            </span>
+            <span className={styles.priorityChip} style={{ color: priorityStyle.color, background: priorityStyle.bg }}>
+              <InfoIcon style={{ width: 12, height: 12 }} />
+              {habit.priority} Priority
             </span>
           </div>
-          {/* 3-dot menu */}
-          <div className={styles.menuContainer} ref={menuRef}>
-            <button
-              className={styles.menuButton}
-              onClick={() => setMenuOpen(!menuOpen)}
-              title="More options"
-            >
-              <MoreVerticalIcon style={{ width: 20, height: 20 }} />
-            </button>
-            {menuOpen && (
-              <div className={styles.menu}>
-                <button className={styles.menuItem} onClick={handleDelete}>
-                  Delete
-                </button>
-                {habit.status === 'Archived' ? (
-                  <button className={styles.menuItem} onClick={handleRestore}>
-                    Restore
-                  </button>
-                ) : (
-                  <>
-                    <button className={styles.menuItem} onClick={isActive ? handlePause : handleResume}>
-                      {isActive ? 'Pause' : 'Resume'}
-                    </button>
-                    <button className={styles.menuItem} onClick={handleArchive}>
-                      Archive
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          
-        </div>
-
-        {/* ── Chips ───────────────────────────────────────────────── */}
-        <div className={styles.chipsRow}>
-          <span className={`chip chip-category-${habit.category.toLowerCase()}`}>{habit.category}</span>
-          <span className="chip chip-freq" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <CalendarIcon style={{ width: 13, height: 13 }} />
-            {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
-          </span>
-          <span className={styles.priorityChip} style={{ color: priorityStyle.color, background: priorityStyle.bg }}>
-            <InfoIcon style={{ width: 12, height: 12 }} />
-            {habit.priority} Priority
-          </span>
-        </div>
 
         </div>
 
         <div className={styles.mainGrid}>
           <div className={styles.mainColumn}>
-        {/* ── Goal progress card ──────────────────────────────────── */}
-        <div className={styles.goalCard}>
-          <div className={styles.goalCardHeader}>
-            <div className={styles.goalCardTitleArea}>
-              <span className={styles.goalCardTitle}>Goal Progress</span>
-              {hasGoal && (
-                <span className={styles.goalCardSubtitle}>
-                  {goalType === 'Streak' ? 'Streak target' : 'Total completions target'}
-                </span>
-              )}
-            </div>
-            {hasGoal && (
-              <div className={styles.goalHeaderRight}>
-                <span className={styles.goalCardValues}>
-                  {currentValue} / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
-                </span>
-                <button className={styles.editLink} onClick={handleOpenGoalEdit}>
-                  Edit
-                </button>
+            {/* ── Goal progress card ──────────────────────────────────── */}
+            <div className={styles.goalCard}>
+              <div className={styles.goalCardHeader}>
+                <div className={styles.goalCardTitleArea}>
+                  <span className={styles.goalCardTitle}>Goal Progress</span>
+                  {hasGoal && (
+                    <span className={styles.goalCardSubtitle}>
+                      {goalType === 'Streak' ? 'Streak target' : 'Total completions target'}
+                    </span>
+                  )}
+                </div>
+                {hasGoal && (
+                  <div className={styles.goalHeaderRight}>
+                    <span className={styles.goalCardValues}>
+                      {currentValue} / {target} {goalType === 'Streak' ? 'days' : 'sessions'}
+                    </span>
+                    <button className={styles.editLink} onClick={handleOpenGoalEdit}>
+                      Edit
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {hasGoal ? (
-            <div className={styles.goalCardBody}>
-              <div className={styles.goalBarTrack}>
-                <div
-                  className={`${styles.goalBarFill} ${isComplete ? styles.goalBarFillComplete : ''}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className={styles.goalBarFooter}>
-                <span className={styles.goalBarPct}>{pct}%</span>
-                {goalMsg && <span className={styles.goalBarMsg}>{goalMsg}</span>}
-              </div>
-              {isComplete && (
-                <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenGoalEdit} id="set-new-goal-completed">
-                    Set New Goal
+              {hasGoal ? (
+                <div className={styles.goalCardBody}>
+                  <div className={styles.goalBarTrack}>
+                    <div
+                      className={`${styles.goalBarFill} ${isComplete ? styles.goalBarFillComplete : ''}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <div className={styles.goalBarFooter}>
+                    <span className={styles.goalBarPct}>{pct}%</span>
+                    {goalMsg && <span className={styles.goalBarMsg}>{goalMsg}</span>}
+                  </div>
+                  {isComplete && (
+                    <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenGoalEdit} id="set-new-goal-completed">
+                        Set New Goal
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* No-goal empty state */
+                <div className={styles.emptyGoalCard}>
+                  <div className={styles.emptyGoalIcon}>
+                    <TrophyIcon style={{ width: 22, height: 22, color: 'var(--text-muted)' }} />
+                  </div>
+                  <div className={styles.emptyGoalContent}>
+                    <div className={styles.emptyGoalTitle}>No goal target configured</div>
+                    <div className={styles.emptyGoalSub}>Add a streak or completion target to track your progress.</div>
+                  </div>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={handleOpenGoalEdit}
+                    id="set-goal-detail"
+                  >
+                    Set Goal
                   </button>
                 </div>
               )}
             </div>
-          ) : (
-            /* No-goal empty state */
-            <div className={styles.emptyGoalCard}>
-              <div className={styles.emptyGoalIcon}>
-                <TrophyIcon style={{ width: 22, height: 22, color: 'var(--text-muted)' }} />
-              </div>
-              <div className={styles.emptyGoalContent}>
-                <div className={styles.emptyGoalTitle}>No goal target configured</div>
-                <div className={styles.emptyGoalSub}>Add a streak or completion target to track your progress.</div>
-              </div>
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={handleOpenGoalEdit}
-                id="set-goal-detail"
-              >
-                Set Goal
-              </button>
-            </div>
-          )}
-        </div>
 
-        {/* ── Statistics card ─────────────────────────────────────── */}
-        <div className={styles.statsCard}>
-          <div className={styles.statsCardTitle}>Statistics</div>
+            {/* ── Statistics card ─────────────────────────────────────── */}
+            <div className={styles.statsCard}>
+              <div className={styles.statsCardTitle}>Statistics</div>
 
-          <div className={styles.statsRow}>
-            <div className={styles.statCol}>
-              <span className={styles.statValue}>{currentStreak} days</span>
-              <span className={styles.statLabel}>Current streak</span>
-            </div>
-            <div className={styles.statColDivider} />
-            <div className={styles.statCol}>
-              <span className={styles.statValue}>{longestStreak} days</span>
-              <span className={styles.statLabel}>Longest streak</span>
-            </div>
-            <div className={styles.statColDivider} />
-            <div className={styles.statCol}>
-              <span className={styles.statValue}>{totalCompletions}</span>
-              <span className={styles.statLabel}>Total completions</span>
-            </div>
-          </div>
-
-          <div className={styles.statsDivider} />
-
-          <div className={styles.weeklySection}>
-            <div className={styles.weeklyHeader}>
-              <span className={styles.weeklyValue}>{completionRate}%</span>
-              <span className={styles.weeklyLabel}>Completion rate (last 7 days)</span>
-            </div>
-
-            <div className={styles.dotTrack}>
-              {last7Days.map((day, idx) => (
-                <div key={idx} className={styles.dotItem}>
-                  <div className={`${styles.dot} ${day.completed ? styles.dotCompleted : ''}`} />
-                  <span className={styles.dotDayLabel}>{day.label}</span>
+              <div className={styles.statsRow}>
+                <div className={styles.statCol}>
+                  <span className={styles.statValue}>{currentStreak} days</span>
+                  <span className={styles.statLabel}>Current streak</span>
                 </div>
-              ))}
+                <div className={styles.statColDivider} />
+                <div className={styles.statCol}>
+                  <span className={styles.statValue}>{longestStreak} days</span>
+                  <span className={styles.statLabel}>Longest streak</span>
+                </div>
+                <div className={styles.statColDivider} />
+                <div className={styles.statCol}>
+                  <span className={styles.statValue}>{totalCompletions}</span>
+                  <span className={styles.statLabel}>Total completions</span>
+                </div>
+              </div>
+
+              <div className={styles.statsDivider} />
+
+              <div className={styles.weeklySection}>
+                <div className={styles.weeklyHeader}>
+                  <span className={styles.weeklyValue}>{completionRate}%</span>
+                  <span className={styles.weeklyLabel}>Completion rate (last 7 days)</span>
+                </div>
+
+                <div className={styles.dotTrack}>
+                  {last7Days.map((day, idx) => (
+                    <div key={idx} className={styles.dotItem}>
+                      <div className={`${styles.dot} ${day.completed ? styles.dotCompleted : ''}`} />
+                      <span className={styles.dotDayLabel}>{day.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
           </div>
           <div className={styles.sideColumn}>
-        {/* ── About Card ─────────────────────────────────────────── */}
-        <div className={styles.aboutCard}>
-          <div className={styles.aboutHeader}>
-            <span className={styles.aboutTitle}>Information</span>
-            <button className={styles.editLink} onClick={handleOpenEdit}>
-              Edit
-            </button>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
+            {/* ── About Card ─────────────────────────────────────────── */}
+            <div className={styles.aboutCard}>
+              <div className={styles.aboutHeader}>
+                <span className={styles.aboutTitle}>Information</span>
+                <button className={styles.editLink} onClick={handleOpenEdit}>
+                  Edit
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Category</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.category}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500' }}>
+                    {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
+                  </p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
+                  <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Priority</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.priority}</p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Frequency</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>
-                {habit.frequency === 'Daily' ? 'Daily' : habit.specificDays.join(', ')}
-              </p>
-            </div>
-            <div>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target</p>
-              <p style={{ fontSize: '14px', fontWeight: '500' }}>{habit.targetPerDay} per day</p>
-            </div>
-          </div>
-        </div>
 
           </div>
         </div>
@@ -582,9 +586,11 @@ export default function HabitDetailPage() {
         <GoalHabitForm
           editingHabit={habit}
           onClose={() => setShowEdit(false)}
-          currentStreak={goalStreaks.current}
-          totalCompletions={goalStreaks.totalSessions}
-          nextGoalStartDate={nextGoalStartDate}
+          currentStreak={streaks.current}
+          totalCompletions={streaks.totalSessions}
+        // currentStreak={goalStreaks.current}
+        // totalCompletions={goalStreaks.totalSessions}
+        // nextGoalStartDate={nextGoalStartDate}
         />
       )}
       <ConfirmDialog
@@ -637,7 +643,7 @@ export default function HabitDetailPage() {
           onClose={() => setLastAction(null)}
         />
       )}
-      <Footer/>
+      <Footer />
     </AppLayout>
   );
 }

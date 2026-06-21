@@ -211,7 +211,8 @@ export default function HabitsPage() {
     const groupedHabits: Record<string, any[]> = {};
 
     habits.forEach(habit => {
-      const { _id, userId, __v, createdAt, updatedAt, goalStartedAt, ...cleanData } = habit as any;
+      // const { _id, userId, __v, createdAt, updatedAt, goalStartedAt, ...cleanData } = habit as any;
+      const { _id, userId, __v, createdAt, updatedAt, ...cleanData } = habit as any;
       const category = cleanData.category || 'Other';
       
       if (!groupedHabits[category]) {
