@@ -1,10 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { BookOpen, Brain, Briefcase, Heart, Sparkles, type LucideIcon } from "lucide-react";
+import { BookOpen, Brain, Briefcase, Heart, Sparkles, TrendingUp, type LucideIcon } from "lucide-react";
 import AppLayout from "../../components/layout/AppLayout";
 import Footer from "../../components/layout/Footer";
-import { AlertCircleIcon, CheckIcon, TargetIcon } from "../../components/shared/Icons";
 import { DATE_RANGES, useSettings } from "../../context/SettingsContext";
 import styles from "./DashboardPage.module.css";
+import { CheckIn, Habit } from "@/types";
+import { getHabits } from "@/api/habits";
+import { getCheckIns } from "@/api/checkins";
+import { calcPerfectDayStreak } from "@/utils/perfectDayStreakCalculator";
+import { Flame, Zap } from "lucide-react";
 
 type DateRange = "7 Days" | "30 Days" | "Year";
 type SortKey = "default" | "rate" | "streak" | "name";
@@ -24,14 +28,9 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 interface DashboardHabit {
   id: string;
   name: string;
-  nameVi: string;
   categoryKey: CategoryKey;
   category: string;
-  categoryTone: string;
   time: string;
-  timeVi: string;
-  icon: "run" | "drop" | "mind";
-  tone: "blue" | "mint" | "amber";
   dailyRates: number[];
 }
 
@@ -92,123 +91,22 @@ const CATEGORY_BADGE_CLASS: Record<CategoryKey, string> = {
   Other: styles.categoryBadgeOther,
 };
 
-function generateRates(baseRate: number, trend: "up" | "down" | "flat", days = 365): number[] {
-  const rates: number[] = [];
-  for (let i = 0; i < days; i++) {
-    const progress = i / days;
-    const trendDelta = trend === "up" ? progress * 0.2 : trend === "down" ? -progress * 0.3 : 0;
-    const noise = (Math.sin(i * 2.3) * 0.15) + (Math.sin(i * 0.7) * 0.1);
-    rates.push(Math.min(1, Math.max(0, baseRate + trendDelta + noise)));
-  }
-  return rates;
-}
+function buildDailyRates(
+  targetPerDay: number,
+  checkInMap: Map<string, number>,
+  totalDays = 365
+): number[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-const MOCK_HABITS: DashboardHabit[] = [
-  {
-    id: "h1",
-    name: "Morning Run",
-    nameVi: "Chay bo buoi sang",
-    categoryKey: "Health",
-    category: "Health",
-    categoryTone: "blue",
-    time: "Daily - 6:30 AM",
-    timeVi: "Hang ngay - 6:30 SA",
-    icon: "run",
-    tone: "blue",
-    dailyRates: generateRates(0.85, "up"),
-  },
-  {
-    id: "h2",
-    name: "Drink Water",
-    nameVi: "Uong nuoc",
-    categoryKey: "Health",
-    category: "Health",
-    categoryTone: "blue",
-    time: "Hourly - 2L Target",
-    timeVi: "Moi gio - 2L muc tieu",
-    icon: "drop",
-    tone: "mint",
-    dailyRates: generateRates(0.6, "down"),
-  },
-  {
-    id: "h3",
-    name: "Meditation",
-    nameVi: "Thien",
-    categoryKey: "Mindfulness",
-    category: "Mindfulness",
-    categoryTone: "brown",
-    time: "Daily - 10 mins",
-    timeVi: "Hang ngay - 10 phut",
-    icon: "mind",
-    tone: "amber",
-    dailyRates: generateRates(0.95, "flat"),
-  },
-  {
-    id: "h4",
-    name: "Read 20 Pages",
-    nameVi: "Doc 20 trang",
-    categoryKey: "Study",
-    category: "Study",
-    categoryTone: "brown",
-    time: "Daily - Evening",
-    timeVi: "Hang ngay - Buoi toi",
-    icon: "mind",
-    tone: "amber",
-    dailyRates: generateRates(0.72, "up"),
-  },
-  {
-    id: "h5",
-    name: "Deep Work Block",
-    nameVi: "Lam viec tap trung",
-    categoryKey: "Work",
-    category: "Work",
-    categoryTone: "blue",
-    time: "Weekdays - 90 mins",
-    timeVi: "Ngay thuong - 90 phut",
-    icon: "drop",
-    tone: "mint",
-    dailyRates: generateRates(0.68, "flat"),
-  },
-  {
-    id: "h6",
-    name: "Sleep Before 11 PM",
-    nameVi: "Ngu truoc 11 gio",
-    categoryKey: "Health",
-    category: "Health",
-    categoryTone: "blue",
-    time: "Daily - Night",
-    timeVi: "Hang ngay - Buoi dem",
-    icon: "run",
-    tone: "blue",
-    dailyRates: generateRates(0.58, "up"),
-  },
-  {
-    id: "h7",
-    name: "Daily Journal",
-    nameVi: "Viet nhat ky",
-    categoryKey: "Mindfulness",
-    category: "Mindfulness",
-    categoryTone: "brown",
-    time: "Daily - 15 mins",
-    timeVi: "Hang ngay - 15 phut",
-    icon: "mind",
-    tone: "amber",
-    dailyRates: generateRates(0.62, "down"),
-  },
-  {
-    id: "h8",
-    name: "Plan Tomorrow",
-    nameVi: "Lap ke hoach ngay mai",
-    categoryKey: "Other",
-    category: "Other",
-    categoryTone: "brown",
-    time: "Daily - 10 mins",
-    timeVi: "Hang ngay - 10 phut",
-    icon: "drop",
-    tone: "mint",
-    dailyRates: generateRates(0.74, "flat"),
-  },
-];
+  return Array.from({ length: totalDays }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (totalDays - 1 - i));
+    const dateKey = d.toISOString().slice(0, 10);
+    const count = checkInMap.get(dateKey) ?? 0;
+    return Math.min(1, count / Math.max(1, targetPerDay));
+  });
+}
 
 function rangeDays(range: DateRange): number {
   if (range === "7 Days") return 7;
@@ -218,6 +116,96 @@ function rangeDays(range: DateRange): number {
 
 function formatDayMonth(d: Date): string {
   return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`;
+}
+
+function DonutChart({ pct, color, size = 72 }: { pct: number; color: string; size?: number }) {
+  const r = size * 0.39;
+  const circumference = 2 * Math.PI * r;
+  const filled = (pct / 100) * circumference;
+  const cx = size / 2;
+  const cy = size / 2;
+  const fontSize = size > 80 ? 16 : size > 50 ? 13 : 10;
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--color-gray-100)" strokeWidth={size * 0.11} />
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={color}
+        strokeWidth={size * 0.11}
+        strokeDasharray={`${filled} ${circumference - filled}`}
+        strokeDashoffset={circumference * 0.25}
+        strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 0.6s ease' }}
+      />
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fontSize={fontSize} fontWeight="700" fill="var(--text-primary)">
+        {pct}%
+      </text>
+    </svg>
+  );
+}
+
+function HalfDonut({ pct }: { pct: number }) {
+  const r = 70;
+  const cx = 100;
+  const cy = 100;
+  const strokeWidth = 14;
+
+  // Arc length of full semicircle
+  const totalArc = Math.PI * r;  // πr for a half circle
+
+  // How much of the arc to fill
+  const filled = (pct / 100) * totalArc;
+  const empty = totalArc - filled;
+
+  // The track arc: M left → arc right (180° sweep)
+  // The fill arc: same path, dasharray controls how much shows
+
+  return (
+    <svg viewBox="0 0 200 115" aria-label={`${pct}% completion gauge`} role="img" className={styles.halfDonutSvg}>
+      {/* Track */}
+      <path
+        d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+        fill="none"
+        stroke="var(--color-gray-100)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      {/* Fill — dasharray trick on the arc path */}
+      <path
+        d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+        fill="none"
+        stroke="var(--color-primary)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${empty + 1}`}
+        style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(0.4, 0, 0.2, 1)' }}
+      />
+      {/* Center % value */}
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize="28" fontWeight="700" fill="var(--text-primary)">
+        {pct}%
+      </text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fontSize="11" fill="var(--text-muted)">
+        of habits completed
+      </text>
+      {/* End labels */}
+      <text x={cx - r + 4} y={cy + 28} textAnchor="middle" fontSize="10" fill="var(--text-muted)">0%</text>
+      <text x={cx + r - 4} y={cy + 28} textAnchor="middle" fontSize="10" fill="var(--text-muted)">100%</text>
+    </svg>
+  );
+}
+
+function TrendBadge({ delta, unit = "%" }: { delta: number; unit?: string }) {
+  if (delta === 0) return (
+    <span className={styles.trendNeutral}>— same as last period</span>
+  );
+  const positive = delta > 0;
+  return (
+    <span className={positive ? styles.trendUp : styles.trendDown}>
+      {positive ? "↑" : "↓"} {Math.abs(delta)}{unit} vs last period
+    </span>
+  );
 }
 
 function buildTimeLabels(range: DateRange): { labels: string[]; majorLabelIdx: number[] } {
@@ -250,31 +238,220 @@ function buildTimeLabels(range: DateRange): { labels: string[]; majorLabelIdx: n
 
 function buildLineSeries(rates: number[], range: DateRange): number[] {
   if (range === "7 Days") {
-    return rates.slice(-8).map((r) => Math.round(r * 100));
-  }
-  if (range === "30 Days") {
-    return rates.slice(-30).map((r) => Math.round(r * 100));
+    return rates.slice(-8).map(r => Math.round(r * 100));
   }
 
-  const monthSizes = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  const padded = rates.length >= 365 ? rates.slice(-365) : [...Array.from({ length: 365 - rates.length }, () => 0), ...rates];
-  const series: number[] = [];
-  let start = 0;
-  for (const size of monthSizes) {
-    const chunk = padded.slice(start, start + size);
-    const avg = chunk.reduce((sum, v) => sum + v, 0) / Math.max(chunk.length, 1);
-    series.push(Math.round(avg * 100));
-    start += size;
+  if (range === "30 Days") {
+    return rates.slice(-30).map(r => Math.round(r * 100));
   }
-  return series;
+
+  const today = new Date();
+  const series: number[] = [];
+
+  for (let monthsBack = 11; monthsBack >= 0; monthsBack--) {
+    const bucketDate = new Date(today.getFullYear(), today.getMonth() - monthsBack, 1);
+    const bucketYear = bucketDate.getFullYear();
+    const bucketMonth = bucketDate.getMonth();
+
+    // Find which days in the rates array correspond to this month
+    const daysInMonth = new Date(bucketYear, bucketMonth + 1, 0).getDate();
+    const monthRates: number[] = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(bucketYear, bucketMonth, day);
+      const daysFromToday = Math.round(
+        (today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      // rates is 365 elements, index 364 = today, index 0 = 364 days ago
+      const ratesIdx = 364 - daysFromToday;
+      if (ratesIdx >= 0 && ratesIdx < rates.length) {
+        monthRates.push(rates[ratesIdx]);
+      }
+    }
+
+    const avg = monthRates.length > 0
+      ? monthRates.reduce((s, r) => s + r, 0) / monthRates.length
+      : 0;
+    series.push(Math.round(avg * 100));
+  }
+
+  return series;  // 12 values, oldest month first → newest month last
+}
+
+function barAxisMarks(
+  bars: number[],
+  range: DateRange
+): { label: string; pct: number }[] {
+  const n = bars.length;
+  const cellWidth = 100 / n;
+  const halfCell = cellWidth / 2;
+
+  if (range === "7 Days") {
+    const today = new Date();
+    return bars.map((_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (n - 1 - i));
+      return {
+        label: d.toLocaleString("en-US", { weekday: "short" }),
+        pct: i * cellWidth + halfCell,
+      };
+    });
+  }
+
+  if (range === "30 Days") {
+    const today = new Date();
+    return [0, 7, 14, 21, 29].map(i => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (n - 1 - i));
+      return {
+        label: `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`,
+        pct: i * cellWidth + halfCell,
+      };
+    });
+  }
+
+  const today = new Date();
+  const monthGroups: { label: string; startIdx: number; endIdx: number }[] = [];
+  let currentMonthKey = -1;
+  let currentMonth = -1;
+  let currentYear = -1;
+  let currentStart = 0;
+
+  for (let i = 0; i < n; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (n - 1 - i) * 7);
+    const month = d.getMonth();
+    const year = d.getFullYear();
+    const monthKey = year * 12 + month;
+
+    if (monthKey !== currentMonthKey) {
+      if (currentMonthKey !== -1) {
+        monthGroups.push({
+          label: new Date(currentYear, currentMonth, 1)
+            .toLocaleString("en-US", { month: "short" }),
+          startIdx: currentStart,
+          endIdx: i - 1,
+        });
+      }
+      currentMonthKey = monthKey;
+      currentMonth = month;
+      currentYear = year;
+      currentStart = i;
+    }
+  }
+
+  // Flush the last month group
+  if (currentMonthKey !== -1) {
+    monthGroups.push({
+      label: new Date(currentYear, currentMonth, 1)
+        .toLocaleString("en-US", { month: "short" }),
+      startIdx: currentStart,
+      endIdx: n - 1,
+    });
+  }
+
+  return monthGroups.map(group => ({
+    label: group.label,
+    pct: (group.startIdx + (group.endIdx - group.startIdx) / 2) * cellWidth + halfCell,
+  }));
+}
+
+function BarChart({
+  bars,
+  range,
+  categoryBarClass,
+}: {
+  bars: number[];
+  range: DateRange;
+  categoryBarClass: string;
+}) {
+  const xMarks = barAxisMarks(bars, range);
+  const yTicks = [100, 75, 50, 25, 0];
+  console.log('bars:', bars);
+
+  return (
+    <div className={styles.barChartWrap}>
+      {/* Y-axis labels */}
+      <div className={styles.barChartYAxis}>
+        {yTicks.map(tick => (
+          <span key={tick}>{tick}%</span>
+        ))}
+      </div>
+
+      <div className={styles.barChartInner}>
+        {/* Horizontal grid lines */}
+        <div className={styles.barChartGrid}>
+          {yTicks.map(tick => (
+            <span
+              key={tick}
+              className={styles.barChartGridLine}
+              style={{ bottom: `${tick}%` }}
+            />
+          ))}
+        </div>
+
+        {/* Bars */}
+        <div
+          className={`${styles.bars} ${categoryBarClass}`}
+          style={{ gridTemplateColumns: `repeat(${bars.length}, 1fr)` }}
+        >
+          {bars.map((height, i) => (
+            <span
+              key={i}
+              style={{ height: height > 0 ? `${height}%` : '100%' }}
+              className={height === 0 ? styles.barEmpty : undefined}
+              title={`${height}%`}
+              aria-label={`${height}% completion`}
+            />
+          ))}
+        </div>
+
+        {/* X-axis labels */}
+        <div className={styles.barChartXAxis}>
+          {xMarks.map(mark => (
+            <span key={`${mark.label}-${mark.pct}`} style={{ left: `${mark.pct}%` }}>
+              {mark.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function lineAxisMarks(range: DateRange): { label: string; pos: number }[] {
-  const { labels, majorLabelIdx } = buildTimeLabels(range);
-  return majorLabelIdx.map((idx) => ({
-    label: labels[idx],
-    pos: (idx / Math.max(labels.length - 1, 1)) * 100,
-  }));
+  const today = new Date();
+
+  if (range === "7 Days") {
+    return Array.from({ length: 8 }, (_, idx) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (7 - idx));
+      return {
+        label: String(d.getDate()),
+        pos: (idx / 7) * 100,
+      };
+    });
+  }
+
+  if (range === "30 Days") {
+    return [0, 7, 14, 21, 29].map(i => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (29 - i));
+      return {
+        label: `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`,
+        pos: (i / 29) * 100,
+      };
+    });
+  }
+
+  // Year — rolling 12 months ending this month, not fixed Jan→Dec
+  return Array.from({ length: 12 }, (_, idx) => {
+    const d = new Date(today.getFullYear(), today.getMonth() - 11 + idx, 1);
+    return {
+      label: d.toLocaleString("en-US", { month: "short" }),
+      pos: (idx / 11) * 100,
+    };
+  });
 }
 
 function categoryLineAxisMarks(range: DateRange): { label: string; pos: number }[] {
@@ -365,11 +542,7 @@ function buildHeatmapFromRates(rates: number[], days: number): HeatmapData {
   const dateMatrix: HeatmapData["dateMatrix"] = Array.from({ length: rows }, () => Array.from({ length: columns }, () => null));
 
   const start = new Date(today);
-  if (mode === "year") {
-    start.setMonth(0, 1);
-  } else {
-    start.setDate(today.getDate() - (totalDays - 1));
-  }
+  start.setDate(today.getDate() - (totalDays - 1));
 
   const source = rates.slice(-totalDays);
   const padded =
@@ -637,9 +810,17 @@ function HeatmapGrid({
           style={{ gridTemplateColumns: `var(--heatmap-label-width, 12px) repeat(${heatmap.matrix[0].length}, minmax(0, 1fr))` }}
         >
           <span />
-          {Array.from({ length: heatmap.matrix[0].length }, (_, idx) => (
-            <span key={`${idPrefix}-w-${idx}`}>W{idx + 1}</span>
-          ))}
+          {Array.from({ length: heatmap.matrix[0].length }, (_, idx) => {
+            const mondayLabel = heatmap.dateMatrix[0]?.[idx];
+            if (!mondayLabel) return <span key={`${idPrefix}-w-${idx}`} />;
+            const d = new Date(mondayLabel);
+            const label = `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`;
+            return (
+              <span key={`${idPrefix}-w-${idx}`} title={label}>
+                {d.getDate()}
+              </span>
+            );
+          })}
         </div>
       )}
       <div className={styles.heatmapMonthScroll}>
@@ -694,7 +875,7 @@ function HeatmapGrid({
 }
 
 export default function DashboardPage() {
-  const { settings, t } = useSettings();
+  const { settings } = useSettings();
   const [range, setRange] = useState<DateRange>(settings.defaultRange);
   const [chartView, setChartView] = useState<ChartView>("bar");
   const [chartDataMode, setChartDataMode] = useState<HeatmapMode>("task");
@@ -704,67 +885,100 @@ export default function DashboardPage() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [category, setCategory] = useState<CategoryFilter>("All");
   const [sort, setSort] = useState<SortKey>("default");
-  const [dashboardHabits] = useState<DashboardHabit[]>(MOCK_HABITS);
-  const isVi = settings.language === "Vietnamese";
+
+  // ── Real data ──────────────────────────────────────────────────────────────
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [allCheckIns, setAllCheckIns] = useState<CheckIn[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        setDataLoading(true);
+        const [fetchedHabits, fetchedCheckIns] = await Promise.all([
+          getHabits(),
+          getCheckIns(),
+        ]);
+        setHabits(fetchedHabits);
+        setAllCheckIns(fetchedCheckIns);
+      } catch (err) {
+        console.error(err);
+        setDataError('Failed to load dashboard data.');
+      } finally {
+        setDataLoading(false);
+      }
+    }
+    fetchAll();
+  }, []);
 
   useEffect(() => {
     setRange(settings.defaultRange);
   }, [settings.defaultRange]);
 
+  // ── Derived: checkIn lookup ────────────────────────────────────────────────
+  const checkInsByHabit = useMemo(() => {
+    const map = new Map<string, Map<string, number>>();
+    for (const ci of allCheckIns) {
+      if (!map.has(ci.habitId)) map.set(ci.habitId, new Map());
+      map.get(ci.habitId)!.set(ci.date, ci.completedCount);
+    }
+    return map;
+  }, [allCheckIns]);
+
+  // ── Derived: real habits → DashboardHabit shape ───────────────────────────
+  const dashboardHabits = useMemo<DashboardHabit[]>(() => {
+    return habits
+      .filter(h => h.status === 'Active')
+      .map(h => {
+        const dateMap = checkInsByHabit.get(h._id) ?? new Map<string, number>();
+        const dailyRates = buildDailyRates(h.targetPerDay, dateMap);
+        return {
+          id: h._id,
+          name: h.name,
+          categoryKey: h.category as CategoryKey,
+          category: h.category,
+          time: h.frequency === 'Daily' ? 'Daily' : h.specificDays.join(', '),
+          dailyRates,
+        };
+      });
+  }, [habits, checkInsByHabit]);
+
   const days = rangeDays(range);
   const categories = useMemo(() => CATEGORY_ORDER, []);
 
+  // ── Derived: stats per habit ───────────────────────────────────────────────
   const habitStats = useMemo<HabitWithComputed[]>(() => {
-    let list = dashboardHabits.map((h) => ({ ...h, computed: computeStats(h, days) }));
-
-    if (category !== "All") {
-      list = list.filter((h) => h.categoryKey === category);
-    }
-
-    if (sort === "rate") {
-      list = [...list].sort((a, b) => parseFloat(b.computed.rate) - parseFloat(a.computed.rate));
-    } else if (sort === "streak") {
-      list = [...list].sort((a, b) => b.computed.streak - a.computed.streak);
-    } else if (sort === "name") {
-      list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-    }
-
+    let list = dashboardHabits.map(h => ({ ...h, computed: computeStats(h, days) }));
+    if (category !== "All") list = list.filter(h => h.categoryKey === category);
+    if (sort === "rate") list = [...list].sort((a, b) => parseFloat(b.computed.rate) - parseFloat(a.computed.rate));
+    if (sort === "streak") list = [...list].sort((a, b) => b.computed.streak - a.computed.streak);
+    if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
     return list;
   }, [dashboardHabits, days, category, sort]);
 
-  const chartLabel = range === "Year"
-    ? t("lastWeeksActivity")
-    : t("lastDaysActivity").replace("{n}", String(days));
-
-  const hasActiveFilter = category !== "All" || sort !== "default";
+  // ── Derived: grouped by category ──────────────────────────────────────────
   const groupedHabitStats = useMemo(() => {
     const grouped: Record<CategoryKey, HabitWithComputed[]> = {
-      Health: [],
-      Study: [],
-      Work: [],
-      Mindfulness: [],
-      Other: [],
+      Health: [], Study: [], Work: [], Mindfulness: [], Other: [],
     };
-    for (const habit of habitStats) {
-      grouped[habit.categoryKey].push(habit);
-    }
+    for (const habit of habitStats) grouped[habit.categoryKey].push(habit);
     return grouped;
   }, [habitStats]);
+
+  // ── Derived: category-level aggregates ────────────────────────────────────
   const categoryCardData = useMemo(() => {
-    return CATEGORY_ORDER.map((categoryKey) => {
+    return CATEGORY_ORDER.map(categoryKey => {
       const rows = groupedHabitStats[categoryKey];
       if (!rows.length) return null;
       const barsLength = rows[0].computed.bars.length;
       const bars = Array.from({ length: barsLength }, (_, idx) =>
         Math.round(rows.reduce((sum, row) => sum + row.computed.bars[idx], 0) / rows.length)
       );
-      const avgRate = Math.round(
-        rows.reduce((sum, row) => sum + parseFloat(row.computed.rate), 0) / rows.length
-      );
+      const avgRate = Math.round(rows.reduce((sum, row) => sum + parseFloat(row.computed.rate), 0) / rows.length);
       const total = rows.reduce((sum, row) => sum + Number(row.computed.total), 0);
       const longest = rows.reduce((max, row) => Math.max(max, Number(row.computed.longest.replace("d", ""))), 0);
       const streak = rows.reduce((max, row) => Math.max(max, row.computed.streak), 0);
-
       return {
         categoryKey,
         label: CATEGORY_LABEL[categoryKey],
@@ -777,137 +991,318 @@ export default function DashboardPage() {
     }).filter((item): item is NonNullable<typeof item> => Boolean(item));
   }, [groupedHabitStats]);
 
-  const dashboardSummary = useMemo(() => {
-    const completedTodayHabits = habitStats.filter((habit) => {
-      const latest = habit.dailyRates[habit.dailyRates.length - 1];
-      return latest >= 0.8;
-    });
-    const activeHabits = habitStats.filter((habit) => habit.computed.streak > 0);
-    const atRiskHabits = habitStats.filter((habit) => {
-      const lastThree = habit.dailyRates.slice(-3);
-      return lastThree.length === 3 && lastThree.every((rate) => rate < 0.8);
-    });
-
-    return {
-      completedRate: habitStats.length ? Math.round((completedTodayHabits.length / habitStats.length) * 100) : 0,
-      activeCount: activeHabits.length,
-      riskCount: atRiskHabits.length,
-      riskNames: atRiskHabits.map((habit) => habit.name).slice(0, 2),
-      activeLabel: `${activeHabits.length} in ${days} Days`,
-    };
-  }, [habitStats, days]);
-
-  const heatmapSourceHabits = useMemo(
-    () => habitStats as DashboardHabit[],
-    [habitStats]
-  );
+  // ── Derived: heatmaps ─────────────────────────────────────────────────────
+  const heatmapSourceHabits = useMemo(() => habitStats as DashboardHabit[], [habitStats]);
   const categoryHeatmaps = useMemo(
     () => computeCategoryHeatmaps(heatmapSourceHabits, days),
     [heatmapSourceHabits, days]
   );
+
+  // ── Derived: category line chart series ───────────────────────────────────
   const filteredCategoryLineData = useMemo(
-    () => categoryCardData.filter((item) => lineCategoryFilter.includes(item.categoryKey)),
+    () => categoryCardData.filter(item => lineCategoryFilter.includes(item.categoryKey)),
     [categoryCardData, lineCategoryFilter]
   );
   const selectedLineCategory: CategoryKey | "all" =
     lineCategoryFilter.length === CATEGORY_ORDER.length ? "all" : lineCategoryFilter[0];
   const categoryLineSeries = useMemo(() => {
-    return filteredCategoryLineData.map((item) => {
+    return filteredCategoryLineData.map(item => {
       const rows = groupedHabitStats[item.categoryKey];
       const merged = Array.from({ length: 365 }, (_, dayIdx) =>
         rows.reduce((sum, row) => sum + row.dailyRates[dayIdx], 0) / Math.max(rows.length, 1)
       );
-      return {
-        key: item.categoryKey,
-        label: item.label,
-        points: buildLineSeries(merged, range),
-      };
+      return { key: item.categoryKey, label: item.label, points: buildLineSeries(merged, range) };
     });
   }, [filteredCategoryLineData, groupedHabitStats, range]);
+
+  // ── Chart labels (hardcoded, no translation) ──────────────────────────────
+  const chartLabel = range === "Year"
+    ? "Past 12 Months"
+    : `Last ${days} Days`;
   const taskPanelTitle = chartView === "line" ? "Task Line Chart" : "Task Bar Chart";
-  const taskPanelDesc =
-    chartView === "line"
-      ? "Individual habit completion trend over time."
-      : "Individual habit completion volume in selected range.";
+  const taskPanelDesc = chartView === "line"
+    ? "Individual habit completion trend over time."
+    : "Individual habit completion volume in selected range.";
+
+  const hasActiveFilter = category !== "All" || sort !== "default";
+
+  const dashboardSummary = useMemo(() => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+
+    // ── Current period stats ─────────────────────────────────────────────────
+    const activeHabits = habitStats;
+    if (!activeHabits.length) return null;
+
+    // Overall completion rate = avg of all habit rates in period
+    const overallRate = Math.round(
+      activeHabits.reduce((sum, h) => sum + parseFloat(h.computed.rate), 0) / activeHabits.length
+    );
+
+    // Total completions in period
+    const totalCompletions = activeHabits.reduce((sum, h) => sum + Number(h.computed.total), 0);
+
+    // Daily average completions
+    const dailyAvg = (totalCompletions / days).toFixed(1);
+
+    // Best current streak
+    const perfectStreak = calcPerfectDayStreak(allCheckIns, habits, todayStr);
+
+    // Most consistent (highest rate)
+    function longestStreakInRange(dailyRates: number[]): number {
+      const slice = dailyRates.slice(-days);
+      let longest = 0;
+      let current = 0;
+      for (const r of slice) {
+        if (r >= 0.8) { current++; longest = Math.max(longest, current); }
+        else current = 0;
+      }
+      return longest;
+    }
+
+    const mostConsistentInRange = [...activeHabits]
+      .map(h => ({ ...h, rangeStreak: longestStreakInRange(h.dailyRates) }))
+      .sort((a, b) => b.rangeStreak - a.rangeStreak)[0];
+
+    // ── Previous period stats (for trend) ────────────────────────────────────
+    // Previous period = same number of days, just before the current period
+    function computePrevRate(habit: HabitWithComputed): number {
+      const slice = habit.dailyRates.slice(-(days * 2), -days);
+      if (!slice.length) return 0;
+      const completed = slice.filter(r => r >= 0.8).length;
+      return Math.round((completed / slice.length) * 100);
+    }
+
+    const prevOverallRate = Math.round(
+      activeHabits.reduce((sum, h) => sum + computePrevRate(h), 0) / activeHabits.length
+    );
+
+    const prevTotalCompletions = activeHabits.reduce((sum, h) => {
+      const slice = h.dailyRates.slice(-(days * 2), -days);
+      return sum + slice.filter(r => r >= 0.8).length;
+    }, 0);
+
+    const rateDelta = overallRate - prevOverallRate;
+    const completionDelta = totalCompletions - prevTotalCompletions;
+
+    // Category aggregates — strongest and weakest by avg completion rate
+    const categoryRates = CATEGORY_ORDER
+      .map(categoryKey => {
+        const rows = groupedHabitStats[categoryKey];
+        if (!rows.length) return null;
+        const avgRate = Math.round(
+          rows.reduce((sum, h) => sum + parseFloat(h.computed.rate), 0) / rows.length
+        );
+        return { categoryKey, label: CATEGORY_LABEL[categoryKey], rate: avgRate };
+      })
+      .filter((c): c is NonNullable<typeof c> => Boolean(c))
+      .sort((a, b) => b.rate - a.rate);
+
+    const strongestCategory = categoryRates[0] ?? null;
+    const weakestCategory = categoryRates[categoryRates.length - 1] ?? null;
+
+    return {
+      overallRate,
+      rateDelta,
+      totalCompletions,
+      completionDelta,
+      dailyAvg,
+      bestStreak: {
+        streak: perfectStreak,
+      },
+      mostConsistent: {
+        name: mostConsistentInRange?.name ?? "—",
+        rate: mostConsistentInRange ? `${mostConsistentInRange.rangeStreak}d` : "0d",
+        categoryKey: mostConsistentInRange?.categoryKey,
+      },
+      strongestCategory,
+      weakestCategory,
+    };
+  }, [habitStats, days]);
+
+  if (dataLoading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
+          <div className="spinner" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (dataError) {
+    return (
+      <AppLayout>
+        <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-danger)' }}>
+          {dataError}
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <div className={styles.content}>
         <section className={styles.dashboardSection}>
-          <div className={styles.summaryGrid}>
-            <article className={styles.summaryCard}>
-              <div className={styles.cardTop}>
-                <div className={`${styles.summaryIcon} ${styles.summaryIconCompleted}`}>
-                  <TargetIcon width={20} height={20} aria-hidden />
-                </div>
-                <span className={`${styles.summaryStatus} ${styles.summaryStatusCompleted}`}>
-                  Completed Today
+          {dashboardSummary && (
+            <div className={styles.summarySection}>
+              <div className={styles.summaryPeriodRow}>
+                <h2 >Overview</h2>
+                <span className={styles.summaryPeriodBadge}>
+                  {range === "7 Days" ? "Last 7 days"
+                    : range === "30 Days" ? "Last 30 days"
+                      : "Past 12 months"}
                 </span>
               </div>
-              <p className={styles.summaryDesc}>
-                Latest habit completion rate based on today&apos;s progress.
-              </p>
-              <div className={styles.metric}>
-                <strong>{dashboardSummary.completedRate}%</strong>
-                <span>/ 100</span>
-              </div>
-              <div className={`${styles.progressTrack} ${styles.progressTrackCompleted}`}>
-                <span style={{ width: `${dashboardSummary.completedRate}%` }} />
-              </div>
-            </article>
 
-            <article className={styles.summaryCard}>
-              <div className={styles.cardTop}>
-                <div className={`${styles.summaryIcon} ${styles.summaryIconActive}`}>
-                  <CheckIcon width={20} height={20} aria-hidden />
-                </div>
-                <span className={`${styles.summaryStatus} ${styles.summaryStatusActive}`}>
-                  Active Habits
-                </span>
-              </div>
-              <p className={styles.summaryDesc}>
-                Habits with an active streak during the selected range.
-              </p>
-              <div className={styles.metric}>
-                <strong>{dashboardSummary.activeCount}</strong>
-                <span>{dashboardSummary.activeLabel}</span>
-              </div>
-              <div className={styles.avatarStack}>
-                <span className={styles.avatarHealth}>H</span>
-                <span className={styles.avatarStudy}>S</span>
-                <span className={styles.avatarWork}>W</span>
-                <span className={styles.avatarMore}>+{Math.max(0, dashboardSummary.activeCount - 3)}</span>
-              </div>
-            </article>
+              <div className={styles.summaryGrid}>
 
-            <article className={styles.summaryCard}>
-              <div className={styles.cardTop}>
-                <div className={`${styles.summaryIcon} ${styles.summaryIconRisk}`}>
-                  <AlertCircleIcon width={20} height={20} aria-hidden />
+                {/* Left column: featured + total completions */}
+                <div className={styles.summaryLeftCol}>
+
+                  {/* Featured — Overall Completion Rate + Total Completions */}
+                  <article className={`${styles.summaryCard} ${styles.summaryCardFeatured}`}>
+
+                    {/* Header row: label + info tooltip + trend badge */}
+                    <div className={styles.featuredHeader}>
+                      <div className={styles.featuredLabelRow}>
+                        <p className={styles.summaryCardLabel}>Overall Completion</p>
+                        <div className={styles.infoTip}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="8" /><line x1="12" y1="12" x2="12" y2="16" />
+                          </svg>
+                          <span className={styles.infoTipText}>
+                            Average % of your scheduled habits completed per day in this period
+                          </span>
+                        </div>
+                      </div>
+                      <TrendBadge delta={dashboardSummary.rateDelta} />
+                    </div>
+
+                    {/* Half donut gauge */}
+                    <div className={styles.halfDonutWrap}>
+                      <HalfDonut pct={dashboardSummary.overallRate} />
+                    </div>
+
+                    {/* Divider */}
+                    <div className={styles.featuredDivider} />
+
+                    {/* Total completions row */}
+                    <div className={styles.featuredFooter}>
+                      <div className={styles.featuredLabelRow}>
+                        <p className={styles.summaryCardLabel}>Total completions</p>
+                        <div className={styles.infoTip}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="8" /><line x1="12" y1="12" x2="12" y2="16" />
+                          </svg>
+                          <span className={styles.infoTipText}>
+                            Number of individual habits fully completed in this period
+                          </span>
+                        </div>
+                      </div>
+                      <div className={styles.featuredFooterRight}>
+                        <span className={styles.featuredCompletionCount}>{dashboardSummary.totalCompletions}</span>
+                        <span className={styles.featuredCompletionUnit}>times</span>
+                        <span className={styles.featuredCompletionMeta}>~{dashboardSummary.dailyAvg}/day</span>
+                      </div>
+                    </div>
+
+                  </article>
+
                 </div>
-                <span className={`${styles.summaryStatus} ${styles.summaryStatusRisk}`}>
-                  Habits at Risk
-                </span>
-              </div>
-              <p className={styles.summaryDesc}>
-                Habits that may be losing momentum and need attention.
-              </p>
-              <div className={styles.metric}>
-                <strong>{dashboardSummary.riskCount}</strong>
-                <span>Potential break</span>
-              </div>
-              {dashboardSummary.riskNames.length > 0 && (
-                <div className={styles.riskList}>
-                  {dashboardSummary.riskNames.map((name) => `"${name}"`).join(", ")}
+
+                {/* Right area: 2x2 mini grid */}
+                <div className={styles.summaryMiniGrid}>
+
+                  {/* Perfect Day Streak */}
+                  <article className={styles.summaryCard}>
+                    <div className={styles.featuredLabelRow}>
+                      <p className={styles.summaryCardLabel}>Perfect Day Streak</p>
+                      <div className={styles.infoTip}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="8" /><line x1="12" y1="12" x2="12" y2="16" />
+                        </svg>
+                        <span className={styles.infoTipText}>
+                          Consecutive days where every scheduled habit was fully completed. Independent of selected range.
+                        </span>
+                      </div>
+                    </div>
+                    <div className={styles.summaryCardBody}>
+                      <div className={styles.streakIconUnboxed}>
+                        <Flame size={36} strokeWidth={1.8} className={styles.flameIcon} />
+                      </div>
+                      <div className={styles.summaryCardText}>
+                        <p className={styles.streakBigNumber}>{dashboardSummary.bestStreak.streak}</p>
+                        <p className={styles.summaryCardSub}>day streak</p>
+                      </div>
+                    </div>
+                  </article>
+
+                  {/* Most Consistent — alternative without donut ─────── */}
+                  <article className={styles.summaryCard}>
+                    <div className={styles.featuredLabelRow}>
+                      <p className={styles.summaryCardLabel}>Most Consistent</p>
+                      <div className={styles.infoTip}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="8" /><line x1="12" y1="12" x2="12" y2="16" />
+                        </svg>
+                        <span className={styles.infoTipText}>
+                          Habit with the longest consecutive run within the selected period
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Habit name first */}
+                    <p className={styles.consistentHabitName}>{dashboardSummary.mostConsistent.name}</p>
+
+                    {/* Icon + stat below */}
+                    <div className={styles.consistentStat}>
+                      <TrendingUp size={18} strokeWidth={2} className={styles.trendingIcon} />
+                      <span className={styles.streakCount}>{dashboardSummary.mostConsistent.rate}</span>
+                      <span className={styles.summaryCardSub}>best run this period</span>
+                    </div>
+                  </article>
+
+                  {/* Strongest Category */}
+                  {dashboardSummary.strongestCategory && (
+                    <article className={styles.summaryCard}>
+                      <p className={styles.summaryCardLabel}>Strongest Category</p>
+                      <div className={styles.summaryCardBody}>
+                        <span className={`${styles.categoryIconWrap} ${CATEGORY_ICON_CLASS[dashboardSummary.strongestCategory.categoryKey]}`}>
+                          <CategoryIcon categoryKey={dashboardSummary.strongestCategory.categoryKey} />
+                        </span>
+                        <div className={styles.summaryCardText}>
+                          <p className={styles.summaryCardValue}>{dashboardSummary.strongestCategory.label}</p>
+                          <p className={styles.summaryCardSub}>{dashboardSummary.strongestCategory.rate}% completion</p>
+                        </div>
+                      </div>
+                    </article>
+                  )}
+
+                  {/* Needs Attention */}
+                  {dashboardSummary.weakestCategory && (
+                    <article className={styles.summaryCard}>
+                      <p className={styles.summaryCardLabel}>Needs Attention</p>
+                      <div className={styles.summaryCardBody}>
+                        <span className={`${styles.categoryIconWrap} ${CATEGORY_ICON_CLASS[dashboardSummary.weakestCategory.categoryKey]}`}>
+                          <CategoryIcon categoryKey={dashboardSummary.weakestCategory.categoryKey} />
+                        </span>
+                        <div className={styles.summaryCardText}>
+                          <p className={styles.summaryCardValue}>{dashboardSummary.weakestCategory.label}</p>
+                          <p className={styles.summaryCardSub}>{dashboardSummary.weakestCategory.rate}% completion</p>
+                        </div>
+                      </div>
+                    </article>
+                  )}
+
                 </div>
-              )}
-            </article>
-          </div>
+              </div>
+            </div>
+          )}
 
           {/* Habit breakdown */}
           <section className={styles.breakdown}>
             <div className={styles.sectionHeader}>
-              <h2>{t("habitBreakdown")}</h2>
+              <h2>Habit Breakdown</h2>
               <div className={styles.breakdownTools}>
                 <div className={styles.breakdownTabsScroll}>
                   <div className={styles.chartTabs} aria-label="Date range">
@@ -1097,14 +1492,14 @@ export default function DashboardPage() {
                                   {CATEGORY_LABEL[categoryKey]}
                                 </h3>
                                 <div className={styles.habitGrid}>
-                                      {sectionHabits.map((habit) => {
-                                        const { computed } = habit;
-                                        const habitLineSeries = buildLineSeries(habit.dailyRates, range);
-                                        const habitLineColor = CATEGORY_LINE_COLOR[habit.categoryKey];
-                                        const statItems = [
-                                          { label: t("longest"), value: computed.longest },
-                                          { label: t("total"), value: computed.total },
-                                          { label: t("rate"), value: computed.rate },
+                                  {sectionHabits.map((habit) => {
+                                    const { computed } = habit;
+                                    const habitLineSeries = buildLineSeries(habit.dailyRates, range);
+                                    const habitLineColor = CATEGORY_LINE_COLOR[habit.categoryKey];
+                                    const statItems = [
+                                      { label: "Longest", value: computed.longest },
+                                      { label: "Total", value: computed.total },
+                                      { label: "Rate", value: computed.rate },
                                     ];
 
                                     return (
@@ -1114,8 +1509,8 @@ export default function DashboardPage() {
                                             <CategoryIcon categoryKey={habit.categoryKey} />
                                           </span>
                                           <div>
-                                            <h4>{isVi ? habit.nameVi : habit.name}</h4>
-                                            <p>{isVi ? habit.timeVi : habit.time}</p>
+                                            <h4>{habit.name}</h4>
+                                            <p>{habit.time}</p>
                                           </div>
                                           <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[habit.categoryKey]}`}>
                                             {computed.badge}
@@ -1142,50 +1537,69 @@ export default function DashboardPage() {
 
                                         <p className={styles.chartLabel}>{chartLabel}</p>
                                         {chartView === "bar" && (
-                                          <div className={`${styles.bars} ${CATEGORY_BAR_CLASS[habit.categoryKey]}`}
-                                            style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
-                                          >
-                                            {computed.bars.map((height, i) => (
-                                              <span key={i} style={{ height: `${Math.max(4, height)}%` }} />
-                                            ))}
-                                          </div>
+                                          <BarChart
+                                            bars={computed.bars}
+                                            range={range}
+                                            categoryBarClass={CATEGORY_BAR_CLASS[habit.categoryKey]}  // or item.categoryKey
+                                          />
                                         )}
 
                                         {chartView === "line" && (
-                                          <div className={styles.lineChartWrap}>
-                                            <svg viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label={`${habit.name} line chart`}>
-                                              <polyline
-                                                className={styles.lineChartStroke}
-                                                style={{ stroke: habitLineColor }}
-                                                vectorEffect="non-scaling-stroke"
-                                                points={lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
-                                                  const x = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
-                                                  const y = 44 - (habitLineSeries[idx] / 100) * 44;
-                                                  return `${x},${y}`;
-                                                }).join(" ")}
-                                              />
-                                            </svg>
-                                            {/* HTML overlay dots — always perfectly round, unaffected by SVG aspect ratio distortion */}
-                                            <div className={styles.lineDotsOverlay} aria-hidden="true">
-                                              {lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
-                                                const xPct = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
-                                                const yPct = (1 - habitLineSeries[idx] / 100) * 100;
-                                                return (
-                                                  <span
-                                                    key={`${habit.id}-dot-html-${idx}`}
-                                                    className={styles.lineDotHtml}
-                                                    style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: habitLineColor }}
-                                                  />
-                                                );
-                                              })}
+                                          <div className={styles.lineChartOuter}>
+                                            {/* Y-axis labels */}
+                                            <div className={styles.lineChartYAxis}>
+                                              {[100, 75, 50, 25, 0].map(tick => (
+                                                <span key={tick}>{tick}%</span>
+                                              ))}
                                             </div>
 
-                                            <div className={styles.lineAxis}>
-                                              {lineAxisMarks(range).map((mark) => (
-                                                <span key={`${habit.id}-${mark.label}`} style={{ left: `${mark.pos}%` }}>
-                                                  {mark.label}
-                                                </span>
-                                              ))}
+                                            <div className={styles.lineChartWrap}>
+                                              <svg viewBox="0 0 100 44" preserveAspectRatio="none" role="img" aria-label={`${habit.name} line chart`}>
+                                                {/* Horizontal grid lines at 0%, 25%, 50%, 75%, 100% */}
+                                                {[0, 25, 50, 75, 100].map(tick => (
+                                                  <line
+                                                    key={`grid-${tick}`}
+                                                    x1="0" x2="100"
+                                                    y1={44 - (tick / 100) * 44}
+                                                    y2={44 - (tick / 100) * 44}
+                                                    stroke="rgba(100,116,139,0.15)"
+                                                    strokeWidth="0.5"
+                                                    vectorEffect="non-scaling-stroke"
+                                                  />
+                                                ))}
+                                                <polyline
+                                                  className={styles.lineChartStroke}
+                                                  style={{ stroke: habitLineColor }}
+                                                  vectorEffect="non-scaling-stroke"
+                                                  points={lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
+                                                    const x = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
+                                                    const y = 44 - (habitLineSeries[idx] / 100) * 44;
+                                                    return `${x},${y}`;
+                                                  }).join(" ")}
+                                                />
+                                              </svg>
+
+                                              <div className={styles.lineDotsOverlay} aria-hidden="true">
+                                                {lineMarkerIndices(habitLineSeries.length, range).map((idx) => {
+                                                  const xPct = (idx / Math.max(habitLineSeries.length - 1, 1)) * 100;
+                                                  const yPct = (1 - habitLineSeries[idx] / 100) * 100;
+                                                  return (
+                                                    <span
+                                                      key={`${habit.id}-dot-html-${idx}`}
+                                                      className={styles.lineDotHtml}
+                                                      style={{ left: `${xPct}%`, top: `${yPct}%`, backgroundColor: habitLineColor }}
+                                                    />
+                                                  );
+                                                })}
+                                              </div>
+
+                                              <div className={styles.lineAxis}>
+                                                {lineAxisMarks(range).map((mark) => (
+                                                  <span key={`${habit.id}-${mark.label}`} style={{ left: `${mark.pos}%` }}>
+                                                    {mark.label}
+                                                  </span>
+                                                ))}
+                                              </div>
                                             </div>
                                           </div>
                                         )}
@@ -1223,7 +1637,9 @@ export default function DashboardPage() {
                             ))}
                           </div>
                         </div>
-                        <div className={styles.categorySections}>
+
+                        {/* Flat grid — same layout as heatmap's taskHeatmapList, no section wrappers */}
+                        <div className={styles.taskHeatmapList}>
                           {categoryCardData.map((item) => {
                             const computed = {
                               bars: item.bars,
@@ -1234,50 +1650,38 @@ export default function DashboardPage() {
                               badgeIcon: item.streak >= 3 ? "fire" : "down",
                             };
                             return (
-                              <section key={`category-card-${item.categoryKey}`} className={styles.categorySection}>
-                                <h3 className={styles.categoryLabel}>
-                                  <span className={CATEGORY_DOT_CLASS[item.categoryKey]} />
-                                  {item.label}
-                                </h3>
-                                <div className={styles.habitGrid}>
-                                  <article className={styles.habitCard}>
-                                    <div className={styles.habitHeader}>
-                                      <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[item.categoryKey]}`}>
-                                        <CategoryIcon categoryKey={item.categoryKey} />
-                                      </span>
-                                      <div>
-                                        <h4>{item.label}</h4>
-                                        <p>Category aggregate</p>
-                                      </div>
-                                      <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[item.categoryKey]}`}>
-                                        {computed.badge}
-                                      </span>
-                                    </div>
-                                    <div className={styles.statGrid}>
-                                      {[
-                                        { label: t("longest"), value: computed.longest },
-                                        { label: t("total"), value: computed.total },
-                                        { label: t("rate"), value: computed.rate },
-                                      ].map(({ label, value }) => (
-                                        <div key={`${item.categoryKey}-${label}`}>
-                                          <span>{label}</span>
-                                          <strong>{value}</strong>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <p className={styles.chartLabel}>{chartLabel}</p>
-                                    {chartView === "bar" && (
-                                      <div className={`${styles.bars} ${CATEGORY_BAR_CLASS[item.categoryKey]}`}
-                                        style={{ gridTemplateColumns: `repeat(${computed.bars.length}, 1fr)` }}
-                                      >
-                                        {computed.bars.map((height, i) => (
-                                          <span key={`category-bar-${item.categoryKey}-${i}`} style={{ height: `${Math.max(4, height)}%` }} />
-                                        ))}
-                                      </div>
-                                    )}
-                                  </article>
+                              <article className={styles.habitCard} key={`category-card-${item.categoryKey}`}>
+                                <div className={styles.habitHeader}>
+                                  <span className={`${styles.habitIcon} ${CATEGORY_ICON_CLASS[item.categoryKey]}`}>
+                                    <CategoryIcon categoryKey={item.categoryKey} />
+                                  </span>
+                                  <div>
+                                    <h4>{item.label}</h4>
+                                    <p>Category aggregate</p>
+                                  </div>
+                                  <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[item.categoryKey]}`}>
+                                    {computed.badge}
+                                  </span>
                                 </div>
-                              </section>
+                                <div className={styles.statGrid}>
+                                  {[
+                                    { label: "Longest", value: computed.longest },
+                                    { label: "Total", value: computed.total },
+                                    { label: "Rate", value: computed.rate },
+                                  ].map(({ label, value }) => (
+                                    <div key={`${item.categoryKey}-${label}`}>
+                                      <span>{label}</span>
+                                      <strong>{value}</strong>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p className={styles.chartLabel}>{chartLabel}</p>
+                                <BarChart
+                                  bars={computed.bars}
+                                  range={range}
+                                  categoryBarClass={CATEGORY_BAR_CLASS[item.categoryKey]}
+                                />
+                              </article>
                             );
                           })}
                         </div>
@@ -1341,9 +1745,9 @@ export default function DashboardPage() {
 
                                 <div className={styles.statGrid}>
                                   {[
-                                    { label: t("longest"), value: aggregate?.longest ?? "0d" },
-                                    { label: t("total"), value: aggregate?.total ?? "0" },
-                                    { label: t("rate"), value: aggregate?.rate ?? "0%" },
+                                    { label: "Longest", value: aggregate?.longest ?? "0d" },
+                                    { label: "Total", value: aggregate?.total ?? "0" },
+                                    { label: "Rate", value: aggregate?.rate ?? "0%" },
                                   ].map(({ label, value }) => (
                                     <div key={`${categoryMap.categoryName}-${label}`}>
                                       <span>{label}</span>
@@ -1382,8 +1786,8 @@ export default function DashboardPage() {
                                             <CategoryIcon categoryKey={habit.categoryKey} />
                                           </span>
                                           <div>
-                                            <h4>{isVi ? habit.nameVi : habit.name}</h4>
-                                            <p>{isVi ? habit.timeVi : habit.time}</p>
+                                            <h4>{habit.name}</h4>
+                                            <p>{habit.time}</p>
                                           </div>
                                           <span className={`${styles.badge} ${CATEGORY_BADGE_CLASS[habit.categoryKey]}`}>
                                             {computed.badge}
@@ -1392,9 +1796,9 @@ export default function DashboardPage() {
 
                                         <div className={styles.statGrid}>
                                           {[
-                                            { label: t("longest"), value: computed.longest },
-                                            { label: t("total"), value: computed.total },
-                                            { label: t("rate"), value: computed.rate },
+                                            { label: "Longest", value: computed.longest },
+                                            { label: "Total", value: computed.total },
+                                            { label: "Rate", value: computed.rate },
                                           ].map(({ label, value }) => (
                                             <div key={`${habit.id}-${label}`}>
                                               <span>{label}</span>
@@ -1420,19 +1824,6 @@ export default function DashboardPage() {
               </>
             )}
 
-          </section>
-
-          {/* Banner */}
-          <section className={styles.banner}>
-            <img
-              alt=""
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAanMMqLfbMWVb7Jqznbi1GBuGhoSYPAg5AcIJYym-fKC0LCr7UUGsl5wzY5BXjbPfUfUciI2-gVEfD7G_fRsGMYchGPt_i52dYzFAzVZIMc-omSp2-c7QJ5_WqLWLB_ohSOeuap1B2mCJVZgWYLNQLScPRZegzAL00wO2B56jTzFAMpKvnPd9tTNb60TSWA7ztSOxJEo-xkUayNC9o4TfmN2w6_k3UhfKVNXQ90Z8B1LcEHsIv9SxhzD1_IAooJ4YkSomISvwMpqBh"
-            />
-            <div className={styles.bannerOverlay}>
-              <span>Consistency is Key</span>
-              <h2>You're on a {habitStats[0]?.computed.streak ?? 0}-day total completion streak!</h2>
-              <p>The best way to predict the future is to create it, one habit at a time.</p>
-            </div>
           </section>
         </section>
       </div>
