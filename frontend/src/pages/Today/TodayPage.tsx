@@ -539,6 +539,21 @@ export default function TodayPage() {
         const idx = prev.findIndex(ci => ci.habitId === saved.habitId && ci.date === saved.date);
         return idx >= 0 ? prev.map((ci, i) => (i === idx ? saved : ci)) : prev;
       });
+      window.dispatchEvent(new CustomEvent("checkin:completed"));
+      if (newStatus === "Completed") {
+        const key = "habit_completed_at";
+        const today = new Date().toISOString().slice(0, 10);
+        const stored = JSON.parse(localStorage.getItem(key) || "{}");
+        stored.__date = today;
+        stored[habit._id] = new Date().toISOString();
+        localStorage.setItem(key, JSON.stringify(stored));
+        window.dispatchEvent(new CustomEvent("habit:completed"));
+      } else {
+        const key = "habit_completed_at";
+        const stored = JSON.parse(localStorage.getItem(key) || "{}");
+        delete stored[habit._id];
+        localStorage.setItem(key, JSON.stringify(stored));
+      }
     } catch (err) {
       console.error(err);
       setAllCheckIns(prev => {
