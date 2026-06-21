@@ -367,7 +367,6 @@ function BarChart({
 }) {
   const xMarks = barAxisMarks(bars, range);
   const yTicks = [100, 75, 50, 25, 0];
-  console.log('bars:', bars);
 
   return (
     <div className={styles.barChartWrap}>
