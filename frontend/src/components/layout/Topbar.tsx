@@ -267,6 +267,7 @@ export default function Topbar({ title, onMenuClick }: TopbarProps) {
           <button
             className={`${styles.iconBtn} ${panelOpen ? styles.iconBtnActive : ""}`}
             aria-label="Notifications"
+            onMouseDown={e => e.stopPropagation()}
             onClick={() => {
               setActivePanel("none");
               togglePanel();
