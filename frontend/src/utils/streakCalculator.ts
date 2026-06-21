@@ -77,8 +77,13 @@ export function calcCompletionRate(checkIns: CheckIn[], days = 7): number {
   if (!days) return 0;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
+
   const recent = checkIns.filter(c => new Date(c.date) >= cutoff);
   if (!recent.length) return 0;
-  const done = recent.filter(c => c.completedCount > 0).length;
-  return Math.round((done / days) * 100);
+
+  const completedDates = new Set(
+    recent.filter(c => c.completedCount > 0).map(c => c.date)
+  );
+
+  return Math.min(100, Math.round((completedDates.size / days) * 100));
 }
