@@ -14,7 +14,6 @@
   flex-direction: column;
   gap: 16px;
   position: relative;
-  overflow: hidden;
 }
 
 .mainGrid {
