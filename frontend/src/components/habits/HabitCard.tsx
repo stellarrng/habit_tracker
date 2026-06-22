@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Habit, HabitStatus, CheckIn } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import { getCheckIns } from '../../api/checkins';

@@ -8,7 +8,7 @@ import { CheckIn, Habit } from "@/types";
 import { getHabits } from "@/api/habits";
 import { getCheckIns } from "@/api/checkins";
 import { calcPerfectDayStreak } from "@/utils/perfectDayStreakCalculator";
-import { Flame, Zap } from "lucide-react";
+import { Flame } from "lucide-react";
 
 type DateRange = "7 Days" | "30 Days" | "Year";
 type SortKey = "default" | "rate" | "streak" | "name";
@@ -118,34 +118,6 @@ function formatDayMonth(d: Date): string {
   return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`;
 }
 
-function DonutChart({ pct, color, size = 72 }: { pct: number; color: string; size?: number }) {
-  const r = size * 0.39;
-  const circumference = 2 * Math.PI * r;
-  const filled = (pct / 100) * circumference;
-  const cx = size / 2;
-  const cy = size / 2;
-  const fontSize = size > 80 ? 16 : size > 50 ? 13 : 10;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--color-gray-100)" strokeWidth={size * 0.11} />
-      <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth={size * 0.11}
-        strokeDasharray={`${filled} ${circumference - filled}`}
-        strokeDashoffset={circumference * 0.25}
-        strokeLinecap="round"
-        style={{ transition: 'stroke-dasharray 0.6s ease' }}
-      />
-      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fontSize={fontSize} fontWeight="700" fill="var(--text-primary)">
-        {pct}%
-      </text>
-    </svg>
-  );
-}
-
 function HalfDonut({ pct }: { pct: number }) {
   const r = 70;
   const cx = 100;
@@ -208,33 +180,7 @@ function TrendBadge({ delta, unit = "%" }: { delta: number; unit?: string }) {
   );
 }
 
-function buildTimeLabels(range: DateRange): { labels: string[]; majorLabelIdx: number[] } {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  if (range === "7 Days") {
-    const labels = Array.from({ length: 8 }, (_, idx) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (7 - idx));
-      return String(d.getDate());
-    });
-    return { labels, majorLabelIdx: labels.map((_, idx) => idx) };
-  }
-
-  if (range === "30 Days") {
-    const labels = Array.from({ length: 30 }, (_, idx) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (29 - idx));
-      return formatDayMonth(d);
-    });
-    return { labels, majorLabelIdx: [0, 7, 14, 21, 28] };
-  }
-
-  return {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    majorLabelIdx: Array.from({ length: 12 }, (_, idx) => idx),
-  };
-}
 
 function buildLineSeries(rates: number[], range: DateRange): number[] {
   if (range === "7 Days") {

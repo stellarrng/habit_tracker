@@ -9,15 +9,14 @@ import { useAuth } from './AuthContext';
 // ─── Filter state ─────────────────────────────────────────────────────────
 export interface FilterState {
   category: HabitCategory[];
-  frequency: HabitFrequency[];
+  frequency: string[];
   priority: HabitPriority[];
   status: HabitStatus[];
-  weekdays: WeekDay[];
   search: string;
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  category: [], frequency: [], priority: [], status: ['Active'], weekdays: [], search: '',
+  category: [], frequency: [], priority: [], status: ['Active'], search: '',
 };
 
 // ─── Context type ─────────────────────────────────────────────────────────
@@ -72,14 +71,13 @@ export function HabitProvider({ children }: { children: ReactNode }) {
     return habits.filter(h => {
       if (Array.isArray(filters.category) && filters.category.length > 0 && !filters.category.includes(h.category)) return false;
       if (Array.isArray(filters.frequency) && filters.frequency.length > 0) {
-        const matchesDaily = filters.frequency.includes('Daily') && h.frequency === 'Daily';
+        const hasDaily = filters.frequency.includes('Daily');
+        const selectedDays = filters.frequency.filter(f => f !== 'Daily');
+        
+        const matchesDaily = hasDaily && h.frequency === 'Daily';
         let matchesSpecificDays = false;
-        if (filters.frequency.includes('Specific days') && h.frequency === 'Specific days') {
-          if (Array.isArray(filters.weekdays) && filters.weekdays.length > 0) {
-            matchesSpecificDays = h.specificDays.some(day => filters.weekdays.includes(day));
-          } else {
-            matchesSpecificDays = true;
-          }
+        if (h.frequency === 'Specific days' && selectedDays.length > 0) {
+          matchesSpecificDays = h.specificDays.some(day => selectedDays.includes(day as string));
         }
         if (!matchesDaily && !matchesSpecificDays) return false;
       }
