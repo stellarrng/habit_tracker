@@ -5,39 +5,16 @@ import MultiSelectDropdown from '../shared/MultiSelectDropdown';
 import styles from './HabitFilters.module.css';
 
 const CATEGORIES: HabitCategory[] = ['Health', 'Study', 'Work', 'Mindfulness', 'Other'];
-const FREQUENCIES: HabitFrequency[] = ['Daily', 'Specific days'];
 const WEEKDAYS: WeekDay[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const FREQUENCIES: string[] = ['Daily', ...WEEKDAYS];
 const PRIORITIES: HabitPriority[] = ['Low', 'Medium', 'High'];
 const STATUSES: HabitStatus[] = ['Active', 'Paused', 'Archived'];
-
-const ChevronRightIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 18 15 12 9 6"></polyline>
-  </svg>
-);
 
 export default function HabitFilters() {
   const { filters, setFilters } = useHabitContext();
 
   function handle<K extends keyof FilterState>(key: K, value: FilterState[K]) {
     setFilters({ [key]: value } as Partial<FilterState>);
-  }
-
-  function toggleWeekday(day: WeekDay) {
-    const currentWeekdays = filters.weekdays || [];
-    const isSelected = currentWeekdays.includes(day);
-    const newWeekdays = isSelected
-      ? currentWeekdays.filter(d => d !== day)
-      : [...currentWeekdays, day];
-    
-    const nextFreq = filters.frequency.includes('Specific days')
-      ? filters.frequency
-      : [...filters.frequency, 'Specific days'];
-
-    setFilters({
-      weekdays: newWeekdays,
-      frequency: nextFreq as FilterState['frequency']
-    });
   }
 
   return (
@@ -74,49 +51,8 @@ export default function HabitFilters() {
         <MultiSelectDropdown
           options={FREQUENCIES}
           selected={filters.frequency}
-          onChange={(selected) => {
-            const nextFreq = selected as FilterState['frequency'];
-            if (!nextFreq.includes('Specific days')) {
-              setFilters({ frequency: nextFreq, weekdays: [] });
-            } else {
-              setFilters({ frequency: nextFreq });
-            }
-          }}
+          onChange={(selected) => handle('frequency', selected)}
           placeholder="All Frequencies"
-          renderOptionAddition={(option, isHovered) => {
-            if (option === 'Specific days') {
-              return (
-                <>
-                  <span className={styles.submenuIndicator}>
-                    <ChevronRightIcon />
-                  </span>
-                  {isHovered && (
-                    <div className={styles.submenuContainer} onClick={(e) => e.stopPropagation()}>
-                      {WEEKDAYS.map((day) => {
-                        const isSelected = (filters.weekdays || []).includes(day);
-                        return (
-                          <div
-                            key={day}
-                            className={styles.submenuItem}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleWeekday(day);
-                            }}
-                          >
-                            <div className={`${styles.submenuCheckbox} ${isSelected ? styles.submenuCheckboxActive : ''}`}>
-                              {isSelected && <CheckIcon style={{ width: 12, height: 12 }} />}
-                            </div>
-                            <span>{day}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </>
-              );
-            }
-            return null;
-          }}
         />
 
         <MultiSelectDropdown
