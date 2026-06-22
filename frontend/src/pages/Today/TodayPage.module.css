@@ -127,10 +127,8 @@
   position: relative;
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--color-primary) 0%, #a5f3fc 100%);
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-    background 0.4s ease;
-  /* smooth color transition at 100% */
+  background: var(--color-primary);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
