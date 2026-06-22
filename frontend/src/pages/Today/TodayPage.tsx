@@ -689,7 +689,7 @@ export default function TodayPage() {
                         <p>No active habits yet.</p>
                         <button
                           className={styles.addHabitBtn}
-                          onClick={() => navigate("/habits")}
+                          onClick={() => navigate("/habits", { state: { openCreateForm: true } })}
                         >
                           + Add your first habit
                         </button>
@@ -710,7 +710,7 @@ export default function TodayPage() {
                         </div>
                         <button
                           className={styles.addHabitBtn}
-                          onClick={() => navigate("/habits")}
+                          onClick={() => navigate("/habits", { state: { openCreateForm: true } })}
                         >
                           + Add habit
                         </button>

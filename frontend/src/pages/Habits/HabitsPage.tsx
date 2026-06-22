@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Habit } from '../../types';
 import { useHabitContext } from '../../context/HabitContext';
 import AppLayout from '../../components/layout/AppLayout';
@@ -26,6 +27,7 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
+  const location = useLocation();
   const { filteredHabits, habits, loading, error, removeHabit, clearError, changeStatus, filters, setFilters } = useHabitContext();
 
   // Calculate status counts
@@ -67,6 +69,15 @@ export default function HabitsPage() {
     mainEl.addEventListener('scroll', handleScroll);
     return () => mainEl.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Auto-open create form if navigated from Today page with state
+  useEffect(() => {
+    const state = location.state as { openCreateForm?: boolean } | null;
+    if (state?.openCreateForm) {
+      setEditingHabit(null);
+      setShowForm(true);
+    }
+  }, [location.state]);
 
   type ActionState = 
     | { type: 'status'; habitId: string; prevStatus: string; message: string }
