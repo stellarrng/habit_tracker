@@ -796,6 +796,10 @@
   padding: var(--space-5);
   min-width: 0;
   max-width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
 .habitHeader {
@@ -1139,75 +1143,6 @@
   min-width: 0;
 }
 
-/* .pieModeContent {
-  min-height: 124px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 14px;
-}
-
-.pieModeStats {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.pieStatBox {
-  min-height: 62px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  display: grid;
-  place-items: center;
-  text-align: center;
-}
-
-.pieStatBox span {
-  color: var(--text-secondary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.pieStatBox strong {
-  color: var(--text-primary);
-  font-size: 24px;
-  line-height: 1.2;
-}
-
-.pieChartHero {
-  --pie-fill: 0%;
-  width: 124px;
-  height: 124px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  background:
-    radial-gradient(circle closest-side, var(--bg-surface) 66%, transparent 68%),
-    conic-gradient(#934f68 var(--pie-fill), #ebe8ea 0);
-  border: 1px solid var(--border);
-}
-
-.pieChartHero span {
-  color: var(--text-primary);
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.pieChartHero small {
-  margin-top: 2px;
-  color: var(--text-secondary);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-} */
-
 /* ── Heatmap ─────────────────────────────────────────────────────────────── */
 
 .heatmapChartWrap {
@@ -1277,7 +1212,7 @@
   display: grid;
   place-items: center;
   color: var(--text-primary);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
 }
 
@@ -1315,10 +1250,34 @@
   min-width: 0;
 }
 
-@media (min-width: 768px) {
-  .taskHeatmapList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.taskHeatmapList .weekCardsGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.taskHeatmapList .weekDayCard {
+  min-height: 70px;
+  padding: 6px 2px;
+  gap: 4px;
+}
+
+.taskHeatmapList .weekPercentPill {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  font-size: 11px;
+  border-radius: 8px;
+}
+
+/* Category heatmap view — larger percent pills */
+.taskHeatmapList:not(.heatmapCompact) .weekPercentPill {
+  font-size: 28px;
+  width: 80px;
+  height: 80px;
+}
+
+.taskHeatmapList .weekDayLabel {
+  font-size: 9px;
 }
 
 .heatmapPanelHeader {
@@ -1749,14 +1708,40 @@
   white-space: nowrap;
 }
 
-.heatmapCompact .weekPercentPill.heat3,
+/* .heatmapCompact .weekPercentPill.heat3,
 .heatmapCompact .weekPercentPill.heat4 {
   color: #ffffff;
-}
+} */
 
 .heatmapCompact .weekDayMeta {
   font-size: 8px;
   line-height: 1;
+}
+
+/* Task view 7-day heatmap — always 7 cols, compact */
+.taskHeatmapList .heatmapCompact .weekCardsGrid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.taskHeatmapList .heatmapCompact .weekDayCard {
+  min-height: 70px;
+  padding: 6px 2px;
+  gap: 4px;
+  border-radius: 8px;
+}
+
+.taskHeatmapList .heatmapCompact .weekPercentPill {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  font-size: 11px;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.taskHeatmapList .heatmapCompact .weekDayLabel {
+  font-size: 9px;
 }
 
 /* Task View compact tuning for 30-days heatmap */
@@ -1989,52 +1974,23 @@
 }
 
 .heat0 {
-  background: #e0f2fe;
+  background: var(--heat-empty);
 }
 
 .heat1 {
-  background: #bae6fd;
+  background: var(--heat-low);
 }
 
 .heat2 {
-  background: #7dd3fc;
+  background: color-mix(in srgb, var(--heat-low) 50%, var(--heat-mid) 50%);
 }
 
 .heat3 {
-  background: #38bdf8;
+  background: var(--heat-mid);
 }
 
 .heat4 {
-  background: #0369a1;
-}
-
-:global(.dark) .heatEmpty {
-  opacity: 0.3;
-}
-
-:global(.dark) .heat0 {
-  background: var(--bg-elevated);
-}
-
-:global(.dark) .heat1 {
-  background: rgba(56, 189, 248, 0.2);
-}
-
-:global(.dark) .heat2 {
-  background: rgba(56, 189, 248, 0.4);
-}
-
-:global(.dark) .heat3 {
-  background: rgba(56, 189, 248, 0.6);
-}
-
-:global(.dark) .heat4 {
-  background: rgba(56, 189, 248, 0.9);
-  color: #000;
-}
-
-:global(.dark) .heatmapCompact .weekPercentPill.heat4 {
-  color: #06131d;
+  background: var(--heat-high);
 }
 
 /* ── Banner ──────────────────────────────────────────────────────────────── */
