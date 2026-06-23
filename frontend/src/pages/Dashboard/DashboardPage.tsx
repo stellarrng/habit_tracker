@@ -114,9 +114,9 @@ function rangeDays(range: DateRange): number {
   return 365;
 }
 
-function formatDayMonth(d: Date): string {
-  return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`;
-}
+// function formatDayMonth(d: Date): string {
+//   return `${d.getDate()} ${d.toLocaleString("en-US", { month: "short" })}`;
+// }
 
 function HalfDonut({ pct }: { pct: number }) {
   const r = 70;
