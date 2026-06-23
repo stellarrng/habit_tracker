@@ -211,7 +211,7 @@ function SettingsPanel({
 }
 
 // ── Topbar ────────────────────────────────────────────────────────────────────
-const APP_NAME = 'Habit Tracker Pro';
+const APP_NAME = 'Habit Hackers';
 
 interface TopbarProps {
   title: string;

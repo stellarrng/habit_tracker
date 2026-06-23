@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.linksRow}>
-        <span className={styles.brand}>Habit Tracker Pro</span>
+        <span className={styles.brand}>Habit Hackers</span>
         <span className={styles.divider}>|</span>
         <nav aria-label="Footer navigation">
           <a href="#privacy">Privacy</a>

@@ -22,9 +22,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}>
       {/* Brand */}
       <div className={styles.brand}>
-        <img src="/logo.png" alt="Habit Tracker Pro logo" className={styles.brandLogo} />
+        <img src="/logo.png" alt="Habit Hackers logo" className={styles.brandLogo} />
         <div className={styles.brandText}>
-          <span className={styles.brandName}>Habit Tracker Pro</span>
+          <span className={styles.brandName}>Habit Hackers</span>
           <span className={styles.brandSub}>Build better habits, every day.</span>
         </div>
       </div>

@@ -6,12 +6,12 @@ import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const navigate  = useNavigate();
+  const navigate = useNavigate();
 
-  const [email,    setEmail]    = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ export default function LoginPage() {
       <div className={styles.card}>
         {/* Brand */}
         <div className={styles.brand}>
-          <div className={styles.brandName}>Habit Tracker Pro</div>
+          <div className={styles.brandName}>Habit Hackers</div>
           <div className={styles.brandSub}>Build better habits, every day</div>
         </div>
 
