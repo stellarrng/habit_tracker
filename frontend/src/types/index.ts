@@ -22,12 +22,16 @@ export interface Habit {
   _id: string;
   userId: string;
   name: string;
+  description?: string;
   category: HabitCategory;
   frequency: HabitFrequency;
   specificDays: WeekDay[];
   targetPerDay: number;
   priority: HabitPriority;
   status: HabitStatus;
+  goalTargetType?: GoalTargetType | null;
+  goalTargetValue?: number | null;
+  goalStartedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -77,6 +81,10 @@ export interface CreateHabitInput {
   specificDays?: WeekDay[];
   targetPerDay: number;
   priority?: HabitPriority;
+  goalTargetType?: GoalTargetType | null;
+  goalTargetValue?: number | null;
+  goalStartedAt?: string | null;
+  description?: string;
 }
 
 export type UpdateHabitInput = Partial<CreateHabitInput> & { status?: HabitStatus };
@@ -97,4 +105,12 @@ export interface CreateGoalInput {
   habitId: string;
   targetType: GoalTargetType;
   targetValue: number;
+}
+
+// ─── UI/View Model ─────────────────────────────────────────────────────────────
+
+export interface WeekStripDay {
+  label: WeekDay;
+  date: number;
+  iso: string;
 }

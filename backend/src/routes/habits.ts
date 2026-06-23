@@ -20,7 +20,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 // POST /api/habits — create a new habit
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, category, frequency, specificDays, targetPerDay, priority } = req.body;
+    const { name, category, frequency, specificDays, targetPerDay, priority, goalTargetType, goalTargetValue, description } = req.body;
 
     if (!name || !category || !frequency || !targetPerDay) {
       res.status(400).json({ message: 'name, category, frequency and targetPerDay are required' });
@@ -35,10 +35,14 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       specificDays: specificDays ?? [],
       targetPerDay,
       priority: priority ?? 'Medium',
+      goalTargetType: goalTargetType || undefined,
+      goalTargetValue: goalTargetValue || undefined,
+      description,
     });
 
     res.status(201).json(habit);
-  } catch {
+  } catch (error) {
+    console.error('Error in POST /api/habits:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -53,7 +57,7 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { name, category, frequency, specificDays, targetPerDay, priority, status } = req.body;
+    const { name, category, frequency, specificDays, targetPerDay, priority, status, goalTargetType, goalTargetValue, description } = req.body;
 
     if (name !== undefined)         habit.name         = name;
     if (category !== undefined)     habit.category     = category;
@@ -62,10 +66,22 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
     if (targetPerDay !== undefined) habit.targetPerDay = targetPerDay;
     if (priority !== undefined)     habit.priority     = priority;
     if (status !== undefined)       habit.status       = status;
+    
+    // Explicitly allow resetting goal to undefined/null or updating it
+    if (goalTargetType !== undefined)  habit.goalTargetType  = goalTargetType || undefined;
+    if (goalTargetValue !== undefined) habit.goalTargetValue = goalTargetValue || undefined;
+    if (req.body.goalStartedAt !== undefined) {
+      habit.goalStartedAt = req.body.goalStartedAt ? new Date(req.body.goalStartedAt) : undefined;
+    } else if (goalTargetType !== undefined || goalTargetValue !== undefined) {
+      habit.goalStartedAt = new Date();
+    }
+
+    if (description !== undefined)  habit.description  = description;
 
     await habit.save();
     res.json(habit);
-  } catch {
+  } catch (error) {
+    console.error('Error in PUT /api/habits:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

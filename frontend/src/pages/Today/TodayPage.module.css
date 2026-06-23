@@ -1,453 +1,689 @@
-/* ── Layout ─────────────────────────────────────────────────────────────────── */
+/* ── Page shell ──────────────────────────────────────────────────────────── */
 
 .page {
-  min-height: 100vh;
-  background-color: #f9fafb;
-  padding: 24px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-.container {
-  max-width: 672px;
+  width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
+  padding: 0 24px 64px;
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* ── Header ──────────────────────────────────────────────────────────────────── */
-
-.header {
+.container {
+  width: 100%;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pageGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.mainColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* controls spacing between all direct children */
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  position: sticky;
+  top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .pageGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sideColumn {
+    position: static;
+  }
+}
+
+/* ── Header / hero ───────────────────────────────────────────────────────── */
+
+.greetingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) 0 var(--space-5);
+}
+
+.greetingIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+  opacity: 0.85;
 }
 
 .greeting {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-size: 1.75rem;
+  font-weight: var(--font-bold);
+  font-style: italic;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+/* ── Progress message + bar ──────────────────────────────────────────────── */
+
+.progressGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  /* tighter internal gap between message and bar */
+}
+
+.progressMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
   margin: 0;
 }
 
-.subheading {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 2px 0 0;
+.progressMessage svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  width: 18px;
+  height: 18px;
 }
 
-.undoBtn {
+/* Row: bar takes all remaining space, percentage sits to the right */
+.progressRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #2563eb;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: color 0.15s;
+  gap: var(--space-3);
 }
-
-.undoBtn:hover {
-  color: #1d4ed8;
-}
-
-/* ── Progress bar ────────────────────────────────────────────────────────────── */
 
 .progressTrack {
-  width: 100%;
-  height: 8px;
-  background-color: #f3f4f6;
-  border-radius: 9999px;
+  flex: 1;
+  height: 12px;
+  /* slightly taller than 10px — more visible */
+  background-color: var(--color-primary-light);
+  /* tinted track instead of flat gray */
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .progressFill {
+  position: relative;
   height: 100%;
-  background-color: #3b82f6;
-  border-radius: 9999px;
-  transition: width 0.5s ease;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
-/* ── Week strip ──────────────────────────────────────────────────────────────── */
-
-.weekStrip {
-  display: flex;
-  gap: 4px;
+/* 100% complete: drop the gradient, go solid cyan-blue */
+.progressFillComplete {
+  background: #a5f3fc;
 }
 
-.dayBtn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  border-radius: 12px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  transition: background-color 0.15s;
+.progressGlow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 100%);
+  border-radius: var(--radius-full);
+  /* subtle shimmer effect — hidden at 100% (glow span not rendered then) */
 }
 
-.dayBtn:hover {
-  background-color: #f3f4f6;
+/* ── Date navigator (teammate's, wraps our WeekStrip) ───────────────────── */
+
+.dateNav {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px 12px;
+  box-shadow: var(--shadow-card);
 }
 
-.dayBtnActive {
-  background-color: #3b82f6;
-}
-
-.dayBtnActive:hover {
-  background-color: #3b82f6;
-}
-
-.dayLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-}
-
-.dayBtnActive .dayLabel {
-  color: #fff;
-}
-
-.dayDate {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #111827;
-  margin-top: 2px;
-}
-
-.dayBtnActive .dayDate {
-  color: #fff;
-}
-
-/* ── Section header ──────────────────────────────────────────────────────────── */
-
-.sectionHeader {
+.dateNavHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-.sectionTitle {
-  font-size: 0.75rem;
+.dateNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navArrowBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.navArrowBtn:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.navArrowBtn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.navArrowBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.dateNavMonth {
+  font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #9ca3af;
+  color: var(--text-primary);
+  margin-left: 4px;
 }
 
-.sectionCount {
-  font-size: 0.75rem;
-  color: #9ca3af;
+.todayNavBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-/* ── Habit list ──────────────────────────────────────────────────────────────── */
+.todayNavBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Read-only notice ─────────────────────────────────────────────────────── */
+
+.readOnlyNoticeSlot {
+  min-height: 8px;
+  /* no margin-bottom — the parent gap handles spacing above the habit list */
+}
+
+.readOnlyNotice {
+  font-size: var(--text-xs);
+  color: var(--color-gray-500);
+  background-color: var(--color-gray-50);
+  border: 1px solid var(--color-gray-100);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ── Habit list ──────────────────────────────────────────────────────────── */
+/* Row styling itself lives in HabitRow.module.css (separate component) —
+   this file only needs the list container spacing. */
 
 .habitList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
-.habitRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid #f3f4f6;
-  background-color: #fff;
-  transition: border-color 0.15s;
-}
+/* ── 3-card info row ─────────────────────────────────────────────────────── */
+/* Left: our tip card · Middle: teammate's WeeklyMomentum · Right: our stats card */
 
-.habitRowCompleted {
-  border-color: #d1fae5;
-}
-
-.habitRowAtRisk {
-  border-color: #fee2e2;
-}
-
-.habitLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.habitIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.125rem;
-  flex-shrink: 0;
-}
-
-.habitIconCompleted {
-  background-color: #ecfdf5;
-}
-
-.habitInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.habitNameRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.habitName {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-/* ── Category badge ──────────────────────────────────────────────────────────── */
-
-.categoryBadge {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.categoryHealth {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.categoryStudy {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.categoryWork {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.categoryMindfulness {
-  background-color: #ede9fe;
-  color: #5b21b6;
-}
-
-.categoryOther {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
-/* ── Status line ─────────────────────────────────────────────────────────────── */
-
-.statusLine {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  margin-top: 2px;
-}
-
-.statusCompleted {
-  color: #059669;
-  font-weight: 500;
-}
-
-.statusAtRisk {
-  color: #ef4444;
-  font-weight: 500;
-}
-
-.statusInProgress {
-  color: #9ca3af;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #10b981;
-  flex-shrink: 0;
-}
-
-/* ── Counter ─────────────────────────────────────────────────────────────────── */
-
-.counter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.counterBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #e5e7eb;
-  background: none;
-  color: #6b7280;
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s;
-}
-
-.counterBtn:hover:not(:disabled) {
-  background-color: #f3f4f6;
-}
-
-.counterBtn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.counterValue {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-  width: 64px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── Bottom cards ────────────────────────────────────────────────────────────── */
-
-.bottomCards {
+.infoGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
+
+@media (max-width: 900px) {
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Right panel: Consistency Tip ────────────────────────────────────────────── */
 
 .tipCard {
-  background-color: #fffbeb;
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 16px;
+  background-color: var(--color-primary-dark);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .tipHeader {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
-  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.tipIconWrap {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tipLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .tipTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #92400e;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  line-height: 1.3;
 }
 
 .tipBody {
-  font-size: 0.75rem;
-  color: #b45309;
-  line-height: 1.5;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.55;
   margin: 0;
 }
 
-.settingsCard {
-  background-color: #fff;
-  border: 1px solid #f3f4f6;
-  border-radius: 12px;
+/* ── Weekly Momentum card (teammate's) ───────────────────────────────────── */
+
+.momentumCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 16px;
+}
+
+.momentumHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.momentumLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+.momentumDots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dot {
+  flex: 1;
+  height: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.dotHigh {
+  background-color: var(--heat-high);
+}
+
+.dotMid {
+  background-color: var(--heat-mid);
+}
+
+.dotLow {
+  background-color: var(--heat-low);
+}
+
+.dotEmpty {
+  background-color: var(--heat-empty);
+}
+
+.momentumDays {
+  display: flex;
+  gap: 6px;
+}
+
+.momentumDay {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Less □ □ □ □ More */
+.heatLegend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.heatLegendLabel {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-style: normal;
+  /* reset italic in case <i> tag inherits */
+}
+
+.heatLegendCell {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  font-style: normal;
+}
+
+/* ── Stats card (ours) ───────────────────────────────────────────────────── */
+
+.statsCard {
+  background: linear-gradient(145deg, var(--color-primary-light) 0%, var(--bg-surface) 60%);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.statsCardLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  opacity: 0.8;
+  margin: 0 0 var(--space-3) 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.statsItem {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
+}
+
+/* Streak slot gets a slightly warmer tint to stand out */
+.statsItemAccent {
+  background: rgba(244, 172, 186, 0.15);
+  /* blush pink tint — --color-accent at low opacity */
+  border-color: rgba(244, 172, 186, 0.35);
+}
+
+.statsValue {
+  display: block;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.statsLabel {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.streakValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Colored fire — today is fully complete, streak maintained */
+.fireActive {
+  font-size: 1.1em;
+  filter: none;
+  /* full color emoji */
+}
+
+/* Monochrome fire — streak exists but today not yet done */
+.fireInactive {
+  font-size: 1.1em;
+  filter: grayscale(100%) opacity(0.45);
+  /* desaturated + dimmed */
+  transition: filter 0.3s ease;
+  /* smooth color-in when today completes */
+}
+
+/* ── Error state ─────────────────────────────────────────────────────────── */
+
+.errorBox {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-}
-
-.settingsTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-}
-
-.settingsSubtitle {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin: 2px 0 0;
-}
-
-.resetBtn {
-  margin-top: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #ef4444;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  text-align: left;
-  transition: color 0.15s;
-}
-
-.resetBtn:hover {
-  color: #dc2626;
-}
-
-/* ── New habit button ────────────────────────────────────────────────────────── */
-
-.newHabitBtn {
-  display: flex;
   align-items: center;
-  gap: 8px;
-  background-color: #3b82f6;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-6);
+  background: var(--bg-surface);
+  border: 1px solid var(--color-danger-light);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.errorText {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+}
+
+.retryBtn {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
   color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 10px 16px;
-  border-radius: 12px;
+  background-color: var(--color-primary);
   border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-5);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.15s;
+  transition: background-color var(--transition-fast);
 }
 
-.newHabitBtn:hover {
-  background-color: #2563eb;
+.retryBtn:hover {
+  background-color: var(--color-primary-hover);
 }
 
-.newHabitBtn span {
-  font-size: 1.125rem;
-  line-height: 1;
-}
+/* ── Empty state ─────────────────────────────────────────────────────────── */
 
-/* ── Footer ──────────────────────────────────────────────────────────────────── */
-
-.footer {
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+  background: var(--bg-surface);
+  border: 1px dashed var(--color-gray-200);
+  border-radius: var(--radius-lg);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeletonBox {
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-100) 25%,
+    var(--color-gray-200) 50%,
+    var(--color-gray-100) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeletonHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.skeletonGreeting {
+  width: 220px;
+  height: 28px;
+}
+
+.skeletonProgress {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonWeek {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.skeletonDay {
+  flex: 1;
+  height: 56px;
+  border-radius: var(--radius-lg);
+}
+
+.skeletonRow {
+  display: flex;
   align-items: center;
-  font-size: 0.75rem;
-  color: #d1d5db;
-  padding: 8px 0 4px;
+  justify-content: space-between;
+  padding: 14px var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-gray-100);
+  background: var(--bg-surface);
 }
 
-.footerLinks {
+.skeletonLeft {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: var(--space-3);
 }
 
-.footerLink {
-  color: #d1d5db;
-  text-decoration: none;
-  transition: color 0.15s;
+.skeletonLines {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.footerLink:hover {
-  color: #9ca3af;
+.skeletonIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.skeletonTitle {
+  width: 140px;
+  height: 14px;
+}
+
+.skeletonSub {
+  width: 90px;
+  height: 11px;
+}
+
+.skeletonCounter {
+  width: 80px;
+  height: 28px;
+  border-radius: var(--radius-full);
+}
+
+.skeletonTip {
+  height: 160px;
+  border-radius: var(--radius-lg);
+}
+
+.skeletonMomentum {
+  height: 90px;
+  border-radius: var(--radius-lg);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .pageHeader {
+    flex-direction: column;
+  }
+}
+
+/* Add New Habit Button */
+
+.addHabitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-2);
+
+  background: transparent;
+  border: 1.5px dashed var(--color-primary);
+  border-radius: var(--radius-lg);
+
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  opacity: 0.7;
+
+  cursor: pointer;
+  transition: opacity var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.addHabitBtn:hover {
+  opacity: 1;
+  background: var(--color-primary-light);
 }

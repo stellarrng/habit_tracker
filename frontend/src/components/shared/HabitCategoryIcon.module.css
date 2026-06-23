@@ -1,0 +1,39 @@
+.habitIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  border-radius: var(--radius-full);
+}
+
+.categoryHealth {
+  background-color: var(--color-category-health-bg);
+  color: var(--color-category-health-text);
+}
+
+.categoryStudy {
+  background-color: var(--color-category-study-bg);
+  color: var(--color-category-study-text);
+}
+
+.categoryWork {
+  background-color: var(--color-category-work-bg);
+  color: var(--color-category-work-text);
+}
+
+.categoryMindfulness {
+  background-color: var(--color-category-mindfulness-bg);
+  color: var(--color-category-mindfulness-text);
+}
+
+.categoryOther {
+  background-color: var(--color-category-other-bg);
+  color: var(--color-category-other-text);
+}
+
+.completed {
+  background-color: #FCE8EE;
+  color: #C4789A;
+  opacity: 0.8;
+}
