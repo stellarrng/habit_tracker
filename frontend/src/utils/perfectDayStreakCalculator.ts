@@ -45,8 +45,11 @@ export function calcPerfectDayStreak(
     d.setDate(anchor.getDate() - i);
     const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    const scheduledHabits = activeHabits.filter(h => isHabitScheduledOn(h, dateKey));
-
+    const scheduledHabits = activeHabits.filter(h =>
+      dateKey >= h.createdAt.toString().slice(0, 10) &&
+      isHabitScheduledOn(h, dateKey)
+    );
+    
     // No habits scheduled this day — neutral, skip without breaking
     if (scheduledHabits.length === 0) continue;
 

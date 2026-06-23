@@ -415,15 +415,21 @@ export default function TodayPage() {
 
   const goalMap = useMemo(() => new Map(goals.map(g => [g.habitId, g])), [goals]);
 
-  // Active + scheduled habits for the SELECTED date
   const scheduledHabits = useMemo(
-    () => habits.filter(h => h.status === "Active" && isHabitScheduledOn(h, selectedDate)),
+    () => habits.filter(h =>
+      h.status === "Active" &&
+      selectedDate >= h.createdAt.toString().slice(0, 10) &&
+      isHabitScheduledOn(h, selectedDate)
+    ),
     [habits, selectedDate]
   );
 
-  // Active + scheduled habits for TODAY specifically (drives progress/stats)
   const todayScheduledHabits = useMemo(
-    () => habits.filter(h => h.status === "Active" && isHabitScheduledOn(h, TODAY)),
+    () => habits.filter(h =>
+      h.status === "Active" &&
+      TODAY >= h.createdAt.toString().slice(0, 10) &&
+      isHabitScheduledOn(h, TODAY)
+    ),
     [habits]
   );
 
@@ -747,7 +753,7 @@ export default function TodayPage() {
             </div>
           </div>
         )}
-        <Footer/>
+        <Footer />
       </AppLayout>
 
       {lastAction && (
